@@ -8,10 +8,13 @@ export default defineConfig({
   site: process.env.CI
     ? 'https://astro-shadcn-ui-template.vercel.app'
     : 'http://localhost:4321',
-    output: 'server',
-    build: {
-      outDir: './dist',
-    },
+
+  output: 'server',
+
+  build: {
+    outDir: './dist',
+  },
+
   integrations: [
     react(),
     vercel(),
@@ -19,4 +22,6 @@ export default defineConfig({
       applyBaseStyles: false,
     }),
   ],
+
+  adapter: vercel(),
 })
