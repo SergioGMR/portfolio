@@ -1,21 +1,21 @@
 ---
-import Card from '../Card.astro'
-import { Button } from '../ui/button'
-import { LINKS } from '../../lib/constants'
+import Card from '@/components/Card.astro'
+import { Button } from '@/components/ui/button'
+import { LINKS } from '@/lib/constants'
 import { Linkedin, Github, Mail } from 'lucide-react'
 ---
 
 <Card colSpan="md:col-span-3" rowSpan="md:row-span-4">
   <div class="flex h-full w-full">
-    <div class="flex flex-col justify-between gap-4 md:max-h-[300px]">
+    <div class="flex flex-col justify-between gap-4 md:max-h-[350px]">
       <div class="flex h-full flex-col">
-        <h6 class="m-0 text-sm font-light text-gray-500">welcome</h6>
-        <p class="m-0 text-xl font-light">
-          Hi, I'm <b class="font-bold">Andrés Camilo Plaza</b>, a software
-          developer, systems engineer and tattoo artist with strong focus on the
-          user experience, animations and micro interactions. I love to create
-          beautiful and functional interfaces, I am passionate about technology
-          and I am always looking for new challenges.
+        <h6 id="welcome" class="m-0 text-sm font-light text-gray-500"></h6>
+        <p class="pr-10 text-xl font-light">
+          <span id="title"></span>
+          <span id="name" class="font-bold italic underline underline-offset-2"
+          ></span>
+
+          <span id="description"></span>
         </p>
       </div>
       <div class="flex gap-4">
@@ -40,11 +40,46 @@ import { Linkedin, Github, Mail } from 'lucide-react'
       </div>
     </div>
     <img
-      width="300"
-      height="300"
-      src="/me.png"
-      class="pointer-events-none absolute bottom-[-20px] right-[-110px] z-[-1] max-h-[300px] w-auto select-none opacity-50 md:relative md:bottom-auto md:right-auto md:z-auto md:opacity-100"
-      alt="memoji of andres plaza"
+      width="250"
+      height="250"
+      src="/me-laptop.webp"
+      class="pointer-events-none absolute bottom-[-20px] right-[-110px] z-[-1] max-h-[250px] w-auto select-none opacity-50 md:relative md:bottom-auto md:right-auto md:z-auto md:opacity-100"
+      alt="sergiogmr developing"
+      style="transform: rotateY(180deg);"
     />
   </div>
 </Card>
+
+<script is:inline>
+  let language = ''
+  const updateTexts = () => {
+    language = localStorage.getItem('language') || 'es'
+    const texts = {
+      name: 'Sergio Morales Rodríguez.',
+      es: {
+        welcome: 'Bienvenido',
+        title: 'Hola, me llamo ',
+        description:
+          'Soy un desarrollador de aplicaciones web y móviles, con un fuerte enfoque en el backend, siempre pendiente de las últimas tecnologías y tendencias. Me encanta crear aplicaciones escalables y de alto rendimiento, soy apasionado por la tecnología y siempre estoy en busca de nuevos desafíos.',
+      },
+      en: {
+        welcome: 'Welcome',
+        title: 'Hi, I am ',
+        description:
+          'I am a web and mobile application developer, with a strong focus on the backend, always keeping an eye on the latest technologies and trends. I love creating scalable and high-performance applications, I am passionate about technology and I am always looking for new challenges.',
+      },
+    }
+    document.getElementById('welcome').innerText = texts[language].welcome
+    document.getElementById('title').innerText = texts[language].title
+    document.getElementById('name').innerText = texts.name
+    document.getElementById('description').innerText =
+      texts[language].description
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('languageChange', () => {
+      updateTexts()
+    })
+    updateTexts()
+  }
+</script>

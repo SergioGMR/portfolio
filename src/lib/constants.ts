@@ -7,9 +7,9 @@ export const loaderAnimation = [
 ]
 
 export const LINKS = {
-  github: 'https://github.com/bue221',
-  linkedin: 'https://www.linkedin.com/in/bue221/',
-  mail: 'mailto:camiloplaza3@gmail.com',
+  github: 'https://github.com/sergiogmr',
+  linkedin: 'https://www.linkedin.com/in/sergiogmr/',
+  mail: 'mailto:sergiogmr+portfolio@icloud.com',
   instagram: 'https://www.instagram.com/caj_ink/',
   medium: 'https://ladvace.medium.com/',
   discord: 'https://discordapp.com/users/163300027618295808',
@@ -46,6 +46,20 @@ export const SEARCH: Page = {
   TITLE: 'Search',
   DESCRIPTION: 'Search all posts and projects by keyword.',
 }
+
+export const STACK = [
+  'PHP',
+  'Laravel',
+  'JavaScript',
+  'TypeScript',
+  'React',
+  'React Native',
+  'Vue',
+  'Git',
+  'CSS',
+  'Tailwind CSS',
+  'Bootstrap',
+]
 
 // Study Page
 export const STUDIES = [

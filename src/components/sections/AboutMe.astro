@@ -1,23 +1,26 @@
 ---
-import Card from '../Card.astro'
+import Card from '@/components/Card.astro'
+import { STACK } from '@/lib/constants'
 ---
 
-<Card colSpan="md:col-span-1" rowSpan="md:row-span-6" title="About me">
+<Card
+  id="aboutWelcome"
+  colSpan="md:col-span-1"
+  rowSpan="md:row-span-6"
+  title="Sobre mi"
+>
   <div class="flex flex-col gap-2">
     <p class="text-sm font-light">
-      Hi, I'm Andrés, a fullstack software developer from Colombia 🇨🇴.
+      <span id="aboutTitle"></span>
+      <span id="aboutName" class="font-bold underline underline-offset-4"></span>
+      <span id="aboutDescription"></span>
       <br />
       <br />
-      My primary tools of choice includes:
-      <ul class="list-inside list-disc">
-        <li>JavaScript</li>
-        <li>React</li>
-        <li>Astro</li>
-        <li>Python</li>
-        <li>Php</li>
-        <li>Mongo</li>
-        <li>SQL</li>
-        <li>Nodejs</li>
+      <span id="aboutTools"></span>
+      <ul class="list-inside">
+        {STACK.map((tool: string, index: number) => (
+          <li id={`tool-${index}`}>{tool}</li>
+        ))}
       </ul>
     </p>
     <p class="text-sm font-light">
@@ -26,3 +29,66 @@ import Card from '../Card.astro'
     </p>
   </div>
 </Card>
+
+<script>
+  let language: 'es' | 'en' = 'es'
+  const updateTexts = () => {
+    language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
+    const aboutTexts: {
+      name: string
+      es: { welcome: string; title: string; description: string; tools: string }
+      en: { welcome: string; title: string; description: string; tools: string }
+    } = {
+      name: 'Sergio Morales Rodríguez,',
+      es: {
+        welcome: 'Sobre mi',
+        title: 'Soy ',
+        description: ' desarrollador fullstack centrado en backend.',
+        tools: 'Las herramientas que suelo usar incluyen:'
+      },
+      en: {
+        welcome: 'About me',
+        title: 'I am ',
+        description: ' a fullstack developer focused on backend.',
+        tools: 'The tools I usually use include:'
+      },
+    }
+    const welcomeElement = document.getElementById('title-aboutWelcome')
+    if (welcomeElement) {
+      welcomeElement.innerText = aboutTexts[language].welcome
+    }
+    const titleElement = document.getElementById('aboutTitle')
+    if (titleElement) {
+      titleElement.innerText = aboutTexts[language].title
+    }
+    const nameElement = document.getElementById('aboutName')
+    if (nameElement) {
+      nameElement.innerText = aboutTexts.name
+    }
+    const descriptionElement = document.getElementById('aboutDescription')
+    if (descriptionElement) {
+      descriptionElement.innerText = aboutTexts[language].description
+    }
+    const toolsElement = document.getElementById('aboutTools')
+    if (toolsElement) {
+      toolsElement.innerText = aboutTexts[language].tools
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('languageChange', () => {
+      updateTexts()
+    })
+    updateTexts()
+  }
+</script>
+
+<style scoped>
+  li {
+    list-style: none;
+    &::before {
+      content: '💻';
+      margin: 0.5rem;
+    }
+  }
+</style>

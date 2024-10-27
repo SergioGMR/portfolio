@@ -1,8 +1,8 @@
 ---
-import { ViewTransitions } from 'astro:transitions'
-import HeadSEO from '../components/HeadSEO.astro'
-import Footer from '../components/Footer.astro'
-import Header from '../components/Header.astro'
+import { ClientRouter } from 'astro:transitions'
+import HeadSEO from '@/components/HeadSEO.astro'
+import Footer from '@/components/Footer.astro'
+import Header from '@/components/Header.astro'
 
 interface Props {
   title?: string | undefined
@@ -16,7 +16,7 @@ const { title, description, ogImage } = Astro.props
 <html lang="en">
   <head>
     <HeadSEO title={title} description={description} ogImage={ogImage} />
-    <ViewTransitions />
+    <ClientRouter />
   </head>
   <body class="min-h-screen bg-background font-sans antialiased">
     <div class="flex flex-col items-center justify-center">
