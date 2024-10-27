@@ -1,10 +1,16 @@
-import type { Config } from 'tailwindcss'
-import { fontFamily } from 'tailwindcss/defaultTheme'
+import type { Config } from 'tailwindcss';
+import { fontFamily } from 'tailwindcss/defaultTheme';
+import { colors, shades } from './src/lib/utils';
 
-const config = {
+const config: Config = {
   darkMode: ['class'],
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
   prefix: '',
+  safelist: [
+    ...colors.flatMap(color => shades.map(shade => `bg-${color}-${shade}`)),
+    ...colors.flatMap(color => shades.map(shade => `text-${color}-${shade}`)),
+    ...colors.flatMap(color => shades.map(shade => `border-${color}-${shade}`)),
+  ],
   theme: {
     container: {
       center: true,
@@ -74,6 +80,6 @@ const config = {
     },
   },
   plugins: [require('tailwindcss-animate')],
-} satisfies Config
+};
 
-export default config
+export default config;

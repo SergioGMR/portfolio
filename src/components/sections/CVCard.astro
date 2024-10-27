@@ -1,28 +1,21 @@
 ---
-import { File } from 'lucide-react'
-import Card from '../Card.astro'
-import { Button } from '../ui/button'
-
-const PDF = '/CV English.pdf'
+import { DownloadIcon } from 'lucide-react'
+import Card from '@/components/Card.astro'
+import { Button } from '@/components/ui/button'
 ---
 
-<Card colSpan="md:col-span-1" rowSpan="md:row-span-4" title="CV">
-  <div class="mt-4 flex w-full justify-center">
+<Card colSpan="md:col-span-1" rowSpan="md:row-span-2" id="pdf">
+  <div class="flex h-[calc(100%-3.5rem)] w-full justify-between">
     <div
-      class="card card-compact md:w-112 lg:w-128 w-96 gap-2 border-[oklch(var(--p))] transition-all"
+      class="card card-compact md:w-112 lg:w-128 flex w-96 flex-col justify-between gap-2 border-[oklch(var(--p))] transition-all"
     >
-      <figure>
-        <object data={PDF} type="application/pdf" width="100%"></object>
-      </figure>
-      <div class="mt-4 flex flex-col gap-2">
-        <p class="text-sm text-muted-foreground">
-          View and download my resume by clicking on the button below
-        </p>
-        <div class="card-actions mt-2 flex w-full items-center justify-center">
-          <a target="_blank" href={PDF}>
+      <figure id="pdf-view"></figure>
+      <div class="flex flex-col gap-2">
+        <div class="card-actions flex w-full items-center justify-center">
+          <a target="_blank" id="pdf-link">
             <Button>
-              Download resume
-              <File />
+              <span id="pdf-button" class="mr-4"></span>
+              <DownloadIcon />
             </Button>
           </a>
         </div>
@@ -30,3 +23,47 @@ const PDF = '/CV English.pdf'
     </div>
   </div>
 </Card>
+
+<script>
+  const EN_PDF = '/SergioMorales-2024-en.pdf'
+  const ES_PDF = '/SergioMorales-2024-es.pdf'
+  export let language: 'es' | 'en' = 'es'
+  export const updateTexts = () => {
+    language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
+    const pdfTexts = {
+      es: {
+        title: 'Currículum',
+        button: 'Descargar currículum',
+      },
+      en: {
+        title: 'Resume',
+        button: 'Download resume',
+      },
+    }
+    const title = document.getElementById('pdf')
+    if (title) {
+      title.querySelector('h2')?.remove()
+      title.insertAdjacentHTML(
+        'afterbegin',
+        `<h2 class="text-2xl font-bold">${pdfTexts[language].title}</h2>`,
+      )
+    }
+    const PDF = language === 'es' ? ES_PDF : EN_PDF
+    document.getElementById('pdf-link')?.setAttribute('href', PDF)
+    const pdfView = document.getElementById('pdf-view')
+    if (pdfView) {
+      pdfView.innerHTML = `<object data=${PDF} type="application/pdf" class="w-full h-full"></object>`
+    }
+    const pdfButton = document.getElementById('pdf-button')
+    if (pdfButton) {
+      pdfButton.textContent = pdfTexts[language].button
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('languageChange', () => {
+      updateTexts()
+    })
+    updateTexts()
+  }
+</script>

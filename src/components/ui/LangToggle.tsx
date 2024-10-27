@@ -39,12 +39,12 @@ const LangToggle: React.FC = () => {
     >
       {language === 'es' ? (
         isWindows ? (
-          <img className="h-5 w-auto rounded" src={esFlag} alt="Español" />
+          <img className="h-[1.2rem] w-7 rounded" src={esFlag} alt="Español" />
         ) : (
           '🇪🇸'
         )
       ) : isWindows ? (
-        <img className="h-5 w-auto rounded" src={enFlag} alt="English" />
+        <img className="h-[1.2rem] w-7 rounded" src={enFlag} alt="English" />
       ) : (
         '🇬🇧'
       )}

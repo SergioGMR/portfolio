@@ -1,0 +1,63 @@
+---
+import Card from '@/components/Card.astro'
+import { LINKS } from '@/lib/constants'
+---
+
+<Card
+  colSpan="md:col-span-1"
+  rowSpan="md:row-span-2"
+  title="AceSports"
+  href={LINKS.acesports}
+>
+  <div class="flex h-full w-full flex-col items-center justify-center">
+    <div>
+      <img
+        width="50"
+        height="50"
+        src="/me_popcorn.webp"
+        class="pointer-events-none absolute -bottom-8 right-12 z-[-1] -mt-16 h-40 max-h-72 w-auto select-none opacity-50 md:relative md:bottom-auto md:right-auto md:z-auto md:h-auto md:opacity-100"
+        alt="memoji of sergio eating popcorn"
+      />
+    </div>
+    <div>
+      <p
+        id="popcorn-text"
+        class="-mt-8 text-balance text-sm text-muted-foreground"
+      >
+      </p>
+    </div>
+  </div>
+</Card>
+
+<script>
+  let language: 'es' | 'en' = 'es'
+  const updateTexts = () => {
+    language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
+    const popcornTexts: {
+      es: {
+        text: string
+      }
+      en: {
+        text: string
+      }
+    } = {
+      es: {
+        text: 'Me encanta el cine y las series, y por supuesto, las palomitas.',
+      },
+      en: {
+        text: 'I love movies and series, and of course, popcorn.',
+      },
+    }
+    const text = document.getElementById('popcorn-text')
+    if (text) {
+      text.textContent = popcornTexts[language].text
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('languageChange', () => {
+      updateTexts()
+    })
+    updateTexts()
+  }
+</script>

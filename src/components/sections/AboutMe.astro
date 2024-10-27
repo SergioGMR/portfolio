@@ -6,15 +6,17 @@ import { STACK } from '@/lib/constants'
 <Card
   id="aboutWelcome"
   colSpan="md:col-span-1"
-  rowSpan="md:row-span-6"
+  rowSpan="md:row-span-2"
   title="Sobre mi"
 >
   <div class="flex flex-col gap-2">
     <p class="text-sm font-light">
       <span id="aboutTitle"></span>
-      <span id="aboutName" class="font-bold underline underline-offset-4"
+      <span
+        id="aboutName"
+        class="font-bold italic underline decoration-violet-300 underline-offset-4"
       ></span>
-      <span id="aboutDescription"></span>
+      <span id="aboutDescription" class="text-pretty"></span>
       <br />
       <br />
       <span id="aboutTools"></span>
@@ -26,10 +28,7 @@ import { STACK } from '@/lib/constants'
         }
       </ul>
     </p>
-    <p class="text-sm font-light">
-      Beyond coding, I'm passionate about tattoo, soccer and traveling. An
-      unusual hobby of mine is play classical music in the guitar or ukulele.
-    </p>
+    <p class="text-pretty text-sm font-light" id="aboutBeyond"></p>
   </div>
 </Card>
 
@@ -39,8 +38,20 @@ import { STACK } from '@/lib/constants'
     language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
     const aboutTexts: {
       name: string
-      es: { welcome: string; title: string; description: string; tools: string }
-      en: { welcome: string; title: string; description: string; tools: string }
+      es: {
+        welcome: string
+        title: string
+        description: string
+        tools: string
+        beyond: string
+      }
+      en: {
+        welcome: string
+        title: string
+        description: string
+        tools: string
+        beyond: string
+      }
     } = {
       name: 'Sergio Morales Rodríguez,',
       es: {
@@ -48,12 +59,16 @@ import { STACK } from '@/lib/constants'
         title: 'Soy ',
         description: ' desarrollador fullstack centrado en backend.',
         tools: 'Las que suelo usar incluyen:',
+        beyond:
+          'Además de programar, me gustan las series procedimentales, los videojuegos, el cine y sobre todo, viajar. ( Sin contar mis gatos, Ginny y Sirius ).',
       },
       en: {
         welcome: 'About me',
         title: 'I am ',
         description: ' a fullstack developer focused on backend.',
         tools: 'The tools I usually use include:',
+        beyond:
+          "Beyond coding, I'm passionate about procedural series, video games like League of Legends, movies and above all, traveling. ( Not counting my cats, Ginny and Sirius ).",
       },
     }
     const welcomeElement = document.getElementById('title-aboutWelcome')
@@ -75,6 +90,10 @@ import { STACK } from '@/lib/constants'
     const toolsElement = document.getElementById('aboutTools')
     if (toolsElement) {
       toolsElement.innerText = aboutTexts[language].tools
+    }
+    const beyondElement = document.getElementById('aboutBeyond')
+    if (beyondElement) {
+      beyondElement.innerText = aboutTexts[language].beyond
     }
   }
 

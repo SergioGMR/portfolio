@@ -1,0 +1,20 @@
+---
+import Card from '@/components/Card.astro'
+import { getFilesFromDirectory } from '@/lib/utils'
+const files = getFilesFromDirectory('./public/memojis')
+const memoji = files[Math.floor(Math.random() * files.length)]
+---
+
+<Card colSpan="md:col-span-2" rowSpan="md:row-span-2">
+  <div
+    id="memojiCard"
+    class="flex h-full flex-col justify-center overflow-hidden rounded-lg"
+  >
+    <img
+      src={`/memojis/${memoji}`}
+      alt="Memoji"
+      style="filter: drop-shadow(0 0 5px rgb(0, 0, 0, 0.5));
+		  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);"
+    />
+  </div>
+</Card>
