@@ -24,13 +24,13 @@ const Timezone = ({ timezone }: any) => {
       morning: 'Buenos días',
       afternoon: 'Buenas tardes',
       evening: 'Buenas noches',
-      location: 'Islas Canarias, España'
+      location: '🇮🇨 Islas Canarias, España 🇪🇸'
     },
     en: {
       morning: 'Good morning',
       afternoon: 'Good afternoon',
       evening: 'Good evening',
-      location: 'Canary Islands, Spain'
+      location: '🇮🇨 Canary Islands, Spain 🇪🇸'
     },
   }
 

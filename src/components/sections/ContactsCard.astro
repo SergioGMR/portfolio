@@ -1,19 +1,19 @@
 ---
-import Card from '../Card.astro'
-import { LINKS } from '../../lib/constants'
+import Card from '@/components/Card.astro'
+import { LINKS } from '@/lib/constants'
 ---
 
 <Card colSpan="md:col-span-1" rowSpan="md:row-span-2">
   <div class="h-full">
     <header class="flex items-center">
-      <h1 class="text-xl font-bold text-foreground">
-        Let's start working together!
+      <h1 id="contactTitle" class="text-xl font-bold text-foreground">
+        Cargando...
       </h1>
     </header>
     <address class="mt-4 flex flex-col">
-      <h2 class="text-gray-500">Contact Details</h2>
-      <p>camiloplaza3@gmail.com</p>
-      <p>🇨🇴 Bogotá D.C, Colombia 🇨🇴</p>
+      <h2 id="contcatDetails" class="text-gray-500">Contact Details</h2>
+      <p class="text-left">sergiogmr@icloud.com</p>
+      <p id="contactParadais" class="mt-2">🇮🇨 Islas Canarias, España 🇪🇸</p>
     </address>
     <div class="mt-4 flex w-fit flex-col">
       <h2 class="text-gray-500">Socials</h2>
@@ -25,9 +25,58 @@ import { LINKS } from '../../lib/constants'
           <a href={LINKS.github} target="_blank">Github</a>
         </li>
         <li>
-          <a href={LINKS.instagram} target="_blank">Instagram</a>
+          <a href={LINKS.twitter} target="_blank">X</a>
         </li>
       </ul>
     </div>
   </div>
 </Card>
+<script>
+  let language: 'es' | 'en' = 'es'
+  const updateTexts = () => {
+    language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
+    const studiesTexts: {
+      es: {
+        title: string
+        contactDetails: string
+        paradaise: string
+      }
+      en: {
+        title: string
+        contactDetails: string
+        paradaise: string
+      }
+    } = {
+      es: {
+        title: '¿Trabajamos juntos?',
+        contactDetails: 'Detalles de contacto',
+        paradaise: '🇮🇨 Islas Canarias, España 🇪🇸',
+      },
+      en: {
+        title: 'Work together?',
+        contactDetails: 'Contact Details',
+        paradaise: '🇮🇨 Canary Islands, Spain 🇪🇸',
+      },
+    }
+    const contactTitleElement = document.getElementById('contactTitle')
+    if (contactTitleElement) {
+      contactTitleElement.innerText = studiesTexts[language].title
+      console.log(contactTitleElement.innerText)
+    }
+    const contcatDetailsElement = document.getElementById('contcatDetails')
+    if (contcatDetailsElement) {
+      contcatDetailsElement.innerText = studiesTexts[language].contactDetails
+    }
+    const contactParadaisElement = document.getElementById('contactParadais')
+    if (contactParadaisElement) {
+      contactParadaisElement.innerText = studiesTexts[language].paradaise
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('languageChange', () => {
+      updateTexts()
+    })
+    updateTexts()
+  }
+</script>

@@ -19,8 +19,8 @@ export const LINKS = {
   linkedin: 'https://www.linkedin.com/in/sergiogmr/',
   mail: 'mailto:sergiogmr+portfolio@icloud.com',
   acesports: 'https://acesports.vercel.app/',
-  medium: 'https://ladvace.medium.com/',
-  discord: 'https://discordapp.com/users/163300027618295808',
+  discord: 'https://discordapp.com/users/299882015367495682',
+  twitter: 'https://x.com/sergiogmr',
 }
 
 // Global
