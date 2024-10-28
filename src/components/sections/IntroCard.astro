@@ -50,11 +50,11 @@ import { Linkedin, Github, Mail } from 'lucide-react'
   </div>
 </Card>
 
-<script is:inline>
-  let language = ''
+<script>
+  let language: 'es' | 'en' = 'es';
   const updateTexts = () => {
-    language = localStorage.getItem('language') || 'es'
-    const texts = {
+    language = (localStorage.getItem('language') as 'es' | 'en') || 'es';
+    const texts: { name: string; es: { welcome: string; title: string; description: string; }; en: { welcome: string; title: string; description: string; }; } = {
       name: 'Sergio Morales Rodríguez.',
       es: {
         welcome: 'Bienvenido',
@@ -69,11 +69,17 @@ import { Linkedin, Github, Mail } from 'lucide-react'
           "I'm a web and mobile application developer, with a strong focus on the backend, always keeping an eye on the latest technologies and trends. I love creating scalable and high-performance applications, I am passionate about technology and I am always looking for new challenges.",
       },
     }
-    document.getElementById('welcome').innerText = texts[language].welcome
-    document.getElementById('title').innerText = texts[language].title
-    document.getElementById('name').innerText = texts.name
-    document.getElementById('description').innerText =
-      texts[language].description
+    const welcomeElement = document.getElementById('welcome');
+    if (welcomeElement) welcomeElement.innerText = texts[language as 'es' | 'en'].welcome;
+
+    const titleElement = document.getElementById('title');
+    if (titleElement) titleElement.innerText = texts[language].title;
+
+    const nameElement = document.getElementById('name');
+    if (nameElement) nameElement.innerText = texts.name;
+
+    const descriptionElement = document.getElementById('description');
+    if (descriptionElement) descriptionElement.innerText = texts[language].description;
   }
 
   if (typeof window !== 'undefined') {

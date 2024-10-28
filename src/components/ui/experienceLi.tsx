@@ -3,8 +3,12 @@ import { EXPERIENCE } from '@/lib/constants'
 
 type ExperienceKey = keyof typeof EXPERIENCE;
 
-export function ExperienceLi(slice?: boolean) {
-    const [language, setLanguage] = useState<string>(() => {
+interface ExperienceLiProps {
+    slice?: boolean;
+}
+
+export function ExperienceLi({ slice = false }: ExperienceLiProps) {
+    const [lang, setLan] = useState<string>(() => {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('language') || 'es';
         }
@@ -12,21 +16,27 @@ export function ExperienceLi(slice?: boolean) {
     });
     const [experience, setExperience] = useState<any>([]);
     const updateExperience = () => {
-        language
-        setExperience(EXPERIENCE[language as ExperienceKey]);
+        setExperience(EXPERIENCE[lang as ExperienceKey]);
     }
 
     useEffect(() => {
         updateExperience();
-        console.log(experience)
-    }, [language]);
+    }, [lang]);
 
-    if (typeof window !== 'undefined') {
-        window.addEventListener('languageChange', () => {
-            updateExperience()
-        })
-        updateExperience()
-    }
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const handleLanguageChange = () => {
+                updateExperience();
+            };
+            window.addEventListener('languageChange', () => {
+                setLan(localStorage.getItem('language') || 'es');
+                updateExperience();
+            });
+            return () => {
+                window.removeEventListener('languageChange', handleLanguageChange);
+            };
+        }
+    }, []);
 
     return (
         <>
@@ -35,9 +45,9 @@ export function ExperienceLi(slice?: boolean) {
                     {
                         experience.map((entry: any) => (
                             <li className="animate mt-4 border-b border-black/10 py-8 first-of-type:mt-0 first-of-type:pt-0 last-of-type:border-none dark:border-white/25" key={entry.start}>
-                                <div className="mb-4 text-sm uppercase">
+                                <h2 className="mb-4 text-sm uppercase">
                                     {entry.start} - {entry.end}
-                                </div>
+                                </h2>
                                 <a
                                     href={entry.link ?? ''}
                                     className={`font-semibold ${entry?.link ? 'text-primary' : 'text-foreground'}`}
@@ -47,7 +57,7 @@ export function ExperienceLi(slice?: boolean) {
                                 <div className="text-sm font-semibold">{entry.position}</div>
                                 <article className="prose dark:prose-invert">
                                     {entry.tasks.map((i: any) => (
-                                        <span key={i}>{i}</span>
+                                        <p key={i}>{i}</p>
                                     ))}
                                 </article>
                             </li>
@@ -55,8 +65,8 @@ export function ExperienceLi(slice?: boolean) {
                     }
                 </ul>
             )}
-            {experience.slice(0, 3).map((entry: any) => (
-                <div>
+            {slice && experience.slice(0, 3).map((entry: any) => (
+                <div key={entry.start}>
                     <h3 className="text-lg font-semibold">{entry.position}</h3>
                     <a className="text-sm text-primary" href={entry?.link ?? ''}>
                         {entry.company}

@@ -4,11 +4,51 @@ import { Button } from '@/components/ui/button'
 import { ExperienceLi } from '@/components/ui/experienceLi'
 ---
 
-<Card colSpan="md:col-span-1" rowSpan="md:row-span-2" title="Experience">
+<Card
+  colSpan="md:col-span-1"
+  rowSpan="md:row-span-2"
+  id="viewMore"
+  title="Experience"
+>
   <div class="mt-2 space-y-4">
-    <ExperienceLi slice />
+    <ExperienceLi slice client:load />
     <a href="/work">
-      <Button variant="link" className="pl-0"> View More </Button>
+      <Button variant="link" className="pl-0" id="viewMore-button" />
     </a>
   </div>
 </Card>
+
+<script>
+  const experienceTexts = {
+    es: {
+      title: 'Experiencia',
+      button: 'Ver Más',
+    },
+    en: {
+      title: 'Experience',
+      button: 'View More',
+    },
+  }
+  let language: 'es' | 'en' = 'es'
+  const updateTexts = () => {
+    language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
+    const viewMoreButtonElement = document.getElementById('viewMore-button')
+    if (viewMoreButtonElement)
+      viewMoreButtonElement.innerText =
+        experienceTexts[language as 'es' | 'en'].button
+    const viewMoreElement = document.getElementById('viewMore')
+    if (viewMoreElement) {
+      viewMoreElement.querySelector('h2')?.remove()
+      viewMoreElement.insertAdjacentHTML(
+        'afterbegin',
+        `<h2 class="text-2xl font-bold">${experienceTexts[language as 'es' | 'en'].title}</h2>`
+      )
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('languageChange', () => {
+      updateTexts()
+    })
+    updateTexts()
+  }
+</script>

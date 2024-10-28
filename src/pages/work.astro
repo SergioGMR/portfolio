@@ -7,7 +7,7 @@ import { ExperienceLi } from '@/components/ui/experienceLi'
 ---
 
 <BaseLayout title={WORK.TITLE} description={WORK.DESCRIPTION}>
-  <main class="flex min-h-[80vh] flex-auto flex-col" transition:animate="fade">
+  <main class="flex min-h-[80vh] max-w-4xl flex-auto flex-col" transition:animate="fade">
     <TopLayout>
       <h2
         class="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0"
@@ -15,6 +15,9 @@ import { ExperienceLi } from '@/components/ui/experienceLi'
         {WORK.TITLE}
       </h2>
     </TopLayout>
-    <BottomLayout />
+    <section class="flex flex-auto flex-col items-center justify-center">
+      <ExperienceLi client:load />
+      <BottomLayout />
+    </section>
   </main>
 </BaseLayout>
