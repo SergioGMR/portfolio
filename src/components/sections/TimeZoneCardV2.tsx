@@ -1,10 +1,9 @@
+import { date } from 'astro:schema';
 import { useState, useEffect } from 'react'
-import moment from 'moment-timezone'
-import { set } from 'astro:schema'
 
 const Timezone = ({ timezone }: any) => {
   const [text, setText] = useState<string>('')
-  const [format, setFormat] = useState<string>('d/M/Y [a las] HH:mm:ss')
+  const [greeting, setGreeting] = useState<string>('Cargando...')
   const [language, setLanguage] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('language') || 'es';
@@ -19,52 +18,87 @@ const Timezone = ({ timezone }: any) => {
       afternoon: string
       evening: string
       location: string
-      format: string
     }
   } = {
     es: {
       morning: 'Buenos días',
       afternoon: 'Buenas tardes',
       evening: 'Buenas noches',
-      location: 'Islas Canarias, España',
-      format: 'd/M/Y [a las] HH:mm:ss',
+      location: 'Islas Canarias, España'
     },
     en: {
       morning: 'Good morning',
       afternoon: 'Good afternoon',
       evening: 'Good evening',
-      location: 'Canary Islands, Spain',
-      format: 'M/d/Y [at] HH:mm:ss',
+      location: 'Canary Islands, Spain'
     },
   }
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = moment().tz(timezone)
-      setDateTime(now.format(format))
-    }, 1000)
+  const getFormattedTime = (locale: string) => {
+    const currentTime = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: locale === 'es' ? timezone : 'Europe/London'
+    };
+    return currentTime.toLocaleString(locale, options);
+  };
 
-    return () => clearInterval(interval)
-  }, [timezone])
-  // Escuchar el evento personalizado 'languageChange'
+  const getGreeting = (time: string) => {
+    const [datePart, timePart] = time.split(',');
+    const [hourString, minuteString, secondString] = timePart.trim().split(':');
+    let hour = parseInt(hourString);
+
+    if (timePart.includes('PM') && hour !== 12) {
+      hour += 12;
+    } else if (timePart.includes('AM') && hour === 12) {
+      hour = 0;
+    }
+
+    if (hour >= 5 && hour < 12) {
+      return timeTexts[language].morning;
+    } else if (hour >= 12 && hour < 20) {
+      return timeTexts[language].afternoon;
+    } else {
+      return timeTexts[language].evening;
+    }
+  }
+
   useEffect(() => {
-    setText(timeTexts[language].location); // Actualizar el texto de acuerdo al idioma actual
+    const updateDateTime = () => {
+      setDateTime(getFormattedTime(language));
+    };
+
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 1000);
+    setText(timeTexts[language].location);
+    if (dateTime) {
+      setGreeting(getGreeting(dateTime));
+    }
     const handleLanguageChange = (event: CustomEvent) => {
       const newLanguage = event.detail.language;
-      setFormat(timeTexts[newLanguage].format);
       setLanguage(newLanguage);
-      setText(timeTexts[newLanguage].location); // Actualizar el texto de acuerdo al nuevo idioma
+      setText(timeTexts[newLanguage].location);
+      if (dateTime) {
+        setGreeting(getGreeting(dateTime));
+      }
     };
 
     window.addEventListener('languageChange', handleLanguageChange as EventListener);
 
     return () => {
+      clearInterval(interval);
       window.removeEventListener('languageChange', handleLanguageChange as EventListener);
     };
-  }, []);
+  }, [timezone, language]);
 
   return (
-    <div>
+    <div className='flex flex-col h-full justify-between items-center'>
+      <h2 className='z-20 m-0 text-xl font-bold'>{greeting}</h2>
       <p>{dateTime}</p>
       <p className="text-sm text-gray-500">
         <span>{text}</span>
