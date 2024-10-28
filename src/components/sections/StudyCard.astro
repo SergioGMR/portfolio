@@ -4,7 +4,12 @@ import { Badge } from '../ui/badge'
 import { STUDIES } from '../../lib/constants'
 ---
 
-<Card colSpan="md:col-span-1" rowSpan="md:row-span-1" title="Study">
+<Card
+  colSpan="md:col-span-1"
+  rowSpan="md:row-span-1"
+  title="Cargando..."
+  id="study"
+>
   <div class="mt-2 flex w-full flex-wrap items-center justify-center gap-2">
     {
       STUDIES.map((study) => (
@@ -15,3 +20,37 @@ import { STUDIES } from '../../lib/constants'
     }
   </div>
 </Card>
+
+<script>
+  let language: 'es' | 'en' = 'es'
+  const updateTexts = () => {
+    language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
+    const studiesTexts: {
+      es: {
+        text: string
+      }
+      en: {
+        text: string
+      }
+    } = {
+      es: {
+        text: 'Estudios',
+      },
+      en: {
+        text: 'Studies',
+      },
+    }
+    const studyElement = document.getElementById('title-study')
+    if (studyElement) {
+      studyElement.innerText = studiesTexts[language].text
+      console.log(studyElement.innerText)
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('languageChange', () => {
+      updateTexts()
+    })
+    updateTexts()
+  }
+</script>
