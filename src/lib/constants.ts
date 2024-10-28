@@ -6,6 +6,14 @@ export const loaderAnimation = [
   { easing: 'ease-out' },
 ]
 
+export const MEMOJIS = [
+  'me_dino.webp',
+  'me_fantasy.webp',
+  'me_gamer.webp',
+  'me_lol.webp',
+  'me_tarkov.webp',
+]
+
 export const LINKS = {
   github: 'https://github.com/sergiogmr',
   linkedin: 'https://www.linkedin.com/in/sergiogmr/',
