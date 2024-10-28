@@ -6,8 +6,8 @@ This template helps you build a portfolio using Astro, Tailwind CSS, and Shadcn 
 
 ## Design
 
-![View 1](public/View1.png)
-![View 2](public/View2.png)
+![View 1](public/View1.webp)
+![View 2](public/View2.webp)
 
 ## Inspiration
 
@@ -65,7 +65,7 @@ To install and run the project locally, follow these steps:
    yarn dev
    ```
 
-5. Open your browser and visit `http://localhost:3000` to see your portfolio in action.
+5. Open your browser and visit `http://localhost:4321` to see your portfolio in action.
 
 ## Project Structure
 
