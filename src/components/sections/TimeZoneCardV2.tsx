@@ -1,4 +1,4 @@
-import { date } from 'astro:schema';
+import { date, set } from 'astro:schema';
 import { useState, useEffect } from 'react'
 
 const Timezone = ({ timezone }: any) => {
@@ -71,6 +71,7 @@ const Timezone = ({ timezone }: any) => {
   useEffect(() => {
     const updateDateTime = () => {
       setDateTime(getFormattedTime(language));
+      setGreeting(getGreeting(getFormattedTime(language)));
     };
 
     updateDateTime();

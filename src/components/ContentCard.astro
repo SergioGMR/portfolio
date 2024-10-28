@@ -10,7 +10,19 @@ const { title, body, titleId, contentId } = Astro.props
 ---
 
 <>
-  {title && <h2 id={titleId} class="z-20 m-0 text-xl font-bold">{title}</h2>}
-  {body && <p id={contentId} class="m-0 text-base font-light">{body}</p>}
+  {
+    title && (
+      <h2 id={titleId} class="z-20 mb-2 text-xl font-bold md:m-0">
+        {title}
+      </h2>
+    )
+  }
+  {
+    body && (
+      <p id={contentId} class="m-0 text-base font-light">
+        {body}
+      </p>
+    )
+  }
   <slot />
 </>
