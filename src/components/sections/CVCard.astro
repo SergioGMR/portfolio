@@ -25,8 +25,8 @@ import { Button } from '@/components/ui/button'
 </Card>
 
 <script>
-  const EN_PDF = '/SergioMorales-2024-en.pdf'
-  const ES_PDF = '/SergioMorales-2024-es.pdf'
+  const EN_PDF = '/sergio-morales-2024-en.pdf'
+  const ES_PDF = '/sergio-morales-2024-es.pdf'
   export let language: 'es' | 'en' = 'es'
   export const updateTexts = () => {
     language = (localStorage.getItem('language') as 'es' | 'en') || 'es'

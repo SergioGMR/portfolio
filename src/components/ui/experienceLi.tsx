@@ -41,10 +41,10 @@ export function ExperienceLi({ slice = false }: ExperienceLiProps) {
     return (
         <>
             {!slice && (
-                <ul>
+                <ul className='w-full'>
                     {
                         experience.map((entry: any) => (
-                            <li className="animate mt-4 border-b border-black/10 py-8 first-of-type:mt-0 first-of-type:pt-0 last-of-type:border-none dark:border-white/25" key={entry.start}>
+                            <li className="w-full animate mt-4 border-b border-black/10 py-8 first-of-type:mt-0 first-of-type:pt-0 last-of-type:border-none dark:border-white/25" key={entry.start}>
                                 <h2 className="mb-4 text-sm uppercase">
                                     {entry.start} - {entry.end}
                                 </h2>
@@ -54,11 +54,13 @@ export function ExperienceLi({ slice = false }: ExperienceLiProps) {
                                 >
                                     {entry.company}
                                 </a>
-                                <div className="text-sm font-semibold">{entry.position}</div>
+                                <div className="text-sm font-semibold py-4">{entry.position}</div>
                                 <article className="prose dark:prose-invert">
-                                    {entry.tasks.map((i: any) => (
-                                        <p key={i}>{i}</p>
-                                    ))}
+                                    <ul className='list-inside list-disc'>
+                                        {entry.tasks.map((i: any) => (
+                                            <li key={i}>{i}</li>
+                                        ))}
+                                    </ul>
                                 </article>
                             </li>
                         ))

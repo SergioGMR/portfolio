@@ -4,18 +4,22 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 import TopLayout from '@/layouts/TopLayout.astro'
 import BottomLayout from '@/layouts/BottomLayout.astro'
 import { ExperienceLi } from '@/components/ui/experienceLi'
+import { Button } from '@/components/ui/button'
 ---
 
 <BaseLayout title={WORK.TITLE} description={WORK.DESCRIPTION}>
-  <main class="flex min-h-[80vh] max-w-4xl flex-auto flex-col" transition:animate="fade">
+  <main
+    class="flex min-h-[80vh] w-full max-w-sm flex-auto flex-col md:max-w-screen-md"
+    transition:animate="fade"
+  >
     <TopLayout>
-      <h2
-        class="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0"
-      >
+      <h2 class="text-3xl font-semibold tracking-tight first:mt-0">
         {WORK.TITLE}
       </h2>
     </TopLayout>
-    <section class="flex flex-auto flex-col items-center justify-center">
+    <section
+      class="mt-4 flex w-full flex-auto flex-col items-start justify-center"
+    >
       <ExperienceLi client:load />
       <BottomLayout />
     </section>
