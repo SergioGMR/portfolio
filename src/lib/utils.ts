@@ -7,10 +7,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getFilesFromDirectory(directoryPath: string): string[] {
+export async function getFilesFromDirectory(directoryPath: string): Promise<string[]> {
   const directory = path.resolve(directoryPath);
   try {
-    return fs.readdirSync(directory);
+    return await fs.promises.readdir(directory);
   } catch (error) {
     console.error(`Error reading directory ${directory}:`, error);
     return [];

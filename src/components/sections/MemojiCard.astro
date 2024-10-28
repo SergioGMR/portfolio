@@ -1,7 +1,7 @@
 ---
 import Card from '@/components/Card.astro'
 import { getFilesFromDirectory } from '@/lib/utils'
-const files = getFilesFromDirectory('./public/memojis')
+const files = await getFilesFromDirectory('./public/memojis')
 const memoji = files[Math.floor(Math.random() * files.length)]
 ---
 
