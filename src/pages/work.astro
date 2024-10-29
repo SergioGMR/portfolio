@@ -4,12 +4,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 import TopLayout from '@/layouts/TopLayout.astro'
 import BottomLayout from '@/layouts/BottomLayout.astro'
 import { ExperienceLi } from '@/components/ui/experienceLi'
-import { Button } from '@/components/ui/button'
 ---
 
 <BaseLayout title={WORK.TITLE} description={WORK.DESCRIPTION}>
   <main
-    class="flex min-h-[80vh] w-full max-w-sm flex-auto flex-col md:max-w-screen-md"
+    class="flex min-h-[80vh] w-full max-w-xs flex-auto flex-col md:max-w-screen-md"
     transition:animate="fade"
   >
     <TopLayout>

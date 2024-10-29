@@ -41,7 +41,7 @@ import { ExperienceLi } from '@/components/ui/experienceLi'
       viewMoreElement.querySelector('h2')?.remove()
       viewMoreElement.insertAdjacentHTML(
         'afterbegin',
-        `<h2 class="text-2xl font-bold">${experienceTexts[language as 'es' | 'en'].title}</h2>`
+        `<h2 class="text-2xl font-bold">${experienceTexts[language as 'es' | 'en'].title}</h2>`,
       )
     }
   }
@@ -51,4 +51,7 @@ import { ExperienceLi } from '@/components/ui/experienceLi'
     })
     updateTexts()
   }
+  document.addEventListener('astro:after-swap', () => {
+    updateTexts()
+  })
 </script>

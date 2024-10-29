@@ -84,4 +84,7 @@ import { LINKS } from '@/lib/constants'
     })
     updateTexts()
   }
+  document.addEventListener('astro:after-swap', () => {
+    updateTexts()
+  })
 </script>

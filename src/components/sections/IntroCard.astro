@@ -14,7 +14,6 @@ import { Linkedin, Github, Mail } from 'lucide-react'
           <span id="title"></span>
           <span id="name" class="font-bold italic underline underline-offset-2"
           ></span>
-
           <span id="description"></span>
         </p>
       </div>
@@ -25,7 +24,7 @@ import { Linkedin, Github, Mail } from 'lucide-react'
             <span class="sr-only">GitHub Profile</span>
           </Button>
         </a>
-        <a href={LINKS.linkedin} aria-label="linkeding profile" target="_blank">
+        <a href={LINKS.linkedin} aria-label="linkedin profile" target="_blank">
           <Button aria-label="linkedin profile">
             <Linkedin />
             <span class="sr-only">Linkedin Profile</span>
@@ -51,41 +50,36 @@ import { Linkedin, Github, Mail } from 'lucide-react'
 </Card>
 
 <script>
-  let language: 'es' | 'en' = 'es';
+  const texts = {
+    name: 'Sergio Morales Rodríguez.',
+    es: {
+      welcome: 'Bienvenido',
+      title: 'Hola, me llamo ',
+      description:
+        'Soy un desarrollador de aplicaciones web y móviles, con un fuerte enfoque en el backend, siempre pendiente de las últimas tecnologías y tendencias. Me encanta crear aplicaciones escalables y de alto rendimiento, soy apasionado por la tecnología y siempre estoy en busca de nuevos desafíos.',
+    },
+    en: {
+      welcome: 'Welcome',
+      title: "Hi, my name's ",
+      description:
+        "I'm a web and mobile application developer, with a strong focus on the backend, always keeping an eye on the latest technologies and trends. I love creating scalable and high-performance applications, I am passionate about technology and I am always looking for new challenges.",
+    },
+  }
+
   const updateTexts = () => {
-    language = (localStorage.getItem('language') as 'es' | 'en') || 'es';
-    const texts: { name: string; es: { welcome: string; title: string; description: string; }; en: { welcome: string; title: string; description: string; }; } = {
-      name: 'Sergio Morales Rodríguez.',
-      es: {
-        welcome: 'Bienvenido',
-        title: 'Hola, me llamo ',
-        description:
-          'Soy un desarrollador de aplicaciones web y móviles, con un fuerte enfoque en el backend, siempre pendiente de las últimas tecnologías y tendencias. Me encanta crear aplicaciones escalables y de alto rendimiento, soy apasionado por la tecnología y siempre estoy en busca de nuevos desafíos.',
-      },
-      en: {
-        welcome: 'Welcome',
-        title: "Hi, my name's ",
-        description:
-          "I'm a web and mobile application developer, with a strong focus on the backend, always keeping an eye on the latest technologies and trends. I love creating scalable and high-performance applications, I am passionate about technology and I am always looking for new challenges.",
-      },
-    }
-    const welcomeElement = document.getElementById('welcome');
-    if (welcomeElement) welcomeElement.innerText = texts[language as 'es' | 'en'].welcome;
-
-    const titleElement = document.getElementById('title');
-    if (titleElement) titleElement.innerText = texts[language].title;
-
-    const nameElement = document.getElementById('name');
-    if (nameElement) nameElement.innerText = texts.name;
-
-    const descriptionElement = document.getElementById('description');
-    if (descriptionElement) descriptionElement.innerText = texts[language].description;
+    const language = (localStorage.getItem('language') || 'es') as 'es' | 'en'
+    ;(document.querySelector('#welcome')! as HTMLElement).innerText =
+      texts[language].welcome
+    ;(document.querySelector('#title')! as HTMLElement).innerText =
+      texts[language].title
+    ;(document.querySelector('#name')! as HTMLElement).innerText = texts.name
+    ;(document.querySelector('#description')! as HTMLElement).innerText =
+      texts[language].description
   }
 
   if (typeof window !== 'undefined') {
-    window.addEventListener('languageChange', () => {
-      updateTexts()
-    })
+    window.addEventListener('languageChange', updateTexts)
+    document.addEventListener('astro:after-swap', updateTexts)
     updateTexts()
   }
 </script>

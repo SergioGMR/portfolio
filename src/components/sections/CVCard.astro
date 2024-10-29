@@ -68,4 +68,7 @@ import { Button } from '@/components/ui/button'
     })
     updateTexts()
   }
+  document.addEventListener('astro:after-swap', () => {
+    updateTexts()
+  })
 </script>

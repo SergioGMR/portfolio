@@ -52,4 +52,7 @@ import { STUDIES } from '../../lib/constants'
     })
     updateTexts()
   }
+  document.addEventListener('astro:after-swap', () => {
+    updateTexts()
+  })
 </script>

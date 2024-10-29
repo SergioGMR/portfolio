@@ -19,6 +19,9 @@ import { LINKS } from '@/lib/constants'
       <h2 class="text-gray-500">Socials</h2>
       <ul>
         <li>
+          <a href={LINKS.manfred} target="_blank">Manfred</a>
+        </li>
+        <li>
           <a href={LINKS.linkedin} target="_blank">Linkedin</a>
         </li>
         <li>
@@ -78,4 +81,7 @@ import { LINKS } from '@/lib/constants'
     })
     updateTexts()
   }
+  document.addEventListener('astro:after-swap', () => {
+    updateTexts()
+  })
 </script>
