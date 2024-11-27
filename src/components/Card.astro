@@ -25,7 +25,12 @@ const realId = id || crypto.getRandomValues(new Uint32Array(1))[0].toString()
 >
   {
     href ? (
-      <a href={href} class={`block h-full w-full ${colorText || ' '}`}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer noopener nofollow"
+        class={`block h-full w-full ${colorText || ' '}`}
+      >
         <SquareArrowOutUpRight
           className="group-hover:text-primary position absolute right-6 "
           size={20}

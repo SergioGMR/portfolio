@@ -1,0 +1,68 @@
+---
+import Card from '@/components/Card.astro'
+---
+
+<Card colSpan="md:col-span-1" rowSpan="md:row-span-1">
+  <div class="flex h-full w-auto flex-col items-start justify-between">
+    <p id="cat-text" class="mb-2 text-sm font-light text-muted-foreground"></p>
+    <img
+      id="catIMG"
+      class="h-40 w-full overflow-hidden rounded-lg object-cover object-center"
+    />
+  </div>
+</Card>
+
+<script>
+  const giveMeACat = async () => {
+    const response = await fetch('https://cataas.com/cat?json=true', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    const data = await response.json()
+    return data._id
+  }
+  let catId = await giveMeACat()
+
+  const catURL = new URL('https://cataas.com/')
+  catURL.pathname = `cat/${catId}`
+  catURL.searchParams.set('type', 'square')
+  catURL.searchParams.set('fit', 'cover')
+  catURL.searchParams.set('position', 'center')
+  catURL.searchParams.set('width', '150')
+  catURL.searchParams.set('height', '150')
+
+  const catImage = document.getElementById('catIMG')
+  catImage?.setAttribute('src', catURL.toString())
+  catImage?.setAttribute('alt', 'cat')
+  catImage?.setAttribute('loading', 'lazy')
+  catImage?.setAttribute('decoding', 'async')
+  catImage?.setAttribute('width', '150')
+  catImage?.setAttribute('height', '150')
+
+  const updateTexts = () => {
+    const language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
+    const catTexts: {
+      es: string[]
+      en: string[]
+    } = {
+      es: ['Un gato.', 'Hola Karen', 'Mi gato favorito es un gato.'],
+      en: ['A cat.', 'Hello Karen', 'My favorite cat is a cat.'],
+    }
+    const catText = document.getElementById('cat-text')
+    if (catText) {
+      catText.innerText = catTexts[language][Math.floor(Math.random() * 3)]
+      console.log(catTexts[language][Math.floor(Math.random() * 3)])
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('languageChange', () => {
+      updateTexts()
+    })
+    updateTexts()
+  }
+  document.addEventListener('astro:after-swap', () => {
+    updateTexts()
+  })
+</script>

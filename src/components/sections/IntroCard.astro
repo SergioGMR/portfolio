@@ -14,7 +14,7 @@ import { Linkedin, Github, Mail } from 'lucide-react'
           <span id="title"></span>
           <span id="name" class="font-bold italic underline underline-offset-2"
           ></span>
-          <span id="description"></span>
+          <p id="description"></p>
         </p>
       </div>
       <div class="flex gap-4">
@@ -56,18 +56,18 @@ import { Linkedin, Github, Mail } from 'lucide-react'
       welcome: 'Bienvenido',
       title: 'Hola, me llamo ',
       description:
-        'Soy un desarrollador de aplicaciones web y móviles, con un fuerte enfoque en el backend, siempre pendiente de las últimas tecnologías y tendencias. Me encanta crear aplicaciones escalables y de alto rendimiento, soy apasionado por la tecnología y siempre estoy en busca de nuevos desafíos.',
+        'Soy una persona apasionada por la tecnología y el desarrollo web, con experiencia en frameworks modernos. Me encanta combinar funcionalidad técnica con diseño para crear soluciones eficientes y atractivas.',
     },
     en: {
       welcome: 'Welcome',
       title: "Hi, my name's ",
       description:
-        "I'm a web and mobile application developer, with a strong focus on the backend, always keeping an eye on the latest technologies and trends. I love creating scalable and high-performance applications, I am passionate about technology and I am always looking for new challenges.",
+        'I am a technology and web development enthusiast, with experience in modern frameworks. I love combining technical functionality with design to create efficient and attractive solutions.',
     },
   }
 
   const updateTexts = () => {
-    const language = (localStorage.getItem('language') || 'es') as 'es' | 'en'
+    const language = localStorage.getItem('language') as 'es' | 'en'
     ;(document.querySelector('#welcome')! as HTMLElement).innerText =
       texts[language].welcome
     ;(document.querySelector('#title')! as HTMLElement).innerText =
