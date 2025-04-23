@@ -69,14 +69,28 @@ import { Image } from 'astro:assets'
   }
 
   const updateTexts = () => {
-    const language = localStorage.getItem('language') as 'es' | 'en'
-    ;(document.querySelector('#welcome')! as HTMLElement).innerText =
-      texts[language].welcome
-    ;(document.querySelector('#title')! as HTMLElement).innerText =
-      texts[language].title
-    ;(document.querySelector('#name')! as HTMLElement).innerText = texts.name
-    ;(document.querySelector('#description')! as HTMLElement).innerText =
-      texts[language].description
+    const language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
+    const currentTexts = texts[language] || texts.es
+
+    const welcomeElement = document.querySelector('#welcome')
+    if (welcomeElement) {
+      welcomeElement.textContent = currentTexts.welcome
+    }
+
+    const titleElement = document.querySelector('#title')
+    if (titleElement) {
+      titleElement.textContent = currentTexts.title
+    }
+
+    const nameElement = document.querySelector('#name')
+    if (nameElement) {
+      nameElement.textContent = texts.name
+    }
+
+    const descriptionElement = document.querySelector('#description')
+    if (descriptionElement) {
+      descriptionElement.textContent = currentTexts.description
+    }
   }
 
   if (typeof window !== 'undefined') {

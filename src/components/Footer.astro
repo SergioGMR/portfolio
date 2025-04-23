@@ -53,7 +53,7 @@
       source: 'string',
     },
   }
-  const footerTexts: typeof footerTextsTypes = {
+  const footerTexts = {
     es: {
       from: '"Bifurcado" de',
       by: 'Modificado con 💜 usando Astro y Tailwind CSS por',
@@ -66,12 +66,23 @@
     },
   }
   const updateTexts = () => {
-    const language = localStorage.getItem('language') as 'es' | 'en'
-    const texts = footerTexts[language]
-    ;(document.querySelector('#from')! as HTMLElement).innerText = texts.from
-    ;(document.querySelector('#by')! as HTMLElement).innerText = texts.by
-    ;(document.querySelector('#source')! as HTMLElement).innerText =
-      texts.source
+    const language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
+    const texts = footerTexts[language] || footerTexts.es
+
+    const fromElement = document.querySelector('#from')
+    if (fromElement) {
+      fromElement.textContent = texts.from
+    }
+
+    const byElement = document.querySelector('#by')
+    if (byElement) {
+      byElement.textContent = texts.by
+    }
+
+    const sourceElement = document.querySelector('#source')
+    if (sourceElement) {
+      sourceElement.textContent = texts.source
+    }
   }
 
   if (typeof window !== 'undefined') {
