@@ -1,0 +1,10 @@
+---
+import { translations, languageServiceScript } from '@/lib/language'
+---
+
+<script is:inline define:vars={{ translations }}>
+  // Make translations available globally
+  window.portfolioTranslations = translations
+</script>
+
+<script is:inline set:html={languageServiceScript} />
