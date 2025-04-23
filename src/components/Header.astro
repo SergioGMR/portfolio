@@ -6,12 +6,24 @@ import { LangToggle } from '@/components/ui/LangToggle'
 
 <script is:inline>
   document.addEventListener('astro:after-swap', function () {
-    if (localStorage.getItem('theme') === 'dark')
+    const theme = localStorage.getItem('theme')
+    const systemPrefersDark = window.matchMedia(
+      '(prefers-color-scheme: dark)',
+    ).matches
+
+    if (theme === 'dark' || (theme === null && systemPrefersDark)) {
       document.documentElement.classList.toggle('dark', true)
+    }
   })
 
   const getThemePreference = () => {
-    return localStorage.getItem('theme')
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme) return savedTheme
+
+    // Check system preference if no saved preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
   }
 
   const isDark = getThemePreference() === 'dark'

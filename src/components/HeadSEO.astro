@@ -6,36 +6,140 @@ interface Props {
   title?: string | undefined
   description?: string | undefined
   ogImage?: URL | undefined
+  noindex?: boolean
+  nofollow?: boolean
+  locale?: string
+  alternateLocales?: string[]
+  canonicalOverride?: URL | undefined
+  schema?: object | undefined
 }
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site)
+const canonicalURL = Astro.props.canonicalOverride || new URL(Astro.url.pathname, Astro.site)
 
 if (Astro.props.ogImage === undefined) {
-  Astro.props.ogImage = new URL('View1.jpg', canonicalURL)
+  Astro.props.ogImage = new URL('og.webp', canonicalURL)
 }
 
-const { title, description, ogImage } = Astro.props
+const { 
+  title, 
+  description, 
+  ogImage,
+  noindex = false,
+  nofollow = false,
+  locale = 'es',
+  alternateLocales = [],
+  schema
+} = Astro.props
+
+// Robots directives
+const robotsContent = [
+  noindex ? 'noindex' : 'index',
+  nofollow ? 'nofollow' : 'follow',
+].join(', ')
+
+// Lista de keywords extraídas del contenido del portfolio
+const keywords = [
+  'Sergio Morales Rodríguez',
+  'desarrollador fullstack',
+  'fullstack developer',
+  'backend developer',
+  'frontend developer',
+  'PHP',
+  'Laravel',
+  'JavaScript',
+  'TypeScript',
+  'React',
+  'React Native',
+  'Vue',
+  'Git',
+  'CSS',
+  'Tailwind CSS',
+  'Bootstrap',
+  'Livewire',
+  'Filamentphp',
+  'QuasarFramework',
+  'DevOps',
+  'CI-CD',
+  'Github Actions',
+  'Plesk',
+  'desarrollo web', 
+  'web development',
+  'portfolio',
+  'freelance developer',
+  'Islas Canarias',
+  'Canary Islands',
+  'Spain',
+  'España',
+  'desarrollador web'
+].join(', ')
 ---
 
+<!-- Character set and viewport -->
 <meta charset="utf-8" />
-<meta name="robots" content="index, follow" />
-<meta name="googlebot" content="index, follow" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="generator" content={Astro.generator} />
+
+<!-- SEO Meta Tags -->
+<meta name="robots" content={robotsContent} />
+<meta name="googlebot" content={robotsContent} />
 <link rel="canonical" href={canonicalURL} />
-<link rel="shortcut icon" type="image/webp" href="favicon.webp" />
 <title>{title}</title>
 <meta name="title" content={title} />
 <meta name="description" content={description} />
+<meta name="author" content="Sergio Morales Rodríguez" />
+<meta name="keywords" content={keywords} />
 
+<!-- Language Tags -->
+<meta property="og:locale" content={locale} />
+{alternateLocales.map(altLocale => (
+  <meta property="og:locale:alternate" content={altLocale} />
+))}
+<html lang={locale} />
+
+<!-- Favicon -->
+<link rel="icon" type="image/webp" href="/favicon.webp" />
+
+<!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={ogImage} />
+<meta property="og:image:alt" content={`Imagen para ${title}`} />
+<meta property="og:site_name" content="Sergio Morales Rodríguez - Portfolio" />
 
+<!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={canonicalURL} />
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={ogImage} />
+<meta property="twitter:image:alt" content={`Imagen para ${title}`} />
+
+<!-- Structured Data / Schema.org -->
+{schema && (
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+)}
+
+<!-- Default Schema.org WebSite if none provided -->
+{!schema && (
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Sergio Morales Rodríguez - Portfolio",
+      "url": Astro.site?.toString(),
+      "description": description,
+      "author": {
+        "@type": "Person",
+        "name": "Sergio Morales Rodríguez",
+        "url": canonicalURL.toString(),
+        "jobTitle": "Full Stack Developer"
+      },
+      "keywords": keywords.split(', ')
+    }
+  </script>
+)}
+
+<!-- Preconnect to important third-party domains -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
