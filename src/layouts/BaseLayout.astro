@@ -1,9 +1,9 @@
 ---
+import SpeedInsights from '@vercel/speed-insights/astro'
 import { ClientRouter } from 'astro:transitions'
 import HeadSEO from '@/components/HeadSEO.astro'
 import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
-
 interface Props {
   title?: string | undefined
   description?: string | undefined
@@ -24,5 +24,6 @@ const { title, description, ogImage } = Astro.props
       <slot />
       <Footer />
     </div>
+    <SpeedInsights />
   </body>
 </html>
