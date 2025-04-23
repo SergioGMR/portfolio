@@ -1,6 +1,7 @@
 ---
 import Card from '@/components/Card.astro'
 import { MEMOJIS } from '@/lib/constants'
+import { Image } from 'astro:assets'
 const memoji = MEMOJIS[Math.floor(Math.random() * MEMOJIS.length)]
 ---
 
@@ -9,11 +10,13 @@ const memoji = MEMOJIS[Math.floor(Math.random() * MEMOJIS.length)]
     id="memojiCard"
     class="flex h-full flex-col justify-center overflow-hidden rounded-lg"
   >
-    <img
+    <Image
       src={`/memojis/${memoji}`}
-      alt="Memoji"
-      style="filter: drop-shadow(0 0 5px rgb(0, 0, 0, 0.5));
-		  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);"
+      alt="Memoji of Sergio"
+      width={300}
+      height={300}
+      loading="lazy"
+      class="h-full w-full object-cover drop-shadow-lg [mask-image:linear-gradient(to_bottom,black_80%,transparent_100%)]"
     />
   </div>
 </Card>

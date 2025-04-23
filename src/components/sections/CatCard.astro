@@ -1,56 +1,57 @@
 ---
 import Card from '@/components/Card.astro'
+import { Image } from 'astro:assets'
+const catURL = new URL('https://cataas.com/')
+catURL.pathname = `cat`
+catURL.searchParams.set('type', 'square')
+catURL.searchParams.set('fit', 'cover')
+catURL.searchParams.set('position', 'center')
+catURL.searchParams.set('width', '150')
+catURL.searchParams.set('height', '150')
 ---
 
 <Card colSpan="md:col-span-1" rowSpan="md:row-span-1">
   <div class="flex h-full w-auto flex-col items-start justify-between">
     <p id="cat-text" class="mb-2 text-sm font-light text-muted-foreground"></p>
-    <img
+    <Image
       id="catIMG"
+      width={150}
+      height={150}
+      src={catURL.toString()}
+      alt="Random cat image"
       class="h-40 w-full overflow-hidden rounded-lg object-cover object-center"
+      loading="lazy"
     />
-  </div>
-</Card>
+    <div></div>
 
-<script>
-  const catURL = new URL('https://cataas.com/')
-  catURL.pathname = `cat`
-  catURL.searchParams.set('type', 'square')
-  catURL.searchParams.set('fit', 'cover')
-  catURL.searchParams.set('position', 'center')
-  catURL.searchParams.set('width', '150')
-  catURL.searchParams.set('height', '150')
-
-  const catImage = document.getElementById('catIMG')
-  catImage?.setAttribute('src', catURL.toString())
-  catImage?.setAttribute('alt', 'cat')
-  catImage?.setAttribute('loading', 'lazy')
-  catImage?.setAttribute('decoding', 'async')
-  catImage?.setAttribute('width', '150')
-  catImage?.setAttribute('height', '150')
-
-  const updateTexts = () => {
-    const language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
-    const catTexts: {
-      es: string[]
-      en: string[]
-    } = {
-      es: ['Un gato.', 'Hola Karen', 'Mi gato favorito es un gato.'],
-      en: ['A cat.', 'Hello Karen', 'My favorite cat is a cat.'],
-    }
-    const catText = document.getElementById('cat-text')
-    if (catText) {
-      const randomIndex = Math.floor(Math.random() * catTexts[language].length)
-      catText.innerText = catTexts[language][randomIndex]
-    }
-  }
-  if (typeof window !== 'undefined') {
-    window.addEventListener('languageChange', () => {
-      updateTexts()
-    })
-    updateTexts()
-  }
-  document.addEventListener('astro:after-swap', () => {
-    updateTexts()
-  })
-</script>
+    <script>
+      const updateTexts = () => {
+        const language =
+          (localStorage.getItem('language') as 'es' | 'en') || 'es'
+        const catTexts: {
+          es: string[]
+          en: string[]
+        } = {
+          es: ['Un gato.', 'Hola Karen', 'Mi gato favorito es un gato.'],
+          en: ['A cat.', 'Hello Karen', 'My favorite cat is a cat.'],
+        }
+        const catText = document.getElementById('cat-text')
+        if (catText) {
+          const randomIndex = Math.floor(
+            Math.random() * catTexts[language].length,
+          )
+          catText.innerText = catTexts[language][randomIndex]
+        }
+      }
+      if (typeof window !== 'undefined') {
+        window.addEventListener('languageChange', () => {
+          updateTexts()
+        })
+        updateTexts()
+      }
+      document.addEventListener('astro:after-swap', () => {
+        updateTexts()
+      })
+    </script>
+  </div></Card
+>

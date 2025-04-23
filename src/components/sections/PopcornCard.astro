@@ -1,6 +1,7 @@
 ---
 import Card from '@/components/Card.astro'
 import { LINKS } from '@/lib/constants'
+import { Image } from 'astro:assets'
 ---
 
 <Card
@@ -11,12 +12,13 @@ import { LINKS } from '@/lib/constants'
 >
   <div class="flex h-full w-full flex-col items-center justify-center">
     <div>
-      <img
-        width="50"
-        height="50"
+      <Image
+        width={200}
+        height={200}
         src="/me_popcorn.webp"
         class="pointer-events-none absolute bottom-auto right-12 z-[-1] -mt-16 h-40 max-h-72 w-auto select-none opacity-50 md:relative md:right-auto md:z-auto md:h-auto md:opacity-100"
         alt="memoji of sergio eating popcorn"
+        loading="lazy"
       />
     </div>
     <div>

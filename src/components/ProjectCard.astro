@@ -1,5 +1,6 @@
 ---
 import { Card as ShadcnCard } from './ui/card'
+import { Image } from 'astro:assets'
 
 const {
   as: Tag = 'a',
@@ -16,11 +17,14 @@ const {
   <ShadcnCard
     className={`transfor-y-[-40%] align-start perspective-1200 group relative flex-none transform justify-start overflow-hidden shadow-lg transition duration-75 ease-in-out ${href ? 'cursor-pointer hover:border-primary' : ''} `}
   >
-    <img
+    <Image
       src={imagePath}
-      alt={altText}
+      alt={altText || `Project image for ${heading}`}
+      width={800}
+      height={400}
       class="h-48 w-full rounded-2xl rounded-bl-none rounded-br-none object-cover"
-      loading="eager"
+      loading="lazy"
+      decoding="async"
     />
     <div class="flex flex-col gap-y-0.5 px-5 py-4">
       <h1 class="text-lg font-medium">{heading}</h1>
