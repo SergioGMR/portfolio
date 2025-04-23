@@ -6,7 +6,7 @@ import vercel from '@astrojs/vercel/serverless'
 // https://astro.build/config
 export default defineConfig({
   site: process.env.CI
-    ? 'https://portfolio.vercel.app'
+    ? 'https://sergiogmr.vercel.app/'
     : 'http://localhost:4321',
 
   output: 'server',
