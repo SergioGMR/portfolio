@@ -55,10 +55,12 @@ export function ExperienceLi({ slice = false }: ExperienceLiProps) {
                                     {entry.company}
                                 </a>
                                 <div className="text-sm font-semibold py-4">{entry.position}</div>
-                                <article className="prose dark:prose-invert">
-                                    <ul className='list-inside list-disc'>
+                                <article>
+                                    <ul className="pl-5">
                                         {entry.tasks.map((i: any) => (
-                                            <li key={i}>{i}</li>
+                                            <li key={i} className="list-inside list-image-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxNCAxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjMzhiZGY4Ij48cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy42ODUuMTUzYS43NTIuNzUyIDAgMCAxIC4xNDMgMS4wNTJsLTggMTAuNWEuNzUuNzUgMCAwIDEtMS4xMjcuMDc1bC00LjUtNC41YS43NS43NSAwIDAgMSAxLjA2LTEuMDZsMy44OTQgMy44OTMgNy40OC05LjgxN2EuNzUuNzUgMCAwIDEgMS4wNS0uMTQzWiIgLz48L3N2Zz4=')] text-sm text-gray-600 dark:text-gray-400">
+                                                {i}
+                                            </li>
                                         ))}
                                     </ul>
                                 </article>
@@ -68,7 +70,7 @@ export function ExperienceLi({ slice = false }: ExperienceLiProps) {
                 </ul>
             )}
             {slice && experience.slice(0, 3).map((entry: any) => (
-                <div key={entry.start}>
+                <div key={entry.start} className='ml-4'>
                     <h3 className="text-lg font-semibold">{entry.position}</h3>
                     <a className="text-sm text-primary" href={entry?.link ?? ''}>
                         {entry.company}
