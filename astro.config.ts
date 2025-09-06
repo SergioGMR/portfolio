@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
-import tailwind from '@astrojs/tailwind'
-import vercel from '@astrojs/vercel/serverless'
+import tailwindcss from '@tailwindcss/vite'
+import vercel from '@astrojs/vercel'
 
 // https://astro.build/config
 export default defineConfig({
@@ -12,12 +12,9 @@ export default defineConfig({
   output: 'server',
   build: {},
 
-  integrations: [
-    react(),
-    tailwind({
-      applyBaseStyles: false,
-    }),
-  ],
+  plugins: [tailwindcss()],
+
+  integrations: [react()],
 
   adapter: vercel({
     webAnalytics: {

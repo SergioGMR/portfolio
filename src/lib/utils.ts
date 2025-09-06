@@ -1,22 +1,9 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import fs from 'fs';
-import path from 'path';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-
-export async function getFilesFromDirectory(directoryPath: string): Promise<string[]> {
-  const directory = path.resolve(directoryPath);
-  try {
-    return await fs.promises.readdir(directory);
-  } catch (error) {
-    console.error(`Error reading directory ${directory}:`, error);
-    return [];
-  }
-}
-
 
 function getRandomTailwindColor(): string {
   const randomColor = colors[Math.floor(Math.random() * colors.length)];
