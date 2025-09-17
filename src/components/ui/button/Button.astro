@@ -1,0 +1,25 @@
+---
+import type { HTMLAttributes } from 'astro/types'
+import { cn } from '@/lib/utils'
+import { buttonVariants, type ButtonVariantProps } from './variants'
+
+interface Props extends HTMLAttributes<'button'>, ButtonVariantProps {
+  type?: 'button' | 'submit' | 'reset'
+}
+
+const {
+  variant,
+  size,
+  class: className,
+  type = 'button',
+  ...attributes
+} = Astro.props as Props
+---
+
+<button
+  type={type}
+  class={cn(buttonVariants({ variant, size }), className)}
+  {...attributes}
+>
+  <slot />
+</button>

@@ -1,0 +1,156 @@
+---
+interface Props {
+  timezone: string
+}
+
+const { timezone } = Astro.props
+const baseId = `timezone-card-${crypto.randomUUID()}`
+const greetingId = `${baseId}-greeting`
+const timeId = `${baseId}-time`
+const locationId = `${baseId}-location`
+---
+
+<div
+  id={baseId}
+  class="flex h-full flex-col items-center justify-between"
+>
+  <h2 id={greetingId} class="m-0 text-xl font-bold">Cargando...</h2>
+  <p id={timeId}></p>
+  <p class="text-sm text-gray-500">
+    <span id={locationId}></span>
+  </p>
+</div>
+
+<script>
+  const config = {
+    timezone: '${timezone}',
+    ids: {
+      container: '${baseId}',
+      greeting: '${greetingId}',
+      time: '${timeId}',
+      location: '${locationId}',
+    },
+  }
+
+  const getLanguage = () =>
+    window.portfolioLanguage?.getLanguage?.() ||
+    localStorage.getItem('language') ||
+    'es'
+
+  const getTranslations = language =>
+    window.portfolioTranslations?.[language]?.time ||
+    window.portfolioTranslations?.es?.time || {
+      morning: 'Buenos días',
+      afternoon: 'Buenas tardes',
+      evening: 'Buenas noches',
+      location: '🇮🇨 Islas Canarias, España 🇪🇸',
+    }
+
+  const formatTime = (language, timezone) => {
+    const locale = language === 'es' ? 'es-ES' : 'en-GB'
+    return new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+      timeZone: timezone,
+    }).format(new Date())
+  }
+
+  const getGreeting = (formattedTime, translations) => {
+    const timeMatch = formattedTime.match(/(\d{1,2}):(\d{2})\s?([AP]M)?/i)
+    if (!timeMatch) return translations.morning
+
+    let hour = parseInt(timeMatch[1], 10)
+    const period = timeMatch[3]?.toUpperCase()
+
+    if (period === 'PM' && hour !== 12) {
+      hour += 12
+    }
+    if (period === 'AM' && hour === 12) {
+      hour = 0
+    }
+
+    if (hour >= 5 && hour < 12) return translations.morning
+    if (hour >= 12 && hour < 20) return translations.afternoon
+    return translations.evening
+  }
+
+  const updateView = language => {
+    const container = document.getElementById(config.ids.container)
+    const greetingEl = document.getElementById(config.ids.greeting)
+    const timeEl = document.getElementById(config.ids.time)
+    const locationEl = document.getElementById(config.ids.location)
+
+    if (!container || !greetingEl || !timeEl || !locationEl) {
+      return
+    }
+
+    const translations = getTranslations(language)
+    const formattedTime = formatTime(language, config.timezone)
+
+    greetingEl.textContent = getGreeting(formattedTime, translations)
+    timeEl.textContent = formattedTime
+    locationEl.textContent = translations.location
+  }
+
+  if (typeof window !== 'undefined') {
+    let intervalId = 0
+    let registered = false
+
+    const refresh = () => {
+      updateView(getLanguage())
+    }
+
+    const handleLanguageChange = event => {
+      const language = event?.detail?.language || getLanguage()
+      updateView(language)
+    }
+
+    const cleanup = () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+        intervalId = 0
+      }
+      if (registered) {
+        window.removeEventListener('languageChange', handleLanguageChange)
+        registered = false
+      }
+    }
+
+    const setup = () => {
+      const container = document.getElementById(config.ids.container)
+      if (!container) {
+        cleanup()
+        return
+      }
+
+      updateView(getLanguage())
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
+      intervalId = window.setInterval(refresh, 1000)
+
+      if (!registered) {
+        window.addEventListener('languageChange', handleLanguageChange)
+        registered = true
+      }
+    }
+
+    const onBeforeSwap = () => {
+      cleanup()
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setup, { once: true })
+    } else {
+      setup()
+    }
+
+    document.addEventListener('astro:after-swap', setup)
+    document.addEventListener('astro:before-swap', onBeforeSwap)
+  }
+</script>

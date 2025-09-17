@@ -4,19 +4,27 @@ import { ClientRouter } from 'astro:transitions'
 import HeadSEO from '@/components/HeadSEO.astro'
 import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
+import LanguageService from '@/components/LanguageService.astro'
 interface Props {
   title?: string | undefined
   description?: string | undefined
   ogImage?: URL | undefined
+  locale?: string | undefined
 }
 
-const { title, description, ogImage } = Astro.props
+const { title, description, ogImage, locale = 'es' } = Astro.props as Props
 ---
 
-<html lang="es">
+<html lang={locale}>
   <head>
-    <HeadSEO title={title} description={description} ogImage={ogImage} />
+    <HeadSEO
+      title={title}
+      description={description}
+      ogImage={ogImage}
+      locale={locale}
+    />
     <ClientRouter />
+    <LanguageService />
   </head>
   <body class="min-h-screen bg-background font-sans antialiased">
     <div class="flex flex-col items-center justify-center">

@@ -1,0 +1,220 @@
+---
+import { Button } from '@/components/ui/button'
+import { Moon, Sun } from 'lucide-react'
+---
+
+<div class="relative" id="theme-toggle-wrapper">
+  <Button
+    id="theme-toggle-button"
+    variant="outline"
+    size="icon"
+    type="button"
+    aria-haspopup="menu"
+    aria-expanded="false"
+  >
+    <Sun
+      id="theme-toggle-sun"
+      aria-hidden="true"
+      class="h-[1.2rem] w-[1.2rem] opacity-100 transition-opacity"
+    />
+    <Moon
+      id="theme-toggle-moon"
+      aria-hidden="true"
+      class="absolute h-[1.2rem] w-[1.2rem] opacity-0 transition-opacity"
+    />
+    <span class="sr-only">Toggle theme</span>
+  </Button>
+  <div
+    id="theme-toggle-menu"
+    role="menu"
+    class="absolute right-0 z-50 mt-2 hidden min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md"
+  >
+    <button
+      type="button"
+      role="menuitemradio"
+      data-theme-value="light"
+      class="flex w-full cursor-pointer items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+    >
+      Light
+    </button>
+    <button
+      type="button"
+      role="menuitemradio"
+      data-theme-value="dark"
+      class="flex w-full cursor-pointer items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+    >
+      Dark
+    </button>
+    <button
+      type="button"
+      role="menuitemradio"
+      data-theme-value="system"
+      class="flex w-full cursor-pointer items-center px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+    >
+      System
+    </button>
+  </div>
+</div>
+
+<script is:inline>
+  const WRAPPER_ID = 'theme-toggle-wrapper'
+  const BUTTON_ID = 'theme-toggle-button'
+  const MENU_ID = 'theme-toggle-menu'
+  const SUN_ID = 'theme-toggle-sun'
+  const MOON_ID = 'theme-toggle-moon'
+
+  const toggleActiveClass = (element, isActive) => {
+    element.setAttribute('aria-pressed', isActive ? 'true' : 'false')
+    element.classList.toggle('bg-accent', isActive)
+    element.classList.toggle('text-accent-foreground', isActive)
+  }
+
+  const getSystemTheme = () =>
+    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+
+  const applyThemeClass = theme => {
+    const root = document.documentElement
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else if (theme === 'light') {
+      root.classList.remove('dark')
+    } else {
+      root.classList.toggle('dark', getSystemTheme() === 'dark')
+    }
+  }
+
+  const updateIconVisibility = theme => {
+    const sunIcon = document.getElementById(SUN_ID)
+    const moonIcon = document.getElementById(MOON_ID)
+    if (!sunIcon || !moonIcon) return
+
+    const effectiveTheme = theme === 'system' ? getSystemTheme() : theme
+    const showMoon = effectiveTheme === 'dark'
+
+    sunIcon.classList.toggle('opacity-0', showMoon)
+    sunIcon.classList.toggle('opacity-100', !showMoon)
+    moonIcon.classList.toggle('opacity-0', !showMoon)
+    moonIcon.classList.toggle('opacity-100', showMoon)
+  }
+
+  if (typeof window !== 'undefined') {
+    let isOpen = false
+    let currentTheme = localStorage.getItem('theme') || 'system'
+    const wrapper = document.getElementById(WRAPPER_ID)
+    const button = document.getElementById(BUTTON_ID)
+    const menu = document.getElementById(MENU_ID)
+    const items = Array.from(
+      menu?.querySelectorAll('[data-theme-value]') ?? [],
+    )
+
+    if (!button || !menu || !wrapper) {
+      console.warn('Theme toggle elements are missing in the DOM.')
+    } else {
+      const listeners = []
+      const addListener = (target, eventName, handler) => {
+        target.addEventListener(eventName, handler)
+        listeners.push(() => target.removeEventListener(eventName, handler))
+      }
+
+      const setTheme = theme => {
+        currentTheme = theme
+        if (theme === 'system') {
+          localStorage.removeItem('theme')
+        } else {
+          localStorage.setItem('theme', theme)
+        }
+        applyThemeClass(theme)
+        updateIconVisibility(theme)
+        items.forEach(item => {
+          const isActive = item.dataset.themeValue === theme
+          toggleActiveClass(item, isActive)
+        })
+      }
+
+      const closeMenu = () => {
+        if (!isOpen) return
+        menu.classList.add('hidden')
+        button.setAttribute('aria-expanded', 'false')
+        isOpen = false
+      }
+
+      const openMenu = () => {
+        if (isOpen) return
+        menu.classList.remove('hidden')
+        button.setAttribute('aria-expanded', 'true')
+        isOpen = true
+      }
+
+      const toggleMenu = () => {
+        if (isOpen) {
+          closeMenu()
+        } else {
+          openMenu()
+          items[0]?.focus()
+        }
+      }
+
+      const handleButtonClick = event => {
+        event.stopPropagation()
+        toggleMenu()
+      }
+
+      const handleDocumentClick = event => {
+        if (!wrapper.contains(event.target)) {
+          closeMenu()
+        }
+      }
+
+      const handleKeyDown = event => {
+        if (event.key === 'Escape') {
+          closeMenu()
+          button.focus()
+        }
+      }
+
+      const handleButtonKeyDown = event => {
+        if (event.key === 'ArrowDown') {
+          event.preventDefault()
+          openMenu()
+          items[0]?.focus()
+        }
+      }
+
+      const handleSystemChange = () => {
+        if (currentTheme === 'system') {
+          applyThemeClass('system')
+          updateIconVisibility('system')
+        }
+      }
+
+      addListener(button, 'click', handleButtonClick)
+      addListener(document, 'click', handleDocumentClick)
+      addListener(menu, 'keydown', handleKeyDown)
+      addListener(button, 'keydown', handleButtonKeyDown)
+
+      items.forEach(item => {
+        addListener(item, 'click', () => {
+          const value = item.dataset.themeValue || 'system'
+          setTheme(value)
+          closeMenu()
+        })
+      })
+
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      mediaQuery.addEventListener('change', handleSystemChange)
+      listeners.push(() => mediaQuery.removeEventListener('change', handleSystemChange))
+
+      const cleanup = () => {
+        listeners.forEach(remove => remove())
+        listeners.length = 0
+      }
+
+      document.addEventListener('astro:before-swap', cleanup, { once: true })
+
+      const storedTheme = localStorage.getItem('theme') || 'system'
+      setTheme(storedTheme)
+      updateIconVisibility(storedTheme)
+      closeMenu()
+    }
+  }
+</script>

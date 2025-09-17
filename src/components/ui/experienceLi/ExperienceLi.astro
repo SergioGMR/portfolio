@@ -1,0 +1,183 @@
+---
+import { EXPERIENCE } from '@/lib/constants'
+
+interface Props {
+  slice?: boolean
+}
+
+const { slice = false } = Astro.props
+const initialLanguage: keyof typeof EXPERIENCE = 'es'
+const entries = slice
+  ? EXPERIENCE[initialLanguage].slice(0, 3)
+  : EXPERIENCE[initialLanguage]
+const containerId = `experience-${crypto.randomUUID()}`
+const taskClass =
+  "list-inside list-image-[url(\"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxNCAxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjMzhiZGY4Ij48cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy42ODUuMTUzYS43NTIuNzUyIDAgMCAxIC4xNDMgMS4wNTJsLTggMTAuNWEuNzUuNzUgMCAwIDEtMS4xMjcuMDc1bC00LjUtNC41YS43NS43NSAwIDAgMSAxLjA2LTEuMDZsMy44OTQgMy44OTMgNy40OC05LjgxN2EuNzUuNzUgMCAwIDEgMS4wNS0uMTQzWiIgLz48L3N2Zz4=\")] text-sm text-gray-600 dark:text-gray-400"
+---
+
+{
+  slice ? (
+    <div id={containerId}>
+      {
+        entries.map((entry) => (
+          <div class="ml-4" key={entry.start}>
+            <h3 class="text-lg font-semibold">{entry.position}</h3>
+            {entry?.link ? (
+              <a class="text-sm text-primary" href={entry.link}>
+                {entry.company}
+              </a>
+            ) : (
+              <span class="text-sm font-semibold text-foreground">
+                {entry.company}
+              </span>
+            )}
+            <p class="text-sm text-gray-600">
+              {entry.start} - {entry.end}
+            </p>
+          </div>
+        ))
+      }
+    </div>
+  ) : (
+    <ul id={containerId} class="w-full">
+      {
+        entries.map((entry) => (
+          <li
+            class="w-full animate mt-4 border-b border-black/10 py-8 first-of-type:mt-0 first-of-type:pt-0 last-of-type:border-none dark:border-white/25"
+            key={entry.start}
+          >
+            <h2 class="mb-4 text-sm uppercase">
+              {entry.start} - {entry.end}
+            </h2>
+            {
+              entry?.link ? (
+                <a class="font-semibold text-primary" href={entry.link}>
+                  {entry.company}
+                </a>
+              ) : (
+                <span class="font-semibold text-foreground">{entry.company}</span>
+              )
+            }
+            <div class="py-4 text-sm font-semibold">{entry.position}</div>
+            <article>
+              <ul class="pl-5">
+                {entry.tasks.map((task) => (
+                  <li class={taskClass} key={task}>
+                    {task}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+  )
+}
+
+<script is:inline>
+  const experienceData = ${JSON.stringify(EXPERIENCE)};
+  const isSlice = ${slice};
+  const containerId = '${containerId}';
+  const taskClass = '${taskClass}';
+
+  const getLanguage = () =>
+    window.portfolioLanguage?.getLanguage?.() ||
+    localStorage.getItem('language') ||
+    'es'
+
+  const getEntries = language => {
+    const lang = language in experienceData ? language : 'es'
+    const items = experienceData[lang]
+    return isSlice ? items.slice(0, 3) : items
+  }
+
+  const renderFullList = items =>
+    items
+      .map(
+        entry => `
+          <li class="w-full animate mt-4 border-b border-black/10 py-8 first-of-type:mt-0 first-of-type:pt-0 last-of-type:border-none dark:border-white/25">
+            <h2 class="mb-4 text-sm uppercase">${entry.start} - ${entry.end}</h2>
+            ${
+              entry.link
+                ? `<a class="font-semibold text-primary" href="${entry.link}">${entry.company}</a>`
+                : `<span class="font-semibold text-foreground">${entry.company}</span>`
+            }
+            <div class="py-4 text-sm font-semibold">${entry.position}</div>
+            <article>
+              <ul class="pl-5">
+                ${entry.tasks
+                  .map(
+                    task => `<li class="${taskClass}">${task}</li>`,
+                  )
+                  .join('')}
+              </ul>
+            </article>
+          </li>
+        `,
+      )
+      .join('')
+
+  const renderCompactList = items =>
+    items
+      .map(
+        entry => `
+          <div class="ml-4">
+            <h3 class="text-lg font-semibold">${entry.position}</h3>
+            ${
+              entry.link
+                ? `<a class="text-sm text-primary" href="${entry.link}">${entry.company}</a>`
+                : `<span class="text-sm font-semibold text-foreground">${entry.company}</span>`
+            }
+            <p class="text-sm text-gray-600">${entry.start} - ${entry.end}</p>
+          </div>
+        `,
+      )
+      .join('')
+
+  const render = language => {
+    const container = document.getElementById(containerId)
+    if (!container) return
+
+    const items = getEntries(language)
+    container.innerHTML = isSlice
+      ? renderCompactList(items)
+      : renderFullList(items)
+  }
+
+  if (typeof window !== 'undefined') {
+    let registered = false
+
+    const handleLanguageChange = event => {
+      const language = event?.detail?.language || getLanguage()
+      render(language)
+    }
+
+    const setup = () => {
+      const container = document.getElementById(containerId)
+      if (!container) return
+      render(getLanguage())
+
+      if (!registered) {
+        window.addEventListener('languageChange', handleLanguageChange)
+        registered = true
+      }
+    }
+
+    const cleanup = () => {
+      if (registered) {
+        window.removeEventListener('languageChange', handleLanguageChange)
+        registered = false
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setup, { once: true })
+    } else {
+      setup()
+    }
+
+    document.addEventListener('astro:after-swap', setup)
+    document.addEventListener('astro:before-swap', cleanup)
+  }
+</script>
