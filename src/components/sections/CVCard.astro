@@ -5,11 +5,22 @@ import { Button } from '@/components/ui/button'
 ---
 
 <Card colSpan="lg:col-span-1" rowSpan="md:row-span-1">
-  <div class="flex flex-col h-full items-center justify-center">
-    <a target="_blank" id="pdf-link" class="mt-4 md:mt-0">
+  <div class="flex h-full flex-col items-center justify-center gap-4 text-center">
+    <h2 id="cv-title" data-i18n="cv.title" class="text-2xl font-bold">
+      Currículum
+    </h2>
+    <a
+      id="cv-download-link"
+      class="w-full md:w-auto"
+      href="/sergio-morales-2024-es.pdf"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       <Button class="w-full">
-        <span id="pdf-button" class="mr-4"></span>
-        <DownloadIcon />
+        <span id="cv-download-label" data-i18n="cv.button" class="mr-2">
+          Descargar currículum
+        </span>
+        <DownloadIcon class="h-4 w-4" />
       </Button>
     </a>
   </div>
@@ -18,46 +29,29 @@ import { Button } from '@/components/ui/button'
 <script>
   const EN_PDF = '/sergio-morales-2024-en.pdf'
   const ES_PDF = '/sergio-morales-2024-es.pdf'
-  export let language: 'es' | 'en' = 'es'
-  export const updateTexts = () => {
-    language = (localStorage.getItem('language') as 'es' | 'en') || 'es'
-    const pdfTexts = {
-      es: {
-        title: 'Currículum',
-        button: 'Descargar currículum',
-      },
-      en: {
-        title: 'Resume',
-        button: 'Download resume',
-      },
-    }
-    const title = document.getElementById('pdf')
-    if (title) {
-      title.querySelector('h2')?.remove()
-      title.insertAdjacentHTML(
-        'afterbegin',
-        `<h2 class="text-2xl font-bold">${pdfTexts[language].title}</h2>`
-      )
-    }
-    const PDF = language === 'es' ? ES_PDF : EN_PDF
-    document.getElementById('pdf-link')?.setAttribute('href', PDF)
-    const pdfView = document.getElementById('pdf-view')
-    if (pdfView) {
-      pdfView.innerHTML = `<object data=${PDF} type="application/pdf" class="w-full h-full object-content"></object>`
-    }
-    const pdfButton = document.getElementById('pdf-button')
-    if (pdfButton) {
-      pdfButton.textContent = pdfTexts[language].button
-    }
+
+  const getLanguage = () =>
+    window.portfolioLanguage?.getLanguage?.() ||
+    localStorage.getItem('language') ||
+    'es'
+
+  const setDownloadLink = language => {
+    const link = document.getElementById('cv-download-link')
+    if (!(link instanceof HTMLAnchorElement)) return
+
+    link.href = language === 'en' ? EN_PDF : ES_PDF
+  }
+
+  const handleLanguageChange = event => {
+    const nextLanguage = event?.detail?.language || getLanguage()
+    setDownloadLink(nextLanguage)
   }
 
   if (typeof window !== 'undefined') {
-    window.addEventListener('languageChange', () => {
-      updateTexts()
+    setDownloadLink(getLanguage())
+    window.addEventListener('languageChange', handleLanguageChange)
+    document.addEventListener('astro:after-swap', () => {
+      setDownloadLink(getLanguage())
     })
-    updateTexts()
   }
-  document.addEventListener('astro:after-swap', () => {
-    updateTexts()
-  })
 </script>
