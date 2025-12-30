@@ -12,9 +12,7 @@ export default defineConfig({
   output: 'server',
   build: {},
 
-  integrations: [
-    react(),
-  ],
+  integrations: [react()],
 
   vite: {
     plugins: [tailwindcss()],

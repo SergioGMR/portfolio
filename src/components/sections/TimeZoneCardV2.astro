@@ -10,10 +10,7 @@ const timeId = `${baseId}-time`
 const locationId = `${baseId}-location`
 ---
 
-<div
-  id={baseId}
-  class="flex h-full flex-col items-center justify-between"
->
+<div id={baseId} class="flex h-full flex-col items-center justify-between">
   <h2 id={greetingId} class="m-0 text-xl font-bold">Cargando...</h2>
   <p id={timeId}></p>
   <p class="text-sm text-gray-500">
@@ -37,7 +34,7 @@ const locationId = `${baseId}-location`
     localStorage.getItem('language') ||
     'es'
 
-  const getTranslations = language =>
+  const getTranslations = (language) =>
     window.portfolioTranslations?.[language]?.time ||
     window.portfolioTranslations?.es?.time || {
       morning: 'Buenos días',
@@ -79,7 +76,7 @@ const locationId = `${baseId}-location`
     return translations.evening
   }
 
-  const updateView = language => {
+  const updateView = (language) => {
     const container = document.getElementById(config.ids.container)
     const greetingEl = document.getElementById(config.ids.greeting)
     const timeEl = document.getElementById(config.ids.time)
@@ -105,7 +102,7 @@ const locationId = `${baseId}-location`
       updateView(getLanguage())
     }
 
-    const handleLanguageChange = event => {
+    const handleLanguageChange = (event) => {
       const language = event?.detail?.language || getLanguage()
       updateView(language)
     }

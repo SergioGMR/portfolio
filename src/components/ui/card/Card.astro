@@ -8,7 +8,10 @@ const { class: className, ...attributes } = Astro.props as Props
 ---
 
 <div
-  class={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
+  class={cn(
+    'rounded-lg border bg-card text-card-foreground shadow-sm',
+    className,
+  )}
   {...attributes}
 >
   <slot />
