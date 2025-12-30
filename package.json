@@ -17,6 +17,7 @@
     "@astrojs/react": "^4.3.1",
     "@astrojs/vercel": "^8.2.7",
     "@contentful/rich-text-html-renderer": "^16.6.10",
+    "@vercel/analytics": "^1.6.1",
     "@vercel/speed-insights": "^1.2.0",
     "astro": "^5.13.8",
     "class-variance-authority": "^0.7.1",

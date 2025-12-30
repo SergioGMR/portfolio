@@ -28,18 +28,22 @@ const FALLBACK_TRANSLATIONS = {
     evening: 'Good evening',
     location: '🇮🇨 Canary Islands, Spain 🇪🇸',
   },
-} satisfies Record<Language, {
-  morning: string
-  afternoon: string
-  evening: string
-  location: string
-}>
+} satisfies Record<
+  Language,
+  {
+    morning: string
+    afternoon: string
+    evening: string
+    location: string
+  }
+>
 
 const resolveLanguage = (): Language => {
   if (typeof window === 'undefined') {
     return 'es'
   }
-  const stored = window.portfolioLanguage?.getLanguage?.() ||
+  const stored =
+    window.portfolioLanguage?.getLanguage?.() ||
     (localStorage.getItem('language') as Language | null)
   return stored === 'en' ? 'en' : 'es'
 }
@@ -127,7 +131,9 @@ const TimeZoneCardV2 = ({ timezone }: Props) => {
 
   return (
     <div className="flex h-full flex-col items-center justify-between text-center">
-      <h2 className="m-0 text-xl font-bold">{greeting || translations.morning}</h2>
+      <h2 className="m-0 text-xl font-bold">
+        {greeting || translations.morning}
+      </h2>
       <p className="font-mono text-sm">{dateText}</p>
       <p className="text-sm text-gray-500">{translations.location}</p>
     </div>
