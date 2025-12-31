@@ -3,6 +3,8 @@ import BasePage from './BasePage.astro'
 import ThemeToggleLite from '../ThemeToggleLite.astro'
 import LanguageToggleLite from '../LanguageToggleLite.astro'
 import LanguageService from '../LanguageService.astro'
+import { Image } from 'astro:assets'
+import faviconImg from '../../../public/favicon.webp'
 ---
 
 <BasePage {...Astro.props}>
@@ -10,7 +12,13 @@ import LanguageService from '../LanguageService.astro'
   <header class='sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
     <div class='mx-auto flex max-w-6xl items-center justify-between px-4 py-4'>
       <div class='flex items-center gap-2'>
-        <div class='h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-purple-500'></div>
+        <Image
+          src={faviconImg}
+          alt='Logo'
+          class='h-10 w-10 rounded-lg'
+          width={40}
+          height={40}
+        />
         <div class='leading-tight'>
           <p class='text-xs uppercase tracking-[0.2em] text-muted-foreground'>Full Stack</p>
           <p class='text-sm font-semibold'>Sergio Morales Rodríguez</p>
