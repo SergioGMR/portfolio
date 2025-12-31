@@ -1,10 +1,20 @@
 ---
 import BasePage from '@/components/layout/BasePage.astro'
+import { Image } from 'astro:assets'
+import heroImg from '../../public/me_laptop.webp'
 ---
 
 <BasePage title="404 - Not Found" description="404 Error — this page was not found">
   <main class="flex min-h-screen flex-col items-center justify-center px-8 text-center">
-    <img src="/me_laptop.webp" alt="404" class="mb-8 h-auto w-52" loading="lazy" decoding="async" width="208" height="208" />
+    <Image
+      src={heroImg}
+      alt="404"
+      class="mb-8 h-auto w-52"
+      loading="lazy"
+      decoding="async"
+      width={208}
+      height={208}
+    />
     <p class="text-sm text-muted-foreground">404</p>
     <h1 class="text-4xl font-extrabold tracking-tight lg:text-5xl">
       Page not found
