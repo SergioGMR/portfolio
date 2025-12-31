@@ -5,18 +5,35 @@ const options = [
 ]
 ---
 
-<label class='inline-flex items-center gap-1 text-xs text-muted-foreground'>
-  <span class='sr-only'>Idioma</span>
-  <select
-    class='rounded-md border px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background'
-    aria-label='Seleccionar idioma'
-    data-lang-select
-  >
-    {options.map(opt => (
-      <option value={opt.value}>{opt.label}</option>
-    ))}
-  </select>
-</label>
+<div class='flex items-center gap-2'>
+  <label class='inline-flex items-center gap-1 text-xs text-muted-foreground sm:hidden'>
+    <span class='sr-only'>Idioma</span>
+    <select
+      class='rounded-md border px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background'
+      aria-label='Seleccionar idioma'
+      data-lang-select
+    >
+      {options.map(opt => (
+        <option value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+  </label>
+  <div class='hidden items-center gap-2 rounded-full border px-2 py-1 text-xs sm:inline-flex'>
+    {
+      options.map(opt => (
+        <button
+          type='button'
+          class='cursor-pointer rounded-full px-3 py-1 transition hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/70 data-[active=true]:bg-foreground data-[active=true]:text-background data-[active=true]:shadow-sm data-[active=true]:border data-[active=true]:border-foreground'
+          data-lang-option={opt.value}
+          aria-pressed='false'
+          aria-label={`Cambiar idioma a ${opt.label}`}
+        >
+          {opt.label}
+        </button>
+      ))
+    }
+  </div>
+</div>
 
 <script>
   const LANG_KEY = 'language'
@@ -35,6 +52,16 @@ const options = [
     window.dispatchEvent(new CustomEvent('languageChange', { detail: { language: lang } }))
   }
 
+  const setActive = (lang) => {
+    document
+      .querySelectorAll('[data-lang-option]')
+      .forEach(btn => {
+        const isActive = btn.dataset.langOption === lang
+        btn.dataset.active = isActive ? 'true' : 'false'
+        btn.setAttribute('aria-pressed', String(isActive))
+      })
+  }
+
   const init = () => {
     const saved = localStorage.getItem(LANG_KEY) || 'es'
     setLang(saved)
@@ -42,6 +69,7 @@ const options = [
     if (select) {
       select.value = saved
     }
+    setActive(saved)
   }
 
   document.addEventListener('change', (e) => {
@@ -49,6 +77,17 @@ const options = [
     if (!select || select.tagName.toLowerCase() !== 'select' || !select.hasAttribute('data-lang-select')) return
     const lang = select.value || 'es'
     setLang(lang)
+    setActive(lang)
+  })
+
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement)?.closest('[data-lang-option]')
+    if (!btn) return
+    const lang = btn.getAttribute('data-lang-option') || 'es'
+    setLang(lang)
+    setActive(lang)
+    const select = document.querySelector('select[data-lang-select]')
+    if (select) select.value = lang
   })
 
   init()
