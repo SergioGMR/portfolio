@@ -37,18 +37,18 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
     sameAs: [LINKS.github, LINKS.linkedin, LINKS.twitter],
   }}
 >
-  <section class='relative overflow-hidden rounded-4xl border border-border bg-card p-6 text-foreground shadow-[0_20px_80px_-25px_rgba(0,0,0,0.65)] sm:p-8 lg:grid lg:grid-cols-[1.3fr_1fr] lg:items-center dark:border-white/5 dark:bg-[rgba(10,10,20,0.9)]'>
-    <div class='pointer-events-none absolute inset-0 opacity-40 blur-3xl dark:opacity-70'>
+  <section class='relative overflow-hidden rounded-4xl border border-border hero-bg p-6 text-foreground shadow-[0_20px_80px_-25px_rgba(0,0,0,0.15)] sm:p-8 lg:grid lg:grid-cols-[1.3fr_1fr] lg:items-center dark:shadow-[0_20px_80px_-25px_rgba(0,0,0,0.5)]'>
+    <div class='pointer-events-none absolute inset-0 opacity-30 blur-3xl dark:opacity-70'>
       <div class='absolute -left-10 -top-8 h-48 w-48 rounded-full bg-gradient-to-br from-[#5eb1ff] to-[#7f5dff] opacity-60'></div>
       <div class='absolute right-0 top-10 h-40 w-40 rounded-full bg-gradient-to-br from-[#ffa9d1] to-[#7f5dff] opacity-50'></div>
       <div class='absolute bottom-0 left-1/4 h-36 w-36 rounded-full bg-gradient-to-br from-[#6effd4] to-[#3b82f6] opacity-35'></div>
-      <div class='absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(126,92,255,0.08),transparent_35%)]'></div>
+      <div class='absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,0,0,0.04),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(126,92,255,0.06),transparent_35%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(126,92,255,0.08),transparent_35%)]'></div>
     </div>
     <div class='space-y-6 relative z-10'>
       <p class='text-sm uppercase tracking-[0.25em] text-muted-foreground'>
         <LangText es='Desarrollador Full Stack' en='Full Stack Developer' />
       </p>
-      <h1 class='text-4xl font-semibold leading-[1.1] sm:text-5xl text-foreground'>
+      <h1 class='text-4xl font-semibold leading-[1.1] text-foreground sm:text-5xl'>
         <LangText
           es='Diseño, construyo y optimizo productos digitales.'
           en='I design, build, and optimize digital products.'
@@ -70,7 +70,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         <a
           data-lang-content='es'
           href='/sergio-morales-2024-es.pdf'
-          class='rounded-full border border-border bg-background px-5 py-2 text-sm font-semibold text-foreground backdrop-blur transition hover:border-foreground/60 hover:bg-foreground/5 dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:border-white/40 dark:hover:bg-white/10'
+          class='rounded-full border border-border bg-card/80 px-5 py-2 text-sm font-semibold text-foreground backdrop-blur transition hover:border-foreground/30 hover:bg-card'
           target='_blank'
         >
           Ver CV
@@ -78,7 +78,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         <a
           data-lang-content='en'
           href='/sergio-morales-2024-en.pdf'
-          class='rounded-full border border-border bg-background px-5 py-2 text-sm font-semibold text-foreground backdrop-blur transition hover:border-foreground/60 hover:bg-foreground/5 dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:border-white/40 dark:hover:bg-white/10'
+          class='rounded-full border border-border bg-card/80 px-5 py-2 text-sm font-semibold text-foreground backdrop-blur transition hover:border-foreground/30 hover:bg-card'
           target='_blank'
         >
           View CV
@@ -87,7 +87,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
       <div class='flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground'>
         {
           ['PHP', 'Laravel', 'TypeScript', 'React', 'Tailwind'].map(item => (
-            <span class='rounded-full border border-border bg-background px-3 py-1 text-foreground/80 backdrop-blur shadow-sm dark:border-white/15 dark:bg-white/5 dark:text-white/80 dark:shadow-[0_1px_8px_rgba(255,255,255,0.08)]'>{item}</span>
+            <span class='rounded-full border border-border bg-card/60 px-3 py-1 text-foreground/80 backdrop-blur shadow-sm'>{item}</span>
           ))
         }
       </div>
@@ -95,7 +95,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
     <div class='relative z-10 flex justify-center'>
       <div class='absolute -left-10 top-6 h-24 w-24 rounded-full bg-[linear-gradient(140deg,#5eb1ff,#7f5dff)] blur-3xl opacity-60'></div>
       <div class='absolute right-0 -bottom-4 h-28 w-28 rounded-full bg-[linear-gradient(160deg,#ffa9d1,#7f5dff)] blur-3xl opacity-50'></div>
-      <div class='relative h-full w-full max-w-md overflow-hidden rounded-3xl border border-white/15 bg-white/5 p-[1px] shadow-[0_25px_90px_-30px_rgba(0,0,0,0.7)] backdrop-blur-[18px]'>
+      <div class='relative h-full w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card/20 p-[1px] shadow-[0_25px_90px_-30px_rgba(0,0,0,0.2)] backdrop-blur-[18px] dark:shadow-[0_25px_90px_-30px_rgba(0,0,0,0.7)]'>
         <Image
           src={heroImg}
           alt='Sergio working on laptop'
@@ -111,13 +111,13 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
     </div>
   </section>
 
-  <section class='grid gap-10 rounded-4xl border border-border bg-card p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)] backdrop-blur sm:p-10 dark:border-white/5 dark:bg-white/5'>
+  <section class='grid gap-10 rounded-4xl border border-border bg-card p-8 text-foreground shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]'>
     <div class='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
       <div>
-        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground dark:text-white/70'>
+        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground'>
           <LangText es='Trayectoria' en='Background' />
         </p>
-        <h2 class='text-2xl font-semibold sm:text-3xl text-foreground dark:text-white'>
+        <h2 class='text-2xl font-semibold sm:text-3xl text-foreground'>
           <LangText es='Experiencia seleccionada' en='Selected experience' />
         </h2>
       </div>
@@ -131,16 +131,16 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
     <div class='grid gap-6 md:grid-cols-2'>
       {
         EXPERIENCE.es.slice(0, 4).map((exp, idx) => (
-          <article data-lang-content='es' class='rounded-2xl border border-border bg-card p-6 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)] transition hover:-translate-y-1 hover:border-foreground/30 hover:bg-foreground/5 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/25 dark:hover:bg-white/10'>
+          <article data-lang-content='es' class='rounded-2xl border border-border bg-card p-6 text-foreground shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 hover:border-foreground/20 hover:bg-muted dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)]'>
             <div class='flex items-center justify-between'>
-              <p class='text-xs uppercase tracking-[0.2em] text-muted-foreground dark:text-white/60'>{exp.start} — {exp.end}</p>
-              <span class='rounded-full border border-border bg-primary/20 px-3 py-1 text-[11px] font-semibold text-foreground dark:border-white/20 dark:text-white'>
+              <p class='text-xs uppercase tracking-[0.2em] text-muted-foreground'>{exp.start} — {exp.end}</p>
+              <span class='rounded-full border border-border bg-primary/20 px-3 py-1 text-[11px] font-semibold text-foreground'>
                 {idx === 0 ? 'Actual' : 'Freelance'}
               </span>
             </div>
-            <h3 class='mt-3 text-xl font-semibold text-foreground dark:text-white'>{exp.position}</h3>
+            <h3 class='mt-3 text-xl font-semibold text-foreground'>{exp.position}</h3>
             <a class='text-sm text-primary underline-offset-4 hover:underline' href={exp.link}>{exp.company}</a>
-            <ul class='mt-4 flex list-disc flex-col gap-2 pl-4 text-sm text-muted-foreground dark:text-white/70'>
+            <ul class='mt-4 flex list-disc flex-col gap-2 pl-4 text-sm text-muted-foreground'>
               {exp.tasks.slice(0, 3).map(item => <li>{item}</li>)}
             </ul>
           </article>
@@ -148,16 +148,16 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
       }
       {
         EXPERIENCE.en.slice(0, 4).map((exp, idx) => (
-          <article data-lang-content='en' class='rounded-2xl border border-border bg-card p-6 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)] transition hover:-translate-y-1 hover:border-foreground/30 hover:bg-foreground/5 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/25 dark:hover:bg-white/10'>
+          <article data-lang-content='en' class='rounded-2xl border border-border bg-card p-6 text-foreground shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 hover:border-foreground/20 hover:bg-muted dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)]'>
             <div class='flex items-center justify-between'>
-              <p class='text-xs uppercase tracking-[0.2em] text-muted-foreground dark:text-white/60'>{exp.start} — {exp.end}</p>
-              <span class='rounded-full border border-border bg-primary/20 px-3 py-1 text-[11px] font-semibold text-foreground dark:border-white/20 dark:text-white'>
+              <p class='text-xs uppercase tracking-[0.2em] text-muted-foreground'>{exp.start} — {exp.end}</p>
+              <span class='rounded-full border border-border bg-primary/20 px-3 py-1 text-[11px] font-semibold text-foreground'>
                 {idx === 0 ? 'Current' : 'Freelance'}
               </span>
             </div>
-            <h3 class='mt-3 text-xl font-semibold text-foreground dark:text-white'>{exp.position}</h3>
+            <h3 class='mt-3 text-xl font-semibold text-foreground'>{exp.position}</h3>
             <a class='text-sm text-primary underline-offset-4 hover:underline' href={exp.link}>{exp.company}</a>
-            <ul class='mt-4 flex list-disc flex-col gap-2 pl-4 text-sm text-muted-foreground dark:text-white/70'>
+            <ul class='mt-4 flex list-disc flex-col gap-2 pl-4 text-sm text-muted-foreground'>
               {exp.tasks.slice(0, 3).map(item => <li>{item}</li>)}
             </ul>
           </article>
@@ -166,15 +166,15 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
     </div>
   </section>
 
-  <section class='grid gap-6 rounded-4xl border border-border bg-card p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr] dark:border-white/5 dark:bg-white/5'>
+  <section class='grid gap-6 rounded-4xl border border-border bg-card p-8 text-foreground shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr] dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]'>
     <div class='space-y-4'>
-      <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground dark:text-white/70'>
+      <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground'>
         <LangText es='Skills' en='Skills' />
       </p>
-      <h2 class='text-2xl font-semibold sm:text-3xl text-foreground dark:text-white'>
+      <h2 class='text-2xl font-semibold sm:text-3xl text-foreground'>
         <LangText es='Stack y enfoque' en='Stack and focus' />
       </h2>
-      <p class='text-muted-foreground dark:text-white/70'>
+      <p class='text-muted-foreground'>
         <LangText
           es='Foco en backend escalable y APIs limpias. Priorizo flujos claros de entrega y comunicación con negocio.'
           en='Focus on scalable backend and clean APIs. I prioritize clear delivery flows and business alignment.'
@@ -182,48 +182,59 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
       </p>
       <div class='flex flex-wrap gap-2'>
         {STACK.map(item => (
-          <span class='rounded-full border border-border bg-background px-3 py-1 text-sm text-foreground/80 backdrop-blur dark:border-white/15 dark:bg-white/5 dark:text-white/80'>{item}</span>
+          <span class='rounded-full border border-border bg-card/60 px-3 py-1 text-sm text-foreground/80 backdrop-blur'>{item}</span>
         ))}
       </div>
     </div>
     <div class='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-      <div class='rounded-2xl border border-border bg-card p-5 backdrop-blur shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)] dark:border-white/10 dark:bg-white/5 dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.7)]'>
-        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground dark:text-white/70'>
+      <div class='rounded-2xl border border-border bg-card p-5 text-foreground backdrop-blur shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]'>
+        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground'>
           <LangText es='Backend' en='Backend' />
         </p>
-        <p class='mt-2 text-lg font-semibold text-foreground dark:text-white'>PHP · Laravel · APIs</p>
-        <p class='text-sm text-muted-foreground dark:text-white/70'>
+        <p class='mt-2 text-lg font-semibold text-foreground'>PHP · Laravel · APIs</p>
+        <p class='text-sm text-muted-foreground'>
           <LangText es='Arquitectura hexagonal, colas, eventos, auth.' en='Hexagonal architecture, queues, events, auth.' />
         </p>
       </div>
-      <div class='rounded-2xl border border-border bg-card p-5 backdrop-blur shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)] dark:border-white/10 dark:bg-white/5 dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.7)]'>
-        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground dark:text-white/70'>Frontend</p>
-        <p class='mt-2 text-lg font-semibold text-foreground dark:text-white'>TypeScript · React</p>
-        <p class='text-sm text-muted-foreground dark:text-white/70'>
+      <div class='rounded-2xl border border-border bg-card p-5 text-foreground backdrop-blur shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]'>
+        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground'>Frontend</p>
+        <p class='mt-2 text-lg font-semibold text-foreground'>TypeScript · React</p>
+        <p class='text-sm text-muted-foreground'>
           <LangText es='UI accesible con Tailwind, componentes a medida.' en='Accessible UI with Tailwind, custom components.' />
         </p>
       </div>
-      <div class='rounded-2xl border border-border bg-card p-5 backdrop-blur shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)] dark:border-white/10 dark:bg-white/5 dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.7)]'>
-        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground dark:text-white/70'>
+      <div class='rounded-2xl border border-border bg-card p-5 text-foreground backdrop-blur shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]'>
+        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground'>
           <LangText es='Comunicación' en='Communication' />
         </p>
-        <p class='mt-2 text-lg font-semibold text-foreground dark:text-white'>
+        <p class='mt-2 text-lg font-semibold text-foreground'>
           <LangText es='Negocio & producto' en='Business & product' />
         </p>
-        <p class='text-sm text-muted-foreground dark:text-white/70'>
+        <p class='text-sm text-muted-foreground'>
           <LangText es='Traducción de requisitos a entregables medibles.' en='Translate requirements into measurable deliverables.' />
+        </p>
+      </div>
+      <div class='rounded-2xl border border-border bg-card p-5 text-foreground backdrop-blur shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]'>
+        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground'>
+          <LangText es='Soft Skills' en='Soft Skills' />
+        </p>
+        <p class='mt-2 text-lg font-semibold text-foreground'>
+          <LangText es='Resolución de problemas' en='Problem solving' />
+        </p>
+        <p class='text-sm text-muted-foreground'>
+          <LangText es='Análisis, debugging y toma de decisiones técnicas.' en='Analysis, debugging, and technical decision-making.' />
         </p>
       </div>
     </div>
   </section>
 
-  <section class='grid gap-6 rounded-4xl border border-border bg-card p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)] backdrop-blur sm:p-10 dark:border-white/5 dark:bg-white/5'>
+  <section class='grid gap-6 rounded-4xl border border-border bg-card p-8 text-foreground shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]'>
     <div class='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
       <div>
-        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground dark:text-white/70'>
+        <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground'>
           <LangText es='Proyectos' en='Projects' />
         </p>
-        <h2 class='text-2xl font-semibold sm:text-3xl text-foreground dark:text-white'>
+        <h2 class='text-2xl font-semibold sm:text-3xl text-foreground'>
           <LangText es='Trabajo reciente' en='Recent work' />
         </h2>
       </div>
@@ -235,9 +246,9 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
             href={card.es.link}
             target='_blank'
             rel='noreferrer noopener'
-            class='group block rounded-2xl border border-border bg-card p-4 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)] backdrop-blur transition hover:-translate-y-1 hover:border-foreground/30 hover:bg-foreground/5 dark:border-white/10 dark:bg-white/5 dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.8)] dark:hover:border-white/25 dark:hover:bg-white/10'
+            class='group block rounded-2xl border border-border bg-card p-4 text-foreground shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur transition hover:-translate-y-1 hover:border-foreground/20 hover:bg-muted dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]'
           >
-            <div class='relative mb-4 overflow-hidden rounded-xl border border-border bg-muted/40 dark:border-white/10 dark:bg-white/5'>
+            <div class='relative mb-4 overflow-hidden rounded-xl border border-border bg-muted/40'>
               <Image
                 src={card.image}
                 alt={card.es.company}
@@ -251,32 +262,32 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
             </div>
             <div data-lang-content='es' class='space-y-2'>
               <div class='flex items-center justify-between'>
-                <h3 class='text-lg font-semibold text-foreground dark:text-white'>{card.es.company}</h3>
+                <h3 class='text-lg font-semibold text-foreground'>{card.es.company}</h3>
                 <span class='text-sm text-primary'>→</span>
               </div>
-              <p class='text-sm font-semibold text-foreground dark:text-white/90'>{card.es.position}</p>
-              <p class='text-xs uppercase tracking-[0.18em] text-muted-foreground dark:text-white/60'>
+              <p class='text-sm font-semibold text-foreground/90'>{card.es.position}</p>
+              <p class='text-xs uppercase tracking-[0.18em] text-muted-foreground'>
                 {card.es.start} — {card.es.end}
               </p>
-              <p class='text-sm text-muted-foreground dark:text-white/70'>
+              <p class='text-sm text-muted-foreground'>
                 {card.es.tasks.slice(0, 2).join(' • ')}
               </p>
             </div>
             <div data-lang-content='en' class='space-y-2'>
               <div class='flex items-center justify-between'>
-                <h3 class='text-lg font-semibold text-foreground dark:text-white'>{card.en?.company}</h3>
+                <h3 class='text-lg font-semibold text-foreground'>{card.en?.company}</h3>
                 <span class='text-sm text-primary'>→</span>
               </div>
-              <p class='text-sm font-semibold text-foreground dark:text-white/90'>{card.en?.position}</p>
-              <p class='text-xs uppercase tracking-[0.18em] text-muted-foreground dark:text-white/60'>
+              <p class='text-sm font-semibold text-foreground/90'>{card.en?.position}</p>
+              <p class='text-xs uppercase tracking-[0.18em] text-muted-foreground'>
                 {card.en?.start} — {card.en?.end}
               </p>
-              <p class='text-sm text-muted-foreground dark:text-white/70'>
+              <p class='text-sm text-muted-foreground'>
                 {card.en?.tasks?.slice(0, 2).join(' • ')}
               </p>
             </div>
-            <div class='mt-4 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground dark:text-white/60'>
-              <span class='rounded-full border border-border bg-background px-2 py-1 backdrop-blur dark:border-white/20 dark:bg-white/5'>{idx === 0 ? 'Live' : 'Project'}</span>
+            <div class='mt-4 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground'>
+              <span class='rounded-full border border-border bg-card/60 px-2 py-1 backdrop-blur'>{idx === 0 ? 'Live' : 'Project'}</span>
             </div>
           </a>
         ))
@@ -284,45 +295,45 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
     </div>
   </section>
 
-  <section class='grid gap-6 rounded-4xl border border-white/5 bg-white/5 p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr]'>
+  <section class='grid gap-6 rounded-4xl border border-border bg-card p-8 text-foreground shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr] dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]'>
     <div class='space-y-4'>
-      <p class='text-xs uppercase tracking-[0.3em] text-white/70'>
+      <p class='text-xs uppercase tracking-[0.3em] text-muted-foreground'>
         <LangText es='Sobre mí' en='About' />
       </p>
-      <h2 class='text-2xl font-semibold sm:text-3xl text-white'>
+      <h2 class='text-2xl font-semibold sm:text-3xl text-foreground'>
         <LangText es='Colaboro de forma cercana y pragmática.' en='I collaborate closely and pragmatically.' />
       </h2>
-      <p class='text-white/75'>
+      <p class='text-muted-foreground'>
         <LangText
           es='Me gusta entrar en proyectos con contexto, mapear riesgos, definir métricas y entregar rápido. Hablo con negocio y con ingeniería.'
           en='I like to enter projects with context, map risks, define metrics, and ship fast. I talk with business and engineering.'
         />
       </p>
-      <div class='rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/75 backdrop-blur shadow-[0_12px_40px_-28px_rgba(0,0,0,0.7)]'>
+      <div class='rounded-2xl border border-border bg-muted/50 p-4 text-sm text-muted-foreground backdrop-blur shadow-[0_12px_40px_-28px_rgba(0,0,0,0.1)] dark:shadow-[0_12px_40px_-28px_rgba(0,0,0,0.5)]'>
         <LangText
           es='Ubicado en Islas Canarias (UTC+0/+1). Trabajo remoto y asincrónico con equipos distribuidos.'
           en='Based in Canary Islands (UTC+0/+1). Remote and async with distributed teams.'
         />
       </div>
     </div>
-    <div class='rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur shadow-[0_15px_50px_-30px_rgba(0,0,0,0.8)]'>
-      <p class='text-xs uppercase tracking-[0.25em] text-white/70'>
+    <div class='rounded-3xl border border-border bg-card p-6 text-foreground backdrop-blur shadow-[0_15px_50px_-30px_rgba(0,0,0,0.1)] dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.6)]'>
+      <p class='text-xs uppercase tracking-[0.25em] text-muted-foreground'>
         <LangText es='Contacto' en='Contact' />
       </p>
       <div class='mt-4 space-y-3'>
-        <div class='flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white/80'>
+        <div class='flex items-center justify-between rounded-2xl border border-border bg-muted/30 px-4 py-3 text-foreground'>
           <span class='text-sm'>
             <LangText es='Email' en='Email' />
           </span>
-          <a class='font-semibold text-white hover:underline' href='mailto:sergiogmr+portfolio@icloud.com'>sergiogmr@icloud.com</a>
+          <a class='font-semibold hover:underline' href='mailto:sergiogmr+portfolio@icloud.com'>sergiogmr@icloud.com</a>
         </div>
-        <div class='flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white/80'>
+        <div class='flex items-center justify-between rounded-2xl border border-border bg-muted/30 px-4 py-3 text-foreground'>
           <span class='text-sm'>LinkedIn</span>
-          <a class='font-semibold text-white hover:underline' href='https://www.linkedin.com/in/sergiogmr' target='_blank'>@sergiogmr</a>
+          <a class='font-semibold hover:underline' href='https://www.linkedin.com/in/sergiogmr' target='_blank'>@sergiogmr</a>
         </div>
-        <div class='flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white/80'>
+        <div class='flex items-center justify-between rounded-2xl border border-border bg-muted/30 px-4 py-3 text-foreground'>
           <span class='text-sm'>GitHub</span>
-          <a class='font-semibold text-white hover:underline' href='https://github.com/sergiogmr' target='_blank'>@sergiogmr</a>
+          <a class='font-semibold hover:underline' href='https://github.com/sergiogmr' target='_blank'>@sergiogmr</a>
         </div>
       </div>
     </div>

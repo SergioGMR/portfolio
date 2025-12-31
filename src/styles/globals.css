@@ -2,50 +2,66 @@
 
 @layer base {
   :root {
-    /* Light / neutral palette */
-    --background: 220 25% 97%;
-    --foreground: 228 13% 12%;
+    /* Light palette - iOS 26 Liquid Glass */
+    --background: 220 14% 96%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 228 13% 12%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 228 13% 12%;
-    --primary: 219 93% 57%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 267 71% 63%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 210 20% 94%;
-    --muted-foreground: 220 12% 42%;
-    --accent: 192 96% 62%;
-    --accent-foreground: 0 0% 10%;
-    --destructive: 0 72% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 210 16% 86%;
-    --input: 210 16% 86%;
-    --ring: 219 93% 57%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 215 16% 40%;
+    --accent: 172 66% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 20% 82%;
+    --input: 214 20% 82%;
+    --ring: 217 91% 60%;
     --radius: 1.2rem;
+
+    /* Liquid Glass - Light */
+    --glass: 0 0% 100%;
+    --glass-opacity: 0.72;
+    --glass-border: 220 14% 90%;
+    --hero-start: 230 100% 98%;
+    --hero-via: 240 60% 96%;
+    --hero-end: 250 40% 94%;
   }
 
   .dark {
-    /* iOS-style spatial dark palette */
-    --background: 240 33% 6%;
-    --foreground: 210 33% 96%;
-    --card: 240 26% 10%;
-    --card-foreground: 210 33% 96%;
-    --popover: 240 26% 10%;
-    --popover-foreground: 210 33% 96%;
-    --primary: 219 93% 67%;
-    --primary-foreground: 210 33% 96%;
-    --secondary: 267 71% 73%;
-    --secondary-foreground: 220 33% 98%;
-    --muted: 240 24% 14%;
-    --muted-foreground: 220 15% 65%;
-    --accent: 192 96% 69%;
-    --accent-foreground: 210 33% 96%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 33% 96%;
-    --border: 232 28% 22%;
-    --input: 232 28% 22%;
-    --ring: 219 93% 67%;
+    /* Dark palette - iOS 26 Liquid Glass */
+    --background: 240 20% 4%;
+    --foreground: 0 0% 98%;
+    --card: 240 15% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 15% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 217 91% 65%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 262 83% 68%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 15% 12%;
+    --muted-foreground: 220 10% 70%;
+    --accent: 172 66% 60%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 15% 18%;
+    --input: 240 15% 18%;
+    --ring: 217 91% 65%;
+
+    /* Liquid Glass - Dark */
+    --glass: 240 20% 8%;
+    --glass-opacity: 0.65;
+    --glass-border: 240 15% 20%;
+    --hero-start: 240 25% 6%;
+    --hero-via: 250 30% 8%;
+    --hero-end: 260 35% 10%;
   }
 
   *,
@@ -57,5 +73,27 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+  }
+}
+
+@layer components {
+  /* iOS 26 Liquid Glass effects */
+  .glass {
+    background: hsl(var(--glass) / var(--glass-opacity));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  .glass-border {
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  .hero-bg {
+    background: linear-gradient(
+      to bottom right,
+      hsl(var(--hero-start)),
+      hsl(var(--hero-via)),
+      hsl(var(--hero-end))
+    );
   }
 }
