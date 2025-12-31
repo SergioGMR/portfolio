@@ -37,11 +37,12 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
     sameAs: [LINKS.github, LINKS.linkedin, LINKS.twitter],
   }}
 >
-  <section class='relative overflow-hidden rounded-3xl border bg-gradient-to-br from-[#0a0a0f] via-[#121220] to-[#0e0e17] p-6 text-white shadow-2xl sm:p-8 lg:grid lg:grid-cols-[1.3fr_1fr] lg:items-center'>
+  <section class='relative overflow-hidden rounded-4xl border border-white/5 bg-gradient-to-br from-[rgba(10,10,20,0.9)] via-[rgba(16,16,30,0.85)] to-[rgba(12,15,25,0.92)] p-6 text-white shadow-[0_20px_80px_-25px_rgba(0,0,0,0.65)] sm:p-8 lg:grid lg:grid-cols-[1.3fr_1fr] lg:items-center'>
     <div class='pointer-events-none absolute inset-0 opacity-70 blur-3xl'>
-      <div class='absolute -left-10 -top-8 h-40 w-40 rounded-full bg-gradient-to-br from-[#5eb1ff] to-[#7f5dff] opacity-60'></div>
-      <div class='absolute right-0 top-10 h-32 w-32 rounded-full bg-gradient-to-br from-[#ffa9d1] to-[#7f5dff] opacity-50'></div>
-      <div class='absolute bottom-0 left-1/4 h-32 w-32 rounded-full bg-gradient-to-br from-[#6effd4] to-[#3b82f6] opacity-40'></div>
+      <div class='absolute -left-10 -top-8 h-48 w-48 rounded-full bg-gradient-to-br from-[#5eb1ff] to-[#7f5dff] opacity-60'></div>
+      <div class='absolute right-0 top-10 h-40 w-40 rounded-full bg-gradient-to-br from-[#ffa9d1] to-[#7f5dff] opacity-50'></div>
+      <div class='absolute bottom-0 left-1/4 h-36 w-36 rounded-full bg-gradient-to-br from-[#6effd4] to-[#3b82f6] opacity-35'></div>
+      <div class='absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(126,92,255,0.08),transparent_35%)]'></div>
     </div>
     <div class='space-y-6 relative z-10'>
       <p class='text-sm uppercase tracking-[0.25em] text-muted-foreground'>
@@ -62,14 +63,14 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
       <div class='flex flex-wrap items-center gap-3'>
         <a
           href='mailto:sergiogmr+portfolio@icloud.com'
-          class='rounded-full bg-[linear-gradient(120deg,#5eb1ff,#7f5dff)] px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:brightness-110'
+          class='rounded-full bg-[linear-gradient(135deg,#5eb1ff,#7f5dff)] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[0_10px_40px_-18px_rgba(95,150,255,0.9)] transition hover:brightness-110'
         >
           <LangText es='Hablemos' en="Let's talk" />
         </a>
         <a
           data-lang-content='es'
           href='/sergio-morales-2024-es.pdf'
-          class='rounded-full border border-white/30 bg-white/5 px-5 py-2 text-sm font-semibold text-white backdrop-blur transition hover:border-white/60 hover:bg-white/10'
+          class='rounded-full border border-white/20 bg-white/5 px-5 py-2 text-sm font-semibold text-white backdrop-blur transition hover:border-white/40 hover:bg-white/10'
           target='_blank'
         >
           Ver CV
@@ -77,7 +78,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         <a
           data-lang-content='en'
           href='/sergio-morales-2024-en.pdf'
-          class='rounded-full border border-white/30 bg-white/5 px-5 py-2 text-sm font-semibold text-white backdrop-blur transition hover:border-white/60 hover:bg-white/10'
+          class='rounded-full border border-white/20 bg-white/5 px-5 py-2 text-sm font-semibold text-white backdrop-blur transition hover:border-white/40 hover:bg-white/10'
           target='_blank'
         >
           View CV
@@ -86,15 +87,15 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
       <div class='flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground'>
         {
           ['PHP', 'Laravel', 'TypeScript', 'React', 'Tailwind'].map(item => (
-            <span class='rounded-full border border-white/20 bg-white/5 px-3 py-1 text-white/80 backdrop-blur'>{item}</span>
+            <span class='rounded-full border border-white/15 bg-white/5 px-3 py-1 text-white/80 backdrop-blur shadow-[0_1px_8px_rgba(255,255,255,0.08)]'>{item}</span>
           ))
         }
       </div>
     </div>
     <div class='relative z-10 flex justify-center'>
-      <div class='absolute -left-10 top-6 h-20 w-20 rounded-full bg-[linear-gradient(140deg,#5eb1ff,#7f5dff)] blur-3xl opacity-60'></div>
-      <div class='absolute right-0 -bottom-4 h-24 w-24 rounded-full bg-[linear-gradient(160deg,#ffa9d1,#7f5dff)] blur-3xl opacity-50'></div>
-      <div class='relative h-full w-full max-w-md overflow-hidden rounded-3xl border border-white/20 bg-white/5 p-[1px] shadow-[0_20px_80px_-25px_rgba(0,0,0,0.65)] backdrop-blur'>
+      <div class='absolute -left-10 top-6 h-24 w-24 rounded-full bg-[linear-gradient(140deg,#5eb1ff,#7f5dff)] blur-3xl opacity-60'></div>
+      <div class='absolute right-0 -bottom-4 h-28 w-28 rounded-full bg-[linear-gradient(160deg,#ffa9d1,#7f5dff)] blur-3xl opacity-50'></div>
+      <div class='relative h-full w-full max-w-md overflow-hidden rounded-3xl border border-white/15 bg-white/5 p-[1px] shadow-[0_25px_90px_-30px_rgba(0,0,0,0.7)] backdrop-blur-[18px]'>
         <Image
           src={heroImg}
           alt='Sergio working on laptop'
