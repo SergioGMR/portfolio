@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 // https://astro.build/config
 export default defineConfig({
   site: process.env.CI
-    ? 'https://sergiogmr.vercel.app/'
+    ? 'https://sgmr.dev/'
     : 'http://localhost:4321',
 
   output: 'server',
