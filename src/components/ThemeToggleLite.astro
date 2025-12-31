@@ -1,0 +1,68 @@
+---
+const options = [
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'system', label: 'System' }
+]
+---
+
+<div class='relative inline-flex items-center gap-2 rounded-full border px-2 py-1 text-xs'>
+  {
+    options.map(opt => (
+      <button
+        type='button'
+        class='cursor-pointer rounded-full px-3 py-1 transition hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/70 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:shadow-sm data-[active=true]:border data-[active=true]:border-primary'
+        data-theme-option={opt.value}
+        aria-pressed='false'
+        aria-label={`Cambiar tema a ${opt.label}`}
+      >
+        {opt.label}
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  const THEME_KEY = 'theme'
+
+  const applyTheme = (mode) => {
+    const root = document.documentElement
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const resolved = mode === 'system' ? (systemPrefersDark ? 'dark' : 'light') : mode
+    root.classList.toggle('dark', resolved === 'dark')
+    localStorage.setItem(THEME_KEY, mode)
+  }
+
+  const setActive = (mode) => {
+    document
+      .querySelectorAll('[data-theme-option]')
+      .forEach(btn => {
+        const isActive = btn.dataset.themeOption === mode
+        btn.dataset.active = isActive ? 'true' : 'false'
+        btn.setAttribute('aria-pressed', String(isActive))
+      })
+  }
+
+  const init = () => {
+    const saved = localStorage.getItem(THEME_KEY) || 'system'
+    applyTheme(saved)
+    setActive(saved)
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement)?.closest('[data-theme-option]')
+    if (!btn) return
+    const mode = btn.getAttribute('data-theme-option') || 'system'
+    applyTheme(mode)
+    setActive(mode)
+  })
+
+  init()
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    const saved = localStorage.getItem(THEME_KEY) || 'system'
+    if (saved === 'system') {
+      applyTheme(saved)
+      setActive(saved)
+    }
+  })
+</script>

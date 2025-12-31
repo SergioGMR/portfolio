@@ -1,0 +1,66 @@
+---
+const options = [
+  { value: 'es', label: 'ES' },
+  { value: 'en', label: 'EN' }
+]
+---
+
+<div class='inline-flex items-center gap-2 rounded-full border px-2 py-1 text-xs'>
+  {
+    options.map(opt => (
+      <button
+        type='button'
+        class='cursor-pointer rounded-full px-3 py-1 transition hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/70 data-[active=true]:bg-foreground data-[active=true]:text-background data-[active=true]:shadow-sm data-[active=true]:border data-[active=true]:border-foreground'
+        data-lang-option={opt.value}
+        aria-pressed='false'
+        aria-label={`Cambiar idioma a ${opt.label}`}
+      >
+        {opt.label}
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  const LANG_KEY = 'language'
+  const setLang = (lang) => {
+    localStorage.setItem(LANG_KEY, lang)
+    document.documentElement.setAttribute('lang', lang)
+    document.querySelectorAll('[data-lang-content]').forEach(node => {
+      const target = node.getAttribute('data-lang-content')
+      node.classList.toggle('hidden', target !== lang)
+    })
+    document.querySelectorAll('[data-i18n-key]').forEach(node => {
+      const key = node.getAttribute('data-i18n-key')
+      const text = window.portfolioTranslations?.[lang]?.[key]
+      if (text) node.textContent = text
+    })
+    window.dispatchEvent(new CustomEvent('languageChange', { detail: { language: lang } }))
+  }
+
+  const setActive = (lang) => {
+    document
+      .querySelectorAll('[data-lang-option]')
+      .forEach(btn => {
+        const isActive = btn.dataset.langOption === lang
+        btn.dataset.active = isActive ? 'true' : 'false'
+        btn.setAttribute('aria-pressed', String(isActive))
+      })
+  }
+
+  const init = () => {
+    const saved = localStorage.getItem(LANG_KEY) || 'es'
+    setLang(saved)
+    setActive(saved)
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement)?.closest('[data-lang-option]')
+    if (!btn) return
+    const lang = btn.getAttribute('data-lang-option') || 'es'
+    setLang(lang)
+    setActive(lang)
+  })
+
+  init()
+</script>

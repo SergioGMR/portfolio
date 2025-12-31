@@ -1,19 +1,3 @@
-import type { Site, Page } from './types'
-
-export const loaderAnimation = [
-  '.loader',
-  { opacity: [1, 0], pointerEvents: 'none' },
-  { easing: 'ease-out' },
-]
-
-export const MEMOJIS = [
-  'me_dino.webp',
-  'me_fantasy.webp',
-  'me_gamer.webp',
-  'me_lol.webp',
-  'me_tarkov.webp',
-]
-
 export const LINKS = {
   github: 'https://github.com/sergiogmr',
   linkedin: 'https://www.linkedin.com/in/sergiogmr/',
@@ -22,38 +6,6 @@ export const LINKS = {
   discord: 'https://discordapp.com/users/299882015367495682',
   twitter: 'https://x.com/sergiogmr',
   manfred: 'https://www.getmanfred.com/perfil/sergiogmr'
-}
-
-// Global
-export const SITE: Site = {
-  TITLE: 'Astro Sphere',
-  DESCRIPTION:
-    'Welcome to Astro Sphere, a portfolio and blog for designers and developers.',
-  AUTHOR: 'Mark Horn',
-}
-
-// Work Page
-export const WORK: Page = {
-  TITLE: 'Work',
-  DESCRIPTION: 'Places I have worked.',
-}
-
-// Blog Page
-export const BLOG: Page = {
-  TITLE: 'Blog',
-  DESCRIPTION: 'Writing on topics I am passionate about.',
-}
-
-// Projects Page
-export const PROJECTS: Page = {
-  TITLE: 'Projects',
-  DESCRIPTION: 'Recent projects I have worked on.',
-}
-
-// Search Page
-export const SEARCH: Page = {
-  TITLE: 'Search',
-  DESCRIPTION: 'Search all posts and projects by keyword.',
 }
 
 export const STACK = [
@@ -68,40 +20,6 @@ export const STACK = [
   'CSS',
   'Tailwind CSS',
   'Bootstrap',
-]
-
-// Study Page
-export const STUDIES = [
-  {
-    title: 'Desarrollo Apps Web',
-    institution: 'El Rincón',
-    link: 'https://ieselrincon.es/',
-    date: '2016 - 2018',
-  },
-  {
-    title: '...',
-    institution: 'Platzi',
-    link: 'https://platzi.com/',
-    date: '2018 - actualidad',
-  },
-  {
-    title: '...',
-    institution: 'Udemy',
-    link: 'https://www.udemy.com/',
-    date: '2018 - actualidad',
-  },
-  {
-    title: '...',
-    institution: 'Youtube',
-    link: 'https://www.youtube.com/',
-    date: '2018 - actualidad',
-  },
-  {
-    title: '...',
-    institution: 'Twitch',
-    link: 'https://twitch.tv/',
-    date: '2018 - actualidad',
-  },
 ]
 
 export const EXPERIENCE = {

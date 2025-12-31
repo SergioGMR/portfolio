@@ -1,40 +1,45 @@
 ---
-import '@/styles/globals.css'
-import '@/styles/fonts.css'
-
 interface Props {
-  title?: string | undefined
-  description?: string | undefined
-  ogImage?: URL | undefined
+  title?: string
+  description?: string
+  ogImage?: URL | string
   noindex?: boolean
   nofollow?: boolean
   locale?: string
   alternateLocales?: string[]
-  canonicalOverride?: URL | undefined
-  schema?: object | undefined
+  canonicalOverride?: URL | string
+  schema?: object
+  ogType?: string
 }
 
-const canonicalURL = Astro.props.canonicalOverride || new URL(Astro.url.pathname, Astro.site)
+const site = Astro.site?.toString() || ''
+const canonicalURL = new URL(
+  (Astro.props.canonicalOverride as any) || Astro.url.pathname,
+  site
+)
 
 if (Astro.props.ogImage === undefined) {
-  Astro.props.ogImage = new URL('og.webp', canonicalURL)
+  Astro.props.ogImage = new URL('/og.webp', site)
+} else if (typeof Astro.props.ogImage === 'string') {
+  Astro.props.ogImage = new URL(Astro.props.ogImage, site)
 }
 
-const { 
-  title, 
-  description, 
+const {
+  title,
+  description,
   ogImage,
   noindex = false,
   nofollow = false,
   locale = 'es',
   alternateLocales = [],
-  schema
+  schema,
+  ogType = 'website'
 } = Astro.props
 
 // Robots directives
 const robotsContent = [
   noindex ? 'noindex' : 'index',
-  nofollow ? 'nofollow' : 'follow',
+  nofollow ? 'nofollow' : 'follow'
 ].join(', ')
 
 // Lista de keywords extraídas del contenido del portfolio
@@ -62,7 +67,7 @@ const keywords = [
   'CI-CD',
   'Github Actions',
   'Plesk',
-  'desarrollo web', 
+  'desarrollo web',
   'web development',
   'portfolio',
   'freelance developer',
@@ -75,71 +80,118 @@ const keywords = [
 ---
 
 <!-- Character set and viewport -->
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset='utf-8' />
+<meta name='viewport' content='width=device-width, initial-scale=1' />
 
 <!-- SEO Meta Tags -->
 <title>{title}</title>
-<meta name="robots" content={robotsContent} />
-<meta name="googlebot" content={robotsContent} />
-<link rel="canonical" href={canonicalURL} />
-<meta name="title" content={title} />
-<meta name="description" content={description} />
-<meta name="author" content="Sergio Morales Rodríguez" />
-<meta name="keywords" content={keywords} />
+<meta name='robots' content={robotsContent} />
+<meta name='googlebot' content={robotsContent} />
+<link rel='canonical' href={canonicalURL} />
+<!-- Eliminado meta name="title" redundante -->
+<meta name='description' content={description} />
+<meta name='author' content='Sergio Morales Rodríguez' />
+<meta name='keywords' content={keywords} />
 
 <!-- Language Tags -->
-<meta property="og:locale" content={locale} />
-{alternateLocales.map(altLocale => (
-  <meta property="og:locale:alternate" content={altLocale} />
-))}
-<html lang={locale} />
+<meta property='og:locale' content={locale} />
+{
+  alternateLocales.map(altLocale => (
+    <meta property='og:locale:alternate' content={altLocale} />
+  ))
+}
+<!-- lang se gestiona en el layout root -->
 
 <!-- Favicon -->
-<link rel="icon" type="image/webp" href="/favicon.webp" />
+<link rel='icon' type='image/webp' href='/favicon.webp' />
 
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content={canonicalURL} />
-<meta property="og:title" content={title} />
-<meta property="og:description" content={description} />
-<meta property="og:image" content={ogImage} />
-<meta property="og:image:alt" content={`Imagen para ${title}`} />
-<meta property="og:site_name" content="Sergio Morales Rodríguez - Portfolio" />
+<meta property='og:type' content={ogType} />
+<meta property='og:url' content={canonicalURL} />
+<meta property='og:title' content={title} />
+<meta property='og:description' content={description} />
+<meta property='og:image' content={ogImage} />
+<meta property='og:image:secure_url' content={ogImage} />
+<meta property='og:image:type' content='image/webp' />
+<meta property='og:image:alt' content={`Imagen para ${title}`} />
+<meta property='og:site_name' content='Sergio Morales Rodríguez - Portfolio' />
 
 <!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content={canonicalURL} />
-<meta property="twitter:title" content={title} />
-<meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={ogImage} />
-<meta property="twitter:image:alt" content={`Imagen para ${title}`} />
+<meta property='twitter:card' content='summary_large_image' />
+<meta property='twitter:url' content={canonicalURL} />
+<meta property='twitter:title' content={title} />
+<meta property='twitter:description' content={description} />
+<meta property='twitter:image' content={ogImage} />
+<meta property='twitter:image:alt' content={`Imagen para ${title}`} />
+<meta name='twitter:site' content='@sergiogmr' />
+<meta name='twitter:creator' content='@sergiogmr' />
+
+<!-- hreflang alternates -->
+{
+  alternateLocales.map(alt => (
+    <link
+      rel='alternate'
+      hreflang={alt}
+      href={new URL(Astro.url.pathname, site).toString()}
+    />
+  ))
+}
+<link rel='alternate' hreflang={locale} href={canonicalURL.toString()} />
+<link rel='alternate' hreflang='x-default' href={canonicalURL.toString()} />
+
+<!-- Theme color -->
+<meta
+  name='theme-color'
+  media='(prefers-color-scheme: light)'
+  content='#ffffff'
+/>
+<meta
+  name='theme-color'
+  media='(prefers-color-scheme: dark)'
+  content='#111111'
+/>
+<meta name='color-scheme' content='light dark' />
 
 <!-- Structured Data / Schema.org -->
-{schema && (
-  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-)}
+{
+  schema && (
+    <script type='application/ld+json' set:html={JSON.stringify(schema)} />
+  )
+}
 
 <!-- Default Schema.org WebSite if none provided -->
-{!schema && (
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Sergio Morales Rodríguez - Portfolio",
-      "url": Astro.site?.toString(),
-      "description": description,
-      "author": {
-        "@type": "Person",
-        "name": "Sergio Morales Rodríguez",
-        "url": canonicalURL.toString(),
-        "jobTitle": "Full Stack Developer"
-      },
-      "keywords": keywords.split(', ')
-    }
-  </script>
-)}
+{
+  !schema && (
+    <script
+      type='application/ld+json'
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Sergio Morales Rodríguez - Portfolio',
+        url: site,
+        description,
+        inLanguage: locale,
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: `${site}?q={search_term_string}`,
+          'query-input': 'required name=search_term_string'
+        },
+        author: {
+          '@type': 'Person',
+          name: 'Sergio Morales Rodríguez',
+          url: canonicalURL.toString(),
+          jobTitle: 'Full Stack Developer',
+          sameAs: [
+            'https://github.com/SergioGMR',
+            'https://www.linkedin.com/in/sergiogmr'
+          ]
+        },
+        keywords: keywords.split(', ')
+      })}
+    />
+  )
+}
 
 <!-- Preconnect to important third-party domains -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel='preconnect' href='https://fonts.googleapis.com' />
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />

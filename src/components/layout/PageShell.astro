@@ -1,0 +1,52 @@
+---
+import BasePage from './BasePage.astro'
+import ThemeToggleLite from '../ThemeToggleLite.astro'
+import LanguageToggleLite from '../LanguageToggleLite.astro'
+import LanguageService from '../LanguageService.astro'
+---
+
+<BasePage {...Astro.props}>
+  <LanguageService />
+  <header class='sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+    <div class='mx-auto flex max-w-6xl items-center justify-between px-4 py-4'>
+      <div class='flex items-center gap-2'>
+        <div class='h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-purple-500'></div>
+        <div class='leading-tight'>
+          <p class='text-xs uppercase tracking-[0.2em] text-muted-foreground'>Full Stack</p>
+          <p class='text-sm font-semibold'>Sergio Morales Rodríguez</p>
+        </div>
+      </div>
+      <div class='flex items-center gap-3'>
+        <LanguageToggleLite />
+        <ThemeToggleLite />
+        <a
+          href='mailto:sergiogmr+portfolio@icloud.com'
+          class='rounded-full border px-4 py-2 text-sm font-medium hover:bg-foreground hover:text-background transition'
+        >
+          <span data-lang-content='es'>Contacto</span>
+          <span data-lang-content='en'>Contact</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class='mx-auto flex max-w-6xl flex-col gap-16 px-4 pb-20 pt-12 sm:gap-20 sm:pt-16'>
+    <slot />
+  </main>
+
+  <footer class='border-t py-10'>
+    <div class='mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 text-sm text-muted-foreground'>
+      <div>
+        <span data-lang-content='es'>Construido con Astro y Tailwind. Código en</span>
+        <span data-lang-content='en'>Built with Astro and Tailwind. Code at</span>
+        {' '}
+        <a class='text-foreground underline' href='https://github.com/sergiogmr/portfolio' target='_blank'>GitHub</a>
+      </div>
+      <div class='flex items-center gap-3'>
+        <a href='https://x.com/sergiogmr' class='hover:text-foreground'>X</a>
+        <a href='https://www.linkedin.com/in/sergiogmr' class='hover:text-foreground'>LinkedIn</a>
+        <a href='https://github.com/sergiogmr' class='hover:text-foreground'>GitHub</a>
+      </div>
+    </div>
+  </footer>
+</BasePage>
