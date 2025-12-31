@@ -13,7 +13,6 @@ export default defineConfig({
 
   integrations: [],
 
-  // Tailwind CSS v4 via Vite plugin (replaces @astrojs/tailwind integration)
   vite: {
     plugins: [tailwindcss()],
   },

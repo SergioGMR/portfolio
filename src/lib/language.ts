@@ -217,42 +217,42 @@ export function getExperienceData(lang: Language) {
 export const languageServiceScript = `
   // Initialize language from localStorage or default to 'es'
   let currentLanguage = localStorage.getItem('language') || 'es';
-  
+
   // Set language in localStorage and dispatch event
   function setLanguage(lang) {
     currentLanguage = lang;
     localStorage.setItem('language', lang);
-    window.dispatchEvent(new CustomEvent('language-change', { detail: { language: lang } }));
+    window.dispatchEvent(new CustomEvent('languageChange', { detail: { language: lang } }));
   }
-  
+
   // Get current language
   function getLanguage() {
     return currentLanguage;
   }
-  
+
   // Initialize text content for an element with a specific translation key
   function updateTextContent(elementId, keyPath) {
     const element = document.getElementById(elementId);
     if (!element) return;
-    
+
     // Fetch translations from the global object
     const translations = window.portfolioTranslations || {};
     const lang = getLanguage();
-    
+
     // Navigate the key path to get the translation
     const keys = keyPath.split('.');
     let value = translations[lang];
-    
+
     for (const key of keys) {
       if (!value) return;
       value = value[key];
     }
-    
+
     if (value) {
       element.textContent = value;
     }
   }
-  
+
   // Initialize all elements with data-i18n attributes
   function initializeI18nElements() {
     document.querySelectorAll('[data-i18n]').forEach(element => {
@@ -263,18 +263,18 @@ export const languageServiceScript = `
       }
     });
   }
-  
+
   // Listen for language change events
-  window.addEventListener('language-change', () => {
+  window.addEventListener('languageChange', () => {
     initializeI18nElements();
   });
-  
+
   // Initialize when the DOM is ready
   document.addEventListener('DOMContentLoaded', initializeI18nElements);
-  
+
   // Initialize after Astro view transitions
   document.addEventListener('astro:after-swap', initializeI18nElements);
-  
+
   // Make the functions available globally
   window.portfolioLanguage = {
     setLanguage,
