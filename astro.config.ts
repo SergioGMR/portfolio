@@ -8,7 +8,7 @@ export default defineConfig({
     ? 'https://sgmr.dev/'
     : 'http://localhost:4321',
 
-  output: 'server',
+  output: 'static',
   build: {},
 
   integrations: [],
