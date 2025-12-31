@@ -47,18 +47,49 @@ import faviconImg from '../../../public/favicon.webp'
     <slot />
   </main>
 
-  <footer class='border-t py-10'>
-    <div class='mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 text-sm text-muted-foreground'>
-      <div>
-        <span data-lang-content='es'>Construido con Astro y Tailwind. Código en</span>
-        <span data-lang-content='en'>Built with Astro and Tailwind. Code at</span>
-        {' '}
-        <a class='text-foreground underline' href='https://github.com/sergiogmr/portfolio' target='_blank'>GitHub</a>
+  <footer class='border-t bg-muted/30 py-10'>
+    <div class='mx-auto flex max-w-6xl flex-col gap-6 px-4 sm:flex-row sm:items-center sm:justify-between'>
+      <div class='space-y-2'>
+        <p class='text-xs uppercase tracking-[0.25em] text-muted-foreground'>
+          <span data-lang-content='es'>Disponible para colaborar</span>
+          <span data-lang-content='en'>Open to collaborate</span>
+        </p>
+        <p class='text-2xl font-semibold leading-tight'>
+          <span data-lang-content='es'>Construyamos algo útil y rápido.</span>
+          <span data-lang-content='en'>Let’s ship something useful.</span>
+        </p>
+        <div class='flex flex-wrap gap-2 text-sm text-muted-foreground'>
+          <span class='inline-flex items-center gap-2 rounded-full border px-3 py-1'>
+            <span class='h-2 w-2 rounded-full bg-green-500'></span>
+            <span>UTC+0/+1</span>
+          </span>
+          <span class='inline-flex items-center gap-2 rounded-full border px-3 py-1'>
+            <span class='h-2 w-2 rounded-full bg-primary/70'></span>
+            <span>PHP · Laravel · TS</span>
+          </span>
+        </div>
       </div>
-      <div class='flex items-center gap-3'>
-        <a href='https://x.com/sergiogmr' class='hover:text-foreground'>X</a>
-        <a href='https://www.linkedin.com/in/sergiogmr' class='hover:text-foreground'>LinkedIn</a>
-        <a href='https://github.com/sergiogmr' class='hover:text-foreground'>GitHub</a>
+      <div class='flex flex-wrap items-center gap-3'>
+        <a
+          href='mailto:sergiogmr+portfolio@icloud.com'
+          class='inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:opacity-90'
+        >
+          <span data-lang-content='es'>Escríbeme</span>
+          <span data-lang-content='en'>Email me</span>
+          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' class='h-4 w-4'>
+            <path d='M4 6h16c.6 0 1 .4 1 1v10c0 .6-.4 1-1 1H4c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1z' />
+            <path d='m3 7 9 6 9-6' />
+          </svg>
+        </a>
+        <div class='flex items-center gap-2 text-sm text-muted-foreground'>
+          <a href='https://x.com/sergiogmr' class='rounded-full border px-3 py-1 hover:text-foreground hover:border-foreground transition'>X</a>
+          <a href='https://www.linkedin.com/in/sergiogmr' class='rounded-full border px-3 py-1 hover:text-foreground hover:border-foreground transition'>LinkedIn</a>
+          <a href='https://github.com/sergiogmr' class='rounded-full border px-3 py-1 hover:text-foreground hover:border-foreground transition'>GitHub</a>
+          <a href='https://github.com/sergiogmr/portfolio' class='rounded-full border px-3 py-1 hover:text-foreground hover:border-foreground transition'>
+            <span data-lang-content='es'>Código</span>
+            <span data-lang-content='en'>Repo</span>
+          </a>
+        </div>
       </div>
     </div>
   </footer>
