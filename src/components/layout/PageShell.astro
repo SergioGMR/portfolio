@@ -9,8 +9,8 @@ import faviconImg from '../../../public/favicon.webp'
 
 <BasePage {...Astro.props}>
   <LanguageService />
-  <header class='sticky top-0 z-40 border-b border-white/10 bg-[rgba(10,12,20,0.7)] backdrop-blur supports-[backdrop-filter]:bg-[rgba(10,12,20,0.55)]'>
-    <div class='mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 text-white'>
+  <header class='sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+    <div class='mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 text-foreground'>
       <div class='flex items-center gap-2'>
         <Image
           src={faviconImg}
@@ -20,7 +20,7 @@ import faviconImg from '../../../public/favicon.webp'
           height={40}
         />
         <div class='leading-tight'>
-          <p class='text-xs uppercase tracking-[0.2em] text-white/60'>Full Stack</p>
+          <p class='text-xs uppercase tracking-[0.2em] text-muted-foreground'>Full Stack</p>
           <p class='text-sm font-semibold sm:hidden'>SergioGMR</p>
           <p class='hidden text-sm font-semibold sm:block'>Sergio Morales Rodríguez</p>
         </div>
@@ -30,7 +30,7 @@ import faviconImg from '../../../public/favicon.webp'
         <ThemeToggleLite />
         <a
           href='mailto:sergiogmr+portfolio@icloud.com'
-          class='flex h-9 items-center justify-center rounded-full border border-white/20 bg-[linear-gradient(135deg,#5eb1ff,#7f5dff)] px-4 text-sm font-semibold text-white shadow-[0_10px_30px_-18px_rgba(95,150,255,0.9)] transition hover:brightness-110'
+          class='flex h-9 items-center justify-center rounded-full border border-border bg-[linear-gradient(135deg,#5eb1ff,#7f5dff)] px-4 text-sm font-semibold text-white shadow-[0_10px_30px_-18px_rgba(95,150,255,0.9)] transition hover:brightness-110'
           aria-label='Contactar por email'
         >
           <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' class='h-4 w-4 sm:hidden'>
@@ -47,8 +47,8 @@ import faviconImg from '../../../public/favicon.webp'
     <slot />
   </main>
 
-  <footer class='border-t bg-muted/30 py-10'>
-    <div class='mx-auto flex max-w-6xl flex-col gap-6 px-4 sm:flex-row sm:items-center sm:justify-between'>
+  <footer class='border-t border-border bg-muted/30 py-10'>
+    <div class='mx-auto flex max-w-6xl flex-col gap-6 px-4 text-foreground sm:flex-row sm:items-center sm:justify-between'>
       <div class='space-y-2'>
         <p class='text-xs uppercase tracking-[0.25em] text-muted-foreground'>
           <span data-lang-content='es'>Disponible para colaborar</span>
@@ -59,7 +59,7 @@ import faviconImg from '../../../public/favicon.webp'
           <span data-lang-content='en'>Let’s ship something useful.</span>
         </p>
         <div class='flex flex-wrap gap-2 text-sm text-muted-foreground'>
-          <span class='inline-flex items-center gap-2 rounded-full border px-3 py-1'>
+          <span class='inline-flex items-center gap-2 rounded-full border border-border px-3 py-1'>
             <span class='relative inline-flex h-3 w-3 items-center justify-center'>
               <span class='absolute inline-flex h-full w-full rounded-full bg-green-500/60 animate-ping'></span>
               <span class='relative inline-flex h-2 w-2 rounded-full bg-green-500'></span>
@@ -81,10 +81,10 @@ import faviconImg from '../../../public/favicon.webp'
           </svg>
         </a>
         <div class='flex items-center gap-2 text-sm text-muted-foreground'>
-          <a href='https://x.com/sergiogmr' class='rounded-full border px-3 py-1 hover:text-foreground hover:border-foreground transition'>X</a>
-          <a href='https://www.linkedin.com/in/sergiogmr' class='rounded-full border px-3 py-1 hover:text-foreground hover:border-foreground transition'>LinkedIn</a>
-          <a href='https://github.com/sergiogmr' class='rounded-full border px-3 py-1 hover:text-foreground hover:border-foreground transition'>GitHub</a>
-          <a href='https://github.com/sergiogmr/portfolio' class='rounded-full border px-3 py-1 hover:text-foreground hover:border-foreground transition'>
+          <a href='https://x.com/sergiogmr' class='rounded-full border border-border px-3 py-1 transition hover:border-foreground hover:text-foreground'>X</a>
+          <a href='https://www.linkedin.com/in/sergiogmr' class='rounded-full border border-border px-3 py-1 transition hover:border-foreground hover:text-foreground'>LinkedIn</a>
+          <a href='https://github.com/sergiogmr' class='rounded-full border border-border px-3 py-1 transition hover:border-foreground hover:text-foreground'>GitHub</a>
+          <a href='https://github.com/sergiogmr/portfolio' class='rounded-full border border-border px-3 py-1 transition hover:border-foreground hover:text-foreground'>
             <span data-lang-content='es'>Código</span>
             <span data-lang-content='en'>Repo</span>
           </a>
