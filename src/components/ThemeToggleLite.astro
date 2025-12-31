@@ -6,21 +6,18 @@ const options = [
 ]
 ---
 
-<div class='relative inline-flex items-center gap-2 rounded-full border px-2 py-1 text-xs'>
-  {
-    options.map(opt => (
-      <button
-        type='button'
-        class='cursor-pointer rounded-full px-3 py-1 transition hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/70 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:shadow-sm data-[active=true]:border data-[active=true]:border-primary'
-        data-theme-option={opt.value}
-        aria-pressed='false'
-        aria-label={`Cambiar tema a ${opt.label}`}
-      >
-        {opt.label}
-      </button>
-    ))
-  }
-</div>
+<label class='inline-flex items-center gap-1 text-xs text-muted-foreground'>
+  <span class='sr-only'>Tema</span>
+  <select
+    class='rounded-md border px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background'
+    aria-label='Seleccionar tema'
+    data-theme-select
+  >
+    {options.map(opt => (
+      <option value={opt.value}>{opt.label}</option>
+    ))}
+  </select>
+</label>
 
 <script>
   const THEME_KEY = 'theme'
@@ -33,28 +30,18 @@ const options = [
     localStorage.setItem(THEME_KEY, mode)
   }
 
-  const setActive = (mode) => {
-    document
-      .querySelectorAll('[data-theme-option]')
-      .forEach(btn => {
-        const isActive = btn.dataset.themeOption === mode
-        btn.dataset.active = isActive ? 'true' : 'false'
-        btn.setAttribute('aria-pressed', String(isActive))
-      })
-  }
-
   const init = () => {
     const saved = localStorage.getItem(THEME_KEY) || 'system'
     applyTheme(saved)
-    setActive(saved)
+    const select = document.querySelector('select[data-theme-select]')
+    if (select) select.value = saved
   }
 
-  document.addEventListener('click', (e) => {
-    const btn = (e.target as HTMLElement)?.closest('[data-theme-option]')
-    if (!btn) return
-    const mode = btn.getAttribute('data-theme-option') || 'system'
+  document.addEventListener('change', (e) => {
+    const select = (e.target as HTMLSelectElement)
+    if (!select || select.tagName.toLowerCase() !== 'select' || !select.hasAttribute('data-theme-select')) return
+    const mode = select.value || 'system'
     applyTheme(mode)
-    setActive(mode)
   })
 
   init()
@@ -62,7 +49,8 @@ const options = [
     const saved = localStorage.getItem(THEME_KEY) || 'system'
     if (saved === 'system') {
       applyTheme(saved)
-      setActive(saved)
+      const select = document.querySelector('select[data-theme-select]')
+      if (select) select.value = saved
     }
   })
 </script>
