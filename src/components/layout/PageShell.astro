@@ -9,8 +9,8 @@ import faviconImg from '../../../public/favicon.webp'
 
 <BasePage {...Astro.props}>
   <LanguageService />
-  <header class='sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-    <div class='mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3'>
+  <header class='sticky top-0 z-40 border-b border-white/10 bg-[rgba(10,12,20,0.7)] backdrop-blur supports-[backdrop-filter]:bg-[rgba(10,12,20,0.55)]'>
+    <div class='mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 text-white'>
       <div class='flex items-center gap-2'>
         <Image
           src={faviconImg}
@@ -20,7 +20,7 @@ import faviconImg from '../../../public/favicon.webp'
           height={40}
         />
         <div class='leading-tight'>
-          <p class='text-xs uppercase tracking-[0.2em] text-muted-foreground'>Full Stack</p>
+          <p class='text-xs uppercase tracking-[0.2em] text-white/60'>Full Stack</p>
           <p class='text-sm font-semibold sm:hidden'>SergioGMR</p>
           <p class='hidden text-sm font-semibold sm:block'>Sergio Morales Rodríguez</p>
         </div>
@@ -30,7 +30,7 @@ import faviconImg from '../../../public/favicon.webp'
         <ThemeToggleLite />
         <a
           href='mailto:sergiogmr+portfolio@icloud.com'
-          class='flex h-9 items-center justify-center rounded-full border px-4 text-sm transition hover:bg-foreground hover:text-background'
+          class='flex h-9 items-center justify-center rounded-full border border-white/20 bg-[linear-gradient(135deg,#5eb1ff,#7f5dff)] px-4 text-sm font-semibold text-white shadow-[0_10px_30px_-18px_rgba(95,150,255,0.9)] transition hover:brightness-110'
           aria-label='Contactar por email'
         >
           <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' class='h-4 w-4 sm:hidden'>
