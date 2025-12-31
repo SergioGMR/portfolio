@@ -29,5 +29,8 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "typescript": "^5.9.3"
   },
+  "overrides": {
+    "estree-walker": "^3.0.3"
+  },
   "packageManager": "bun@1.1.33"
 }
