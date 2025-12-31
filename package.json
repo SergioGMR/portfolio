@@ -1,6 +1,9 @@
 {
   "name": "profile",
   "version": "25.08.12",
+  "engines": {
+    "node": "20.x"
+  },
   "description": "An Astro template for building peofiles.",
   "author": {
     "name": "SergioGMR"
@@ -32,6 +35,9 @@
   },
   "overrides": {
     "estree-walker": "^3.0.3"
+  },
+  "resolutions": {
+    "estree-walker": "3.0.3"
   },
   "packageManager": "bun@1.1.33"
 }
