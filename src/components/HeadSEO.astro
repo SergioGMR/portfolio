@@ -15,7 +15,7 @@ interface Props {
 const site = Astro.site?.toString() || ''
 const canonicalURL = new URL(
   (Astro.props.canonicalOverride as any) || Astro.url.pathname,
-  site
+  site,
 )
 
 if (Astro.props.ogImage === undefined) {
@@ -33,13 +33,13 @@ const {
   locale = 'es',
   alternateLocales = [],
   schema,
-  ogType = 'website'
+  ogType = 'website',
 } = Astro.props
 
 // Robots directives
 const robotsContent = [
   noindex ? 'noindex' : 'index',
-  nofollow ? 'nofollow' : 'follow'
+  nofollow ? 'nofollow' : 'follow',
 ].join(', ')
 
 // Lista de keywords extraídas del contenido del portfolio
@@ -75,87 +75,87 @@ const keywords = [
   'Canary Islands',
   'Spain',
   'España',
-  'desarrollador web'
+  'desarrollador web',
 ].join(', ')
 ---
 
 <!-- Character set and viewport -->
-<meta charset='utf-8' />
-<meta name='viewport' content='width=device-width, initial-scale=1' />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <!-- SEO Meta Tags -->
 <title>{title}</title>
-<meta name='robots' content={robotsContent} />
-<meta name='googlebot' content={robotsContent} />
-<link rel='canonical' href={canonicalURL} />
+<meta name="robots" content={robotsContent} />
+<meta name="googlebot" content={robotsContent} />
+<link rel="canonical" href={canonicalURL} />
 <!-- Eliminado meta name="title" redundante -->
-<meta name='description' content={description} />
-<meta name='author' content='Sergio Morales Rodríguez' />
-<meta name='keywords' content={keywords} />
+<meta name="description" content={description} />
+<meta name="author" content="Sergio Morales Rodríguez" />
+<meta name="keywords" content={keywords} />
 
 <!-- Language Tags -->
-<meta property='og:locale' content={locale} />
+<meta property="og:locale" content={locale} />
 {
-  alternateLocales.map(altLocale => (
-    <meta property='og:locale:alternate' content={altLocale} />
+  alternateLocales.map((altLocale) => (
+    <meta property="og:locale:alternate" content={altLocale} />
   ))
 }
 <!-- lang se gestiona en el layout root -->
 
 <!-- Favicon -->
-<link rel='icon' type='image/webp' href='/favicon.webp' />
+<link rel="icon" type="image/webp" href="/favicon.webp" />
 
 <!-- Open Graph / Facebook -->
-<meta property='og:type' content={ogType} />
-<meta property='og:url' content={canonicalURL} />
-<meta property='og:title' content={title} />
-<meta property='og:description' content={description} />
-<meta property='og:image' content={ogImage} />
-<meta property='og:image:secure_url' content={ogImage} />
-<meta property='og:image:type' content='image/webp' />
-<meta property='og:image:alt' content={`Imagen para ${title}`} />
-<meta property='og:site_name' content='Sergio Morales Rodríguez - Portfolio' />
+<meta property="og:type" content={ogType} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:secure_url" content={ogImage} />
+<meta property="og:image:type" content="image/webp" />
+<meta property="og:image:alt" content={`Imagen para ${title}`} />
+<meta property="og:site_name" content="Sergio Morales Rodríguez - Portfolio" />
 
 <!-- Twitter -->
-<meta property='twitter:card' content='summary_large_image' />
-<meta property='twitter:url' content={canonicalURL} />
-<meta property='twitter:title' content={title} />
-<meta property='twitter:description' content={description} />
-<meta property='twitter:image' content={ogImage} />
-<meta property='twitter:image:alt' content={`Imagen para ${title}`} />
-<meta name='twitter:site' content='@sergiogmr' />
-<meta name='twitter:creator' content='@sergiogmr' />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={canonicalURL} />
+<meta property="twitter:title" content={title} />
+<meta property="twitter:description" content={description} />
+<meta property="twitter:image" content={ogImage} />
+<meta property="twitter:image:alt" content={`Imagen para ${title}`} />
+<meta name="twitter:site" content="@sergiogmr" />
+<meta name="twitter:creator" content="@sergiogmr" />
 
 <!-- hreflang alternates -->
 {
-  alternateLocales.map(alt => (
+  alternateLocales.map((alt) => (
     <link
-      rel='alternate'
+      rel="alternate"
       hreflang={alt}
       href={new URL(Astro.url.pathname, site).toString()}
     />
   ))
 }
-<link rel='alternate' hreflang={locale} href={canonicalURL.toString()} />
-<link rel='alternate' hreflang='x-default' href={canonicalURL.toString()} />
+<link rel="alternate" hreflang={locale} href={canonicalURL.toString()} />
+<link rel="alternate" hreflang="x-default" href={canonicalURL.toString()} />
 
 <!-- Theme color -->
 <meta
-  name='theme-color'
-  media='(prefers-color-scheme: light)'
-  content='#ffffff'
+  name="theme-color"
+  media="(prefers-color-scheme: light)"
+  content="#ffffff"
 />
 <meta
-  name='theme-color'
-  media='(prefers-color-scheme: dark)'
-  content='#111111'
+  name="theme-color"
+  media="(prefers-color-scheme: dark)"
+  content="#111111"
 />
-<meta name='color-scheme' content='light dark' />
+<meta name="color-scheme" content="light dark" />
 
 <!-- Structured Data / Schema.org -->
 {
   schema && (
-    <script type='application/ld+json' set:html={JSON.stringify(schema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   )
 }
 
@@ -163,7 +163,7 @@ const keywords = [
 {
   !schema && (
     <script
-      type='application/ld+json'
+      type="application/ld+json"
       set:html={JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'WebSite',
@@ -174,7 +174,7 @@ const keywords = [
         potentialAction: {
           '@type': 'SearchAction',
           target: `${site}?q={search_term_string}`,
-          'query-input': 'required name=search_term_string'
+          'query-input': 'required name=search_term_string',
         },
         author: {
           '@type': 'Person',
@@ -183,15 +183,15 @@ const keywords = [
           jobTitle: 'Full Stack Developer',
           sameAs: [
             'https://github.com/SergioGMR',
-            'https://www.linkedin.com/in/sergiogmr'
-          ]
+            'https://www.linkedin.com/in/sergiogmr',
+          ],
         },
-        keywords: keywords.split(', ')
+        keywords: keywords.split(', '),
       })}
     />
   )
 }
 
 <!-- Preconnect to important third-party domains -->
-<link rel='preconnect' href='https://fonts.googleapis.com' />
-<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

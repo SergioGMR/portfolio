@@ -4,8 +4,13 @@ import { Image } from 'astro:assets'
 import heroImg from '../../public/me_laptop.webp'
 ---
 
-<BasePage title="404 - Not Found" description="404 Error — this page was not found">
-  <main class="flex min-h-screen flex-col items-center justify-center px-8 text-center">
+<BasePage
+  title="404 - Not Found"
+  description="404 Error — this page was not found"
+>
+  <main
+    class="flex min-h-screen flex-col items-center justify-center px-8 text-center"
+  >
     <Image
       src={heroImg}
       alt="404"
@@ -15,13 +20,18 @@ import heroImg from '../../public/me_laptop.webp'
       width={208}
       height={208}
     />
-    <p class="text-sm text-muted-foreground">404</p>
+    <p class="text-muted-foreground text-sm">404</p>
     <h1 class="text-4xl font-extrabold tracking-tight lg:text-5xl">
       Page not found
     </h1>
-    <p class="mb-6 mt-4 leading-7 text-muted-foreground">
+    <p class="text-muted-foreground mt-4 mb-6 leading-7">
       Sorry, we couldn't find the page you're looking for.
     </p>
-    <a href="/" rel="noreferrer" class="rounded-full bg-foreground px-5 py-2 text-sm font-semibold text-background transition hover:opacity-90">Go back home</a>
+    <a
+      href="/"
+      rel="noreferrer"
+      class="bg-foreground text-background rounded-full px-5 py-2 text-sm font-semibold transition hover:opacity-90"
+      >Go back home</a
+    >
   </main>
 </BasePage>

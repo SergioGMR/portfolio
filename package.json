@@ -2,7 +2,7 @@
   "name": "profile",
   "version": "25.08.12",
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "description": "An Astro template for building peofiles.",
   "author": {

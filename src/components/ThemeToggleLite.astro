@@ -2,31 +2,33 @@
 const options = [
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
-  { value: 'system', label: 'System' }
+  { value: 'system', label: 'System' },
 ]
 ---
 
-<div class='flex items-center gap-2'>
-  <label class='inline-flex items-center gap-1 text-xs text-muted-foreground sm:hidden'>
-    <span class='sr-only'>Tema</span>
+<div class="flex items-center gap-2">
+  <label
+    class="text-muted-foreground inline-flex items-center gap-1 text-xs sm:hidden"
+  >
+    <span class="sr-only">Tema</span>
     <select
-      class='rounded-md border px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background'
-      aria-label='Seleccionar tema'
+      class="focus:ring-primary/50 bg-background rounded-md border px-2 py-1 text-sm focus:ring-2 focus:outline-none"
+      aria-label="Seleccionar tema"
       data-theme-select
     >
-      {options.map(opt => (
-        <option value={opt.value}>{opt.label}</option>
-      ))}
+      {options.map((opt) => <option value={opt.value}>{opt.label}</option>)}
     </select>
   </label>
-  <div class='hidden items-center gap-2 rounded-full border px-2 py-1 text-xs sm:inline-flex'>
+  <div
+    class="hidden items-center gap-2 rounded-full border px-2 py-1 text-xs sm:inline-flex"
+  >
     {
-      options.map(opt => (
+      options.map((opt) => (
         <button
-          type='button'
-          class='cursor-pointer rounded-full px-3 py-1 transition hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary/70 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:shadow-sm data-[active=true]:border data-[active=true]:border-primary'
+          type="button"
+          class="hover:bg-muted focus-visible:outline-primary/70 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:border-primary cursor-pointer rounded-full px-3 py-1 transition focus-visible:outline focus-visible:outline-2 data-[active=true]:border data-[active=true]:shadow-sm"
           data-theme-option={opt.value}
-          aria-pressed='false'
+          aria-pressed="false"
           aria-label={`Cambiar tema a ${opt.label}`}
         >
           {opt.label}
@@ -41,20 +43,21 @@ const options = [
 
   const applyTheme = (mode) => {
     const root = document.documentElement
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const resolved = mode === 'system' ? (systemPrefersDark ? 'dark' : 'light') : mode
+    const systemPrefersDark = window.matchMedia(
+      '(prefers-color-scheme: dark)',
+    ).matches
+    const resolved =
+      mode === 'system' ? (systemPrefersDark ? 'dark' : 'light') : mode
     root.classList.toggle('dark', resolved === 'dark')
     localStorage.setItem(THEME_KEY, mode)
   }
 
   const setActive = (mode) => {
-    document
-      .querySelectorAll('[data-theme-option]')
-      .forEach(btn => {
-        const isActive = btn.dataset.themeOption === mode
-        btn.dataset.active = isActive ? 'true' : 'false'
-        btn.setAttribute('aria-pressed', String(isActive))
-      })
+    document.querySelectorAll('[data-theme-option]').forEach((btn) => {
+      const isActive = btn.dataset.themeOption === mode
+      btn.dataset.active = isActive ? 'true' : 'false'
+      btn.setAttribute('aria-pressed', String(isActive))
+    })
   }
 
   const init = () => {
@@ -66,8 +69,13 @@ const options = [
   }
 
   document.addEventListener('change', (e) => {
-    const select = (e.target as HTMLSelectElement)
-    if (!select || select.tagName.toLowerCase() !== 'select' || !select.hasAttribute('data-theme-select')) return
+    const select = e.target as HTMLSelectElement
+    if (
+      !select ||
+      select.tagName.toLowerCase() !== 'select' ||
+      !select.hasAttribute('data-theme-select')
+    )
+      return
     const mode = select.value || 'system'
     applyTheme(mode)
     setActive(mode)
@@ -84,13 +92,15 @@ const options = [
   })
 
   init()
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    const saved = localStorage.getItem(THEME_KEY) || 'system'
-    if (saved === 'system') {
-      applyTheme(saved)
-      const select = document.querySelector('select[data-theme-select]')
-      if (select) select.value = saved
-      setActive(saved)
-    }
-  })
+  window
+    .matchMedia('(prefers-color-scheme: dark)')
+    .addEventListener('change', () => {
+      const saved = localStorage.getItem(THEME_KEY) || 'system'
+      if (saved === 'system') {
+        applyTheme(saved)
+        const select = document.querySelector('select[data-theme-select]')
+        if (select) select.value = saved
+        setActive(saved)
+      }
+    })
 </script>

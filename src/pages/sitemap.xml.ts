@@ -5,7 +5,7 @@ const staticPaths = ['/']
 
 export const GET: APIRoute = async ({ site }) => {
   const urls = staticPaths
-    .map(path => {
+    .map((path) => {
       const loc = new URL(path, site).toString()
       const lastmod = new Date().toISOString().split('T')[0]
       return `<url><loc>${loc}</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>${
@@ -19,7 +19,7 @@ export const GET: APIRoute = async ({ site }) => {
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600'
-    }
+      'Cache-Control': 'public, max-age=3600',
+    },
   })
 }

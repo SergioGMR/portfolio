@@ -5,7 +5,7 @@ export const LINKS = {
   acesports: 'https://acesports.vercel.app/',
   discord: 'https://discordapp.com/users/299882015367495682',
   twitter: 'https://x.com/sergiogmr',
-  manfred: 'https://www.getmanfred.com/perfil/sergiogmr'
+  manfred: 'https://www.getmanfred.com/perfil/sergiogmr',
 }
 
 export const STACK = [
