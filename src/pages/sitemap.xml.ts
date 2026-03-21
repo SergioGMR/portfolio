@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 
 // Basic list; could be extended by reading filesystem or Contentful entries
-const staticPaths = ['/']
+const staticPaths = ['/', '/work']
 
 export const GET: APIRoute = async ({ site }) => {
   const urls = staticPaths
