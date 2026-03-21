@@ -2,7 +2,7 @@
   "name": "profile",
   "version": "25.08.12",
   "engines": {
-    "node": "22.x"
+    "node": ">=22"
   },
   "description": "An Astro template for building peofiles.",
   "author": {
@@ -17,27 +17,22 @@
     "start": "astro dev"
   },
   "dependencies": {
+    "@astrojs/vercel": "10.0.2",
+    "@midudev/tailwind-animations": "^1.0.1",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/vite": "^4.2.2",
     "@vercel/analytics": "^1.6.1",
-    "@astrojs/vercel": "^9.0.2",
-    "@tailwindcss/postcss": "^4.1.18",
-    "@tailwindcss/vite": "^4.1.18",
-    "astro": "^5.16.6",
-    "estree-walker": "^3.0.3",
+    "astro": "6.0.8",
     "sharp": "^0.34.5",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.2.2",
+    "vite": "^8.0.1"
   },
   "devDependencies": {
-    "@types/node": "^25.0.3",
-    "prettier": "^3.7.4",
+    "@types/node": "^25.5.0",
+    "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "typescript": "^5.9.3"
-  },
-  "overrides": {
-    "estree-walker": "^3.0.3"
-  },
-  "resolutions": {
-    "estree-walker": "3.0.3"
   },
   "packageManager": "bun@1.1.33"
 }
