@@ -32,8 +32,14 @@ const {
 
 <html lang={locale}>
   <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script is:inline>
+      try {
+        const savedLanguage = localStorage.getItem('language')
+        if (savedLanguage === 'es' || savedLanguage === 'en') {
+          document.documentElement.setAttribute('lang', savedLanguage)
+        }
+      } catch (_error) {}
+    </script>
     <link
       rel="preload"
       as="style"

@@ -61,7 +61,9 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
       </div>
     </div>
     <div class="relative z-10 space-y-6">
-      <p class="animate-fade-in-down text-muted-foreground text-sm tracking-[0.25em] uppercase">
+      <p
+        class="animate-fade-in-down text-muted-foreground text-sm tracking-[0.25em] uppercase"
+      >
         <LangText es="Desarrollador Full Stack" en="Full Stack Developer" />
       </p>
       <h1
@@ -72,13 +74,17 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
           en="I design, build, and optimize digital products."
         />
       </h1>
-      <p class="animate-fade-in-up animate-delay-200 text-muted-foreground max-w-2xl text-lg">
+      <p
+        class="animate-fade-in-up animate-delay-200 text-muted-foreground max-w-2xl text-lg"
+      >
         <LangText
           es="Backend first con PHP/Laravel, APIs y un toque de front con TypeScript/React. Orientado a entregar rápido y con calidad."
           en="Backend-first with PHP/Laravel, APIs, and a front touch with TypeScript/React. Focused on shipping fast with quality."
         />
       </p>
-      <div class="animate-fade-in animate-delay-300 flex flex-wrap items-center gap-3">
+      <div
+        class="animate-fade-in animate-delay-300 flex flex-wrap items-center gap-3"
+      >
         <a
           href="mailto:sergiogmr+portfolio@icloud.com"
           class="rounded-full bg-[linear-gradient(135deg,#5eb1ff,#7f5dff)] px-5 py-2 text-sm font-semibold text-white shadow-[0_10px_40px_-18px_rgba(95,150,255,0.9)] shadow-lg transition hover:brightness-110"
@@ -114,7 +120,9 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         }
       </div>
     </div>
-    <div class="animate-slide-in-right animate-delay-150 relative z-10 flex justify-center">
+    <div
+      class="animate-fade-in animate-delay-150 md:animate-slide-in-right relative z-10 flex justify-center"
+    >
       <div
         class="absolute top-6 -left-10 h-24 w-24 rounded-full bg-[linear-gradient(140deg,#5eb1ff,#7f5dff)] opacity-60 blur-3xl"
       >
@@ -163,7 +171,11 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         LinkedIn
       </a>
     </div>
-    <div data-animate="animate-fade-in-up" data-animate-delay="150ms" class="grid gap-6 md:grid-cols-2">
+    <div
+      data-animate="animate-fade-in-up"
+      data-animate-delay="150ms"
+      class="grid gap-6 md:grid-cols-2"
+    >
       {
         EXPERIENCE.es.slice(0, 4).map((exp, idx) => (
           <article
@@ -365,9 +377,10 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
                 class="h-40 w-full object-cover transition duration-300 group-hover:scale-105"
                 loading="lazy"
                 decoding="async"
+                widths={[260, 352, 525, 700, 900]}
                 width={900}
-                height={560}
-                sizes="(min-width: 768px) 33vw, 100vw"
+                height={480}
+                sizes="(min-width: 1280px) 352px, (min-width: 768px) calc((100vw - 8rem) / 3), calc(100vw - 8rem)"
               />
             </div>
             <div data-lang-content="es" class="space-y-2">

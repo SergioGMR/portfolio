@@ -75,6 +75,11 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+
+  html[lang='es'] [data-lang-content='en'],
+  html[lang='en'] [data-lang-content='es'] {
+    display: none !important;
+  }
 }
 
 @layer utilities {
