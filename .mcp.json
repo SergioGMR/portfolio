@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "astro-docs": {
+      "type": "http",
+      "url": "https://mcp.docs.astro.build/mcp"
+    },
+    "lighthouse": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": [
+        "-y",
+        "@danielsogl/lighthouse-mcp@latest"
+      ],
+      "env": {}
+    }
+  }
+}

@@ -27,3 +27,6 @@ pnpm-debug.log*
 .DS_Store
 
 AGENTS.md
+
+# local assistant settings
+.claude/settings.local.json
