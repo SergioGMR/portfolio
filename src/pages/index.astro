@@ -61,24 +61,24 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
       </div>
     </div>
     <div class="relative z-10 space-y-6">
-      <p class="text-muted-foreground text-sm tracking-[0.25em] uppercase">
+      <p class="animate-fade-in-down text-muted-foreground text-sm tracking-[0.25em] uppercase">
         <LangText es="Desarrollador Full Stack" en="Full Stack Developer" />
       </p>
       <h1
-        class="text-foreground text-4xl leading-[1.1] font-semibold sm:text-5xl"
+        class="animate-blurred-fade-in animate-delay-100 text-foreground text-4xl leading-[1.1] font-semibold sm:text-5xl"
       >
         <LangText
           es="Diseño, construyo y optimizo productos digitales."
           en="I design, build, and optimize digital products."
         />
       </h1>
-      <p class="text-muted-foreground max-w-2xl text-lg">
+      <p class="animate-fade-in-up animate-delay-200 text-muted-foreground max-w-2xl text-lg">
         <LangText
           es="Backend first con PHP/Laravel, APIs y un toque de front con TypeScript/React. Orientado a entregar rápido y con calidad."
           en="Backend-first with PHP/Laravel, APIs, and a front touch with TypeScript/React. Focused on shipping fast with quality."
         />
       </p>
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="animate-fade-in animate-delay-300 flex flex-wrap items-center gap-3">
         <a
           href="mailto:sergiogmr+portfolio@icloud.com"
           class="rounded-full bg-[linear-gradient(135deg,#5eb1ff,#7f5dff)] px-5 py-2 text-sm font-semibold text-white shadow-[0_10px_40px_-18px_rgba(95,150,255,0.9)] shadow-lg transition hover:brightness-110"
@@ -103,7 +103,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         </a>
       </div>
       <div
-        class="text-muted-foreground flex flex-wrap gap-2 text-xs tracking-[0.2em] uppercase"
+        class="animate-fade-in animate-delay-500 text-muted-foreground flex flex-wrap gap-2 text-xs tracking-[0.2em] uppercase"
       >
         {
           ['PHP', 'Laravel', 'TypeScript', 'React', 'Tailwind'].map((item) => (
@@ -114,7 +114,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         }
       </div>
     </div>
-    <div class="relative z-10 flex justify-center">
+    <div class="animate-slide-in-right animate-delay-150 relative z-10 flex justify-center">
       <div
         class="absolute top-6 -left-10 h-24 w-24 rounded-full bg-[linear-gradient(140deg,#5eb1ff,#7f5dff)] opacity-60 blur-3xl"
       >
@@ -145,6 +145,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
     class="border-border bg-card text-foreground grid gap-10 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]"
   >
     <div
+      data-animate="animate-fade-in"
       class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
     >
       <div>
@@ -162,7 +163,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         LinkedIn
       </a>
     </div>
-    <div class="grid gap-6 md:grid-cols-2">
+    <div data-animate="animate-fade-in-up" data-animate-delay="150ms" class="grid gap-6 md:grid-cols-2">
       {
         EXPERIENCE.es.slice(0, 4).map((exp, idx) => (
           <article
@@ -231,7 +232,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
   <section
     class="border-border bg-card text-foreground grid gap-6 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr] dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]"
   >
-    <div class="space-y-4">
+    <div data-animate="animate-fade-in-left" class="space-y-4">
       <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
         <LangText es="Skills" en="Skills" />
       </p>
@@ -256,6 +257,8 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
     </div>
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div
+        data-animate="animate-zoom-in"
+        data-animate-delay="0ms"
         class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
       >
         <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
@@ -272,6 +275,8 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         </p>
       </div>
       <div
+        data-animate="animate-zoom-in"
+        data-animate-delay="100ms"
         class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
       >
         <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
@@ -288,6 +293,8 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         </p>
       </div>
       <div
+        data-animate="animate-zoom-in"
+        data-animate-delay="200ms"
         class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
       >
         <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
@@ -304,6 +311,8 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         </p>
       </div>
       <div
+        data-animate="animate-zoom-in"
+        data-animate-delay="300ms"
         class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
       >
         <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
@@ -326,6 +335,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
     class="border-border bg-card text-foreground grid gap-6 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]"
   >
     <div
+      data-animate="animate-fade-in"
       class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
     >
       <div>
@@ -344,6 +354,8 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
             href={card.es.link}
             target="_blank"
             rel="noreferrer noopener"
+            data-animate="animate-slide-up-fade"
+            data-animate-delay={`${idx * 120}ms`}
             class="group border-border bg-card text-foreground hover:border-foreground/20 hover:bg-muted block rounded-2xl border p-4 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur transition hover:-translate-y-1 dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
           >
             <div class="border-border bg-muted/40 relative mb-4 overflow-hidden rounded-xl border">
@@ -406,7 +418,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
   <section
     class="border-border bg-card text-foreground grid gap-6 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr] dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]"
   >
-    <div class="space-y-4">
+    <div data-animate="animate-fade-in-left" class="space-y-4">
       <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
         <LangText es="Sobre mí" en="About" />
       </p>
@@ -423,6 +435,8 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         />
       </p>
       <div
+        data-animate="animate-fade-in"
+        data-animate-delay="150ms"
         class="border-border bg-muted/50 text-muted-foreground rounded-2xl border p-4 text-sm shadow-[0_12px_40px_-28px_rgba(0,0,0,0.1)] backdrop-blur dark:shadow-[0_12px_40px_-28px_rgba(0,0,0,0.5)]"
       >
         <LangText
@@ -432,6 +446,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
       </div>
     </div>
     <div
+      data-animate="animate-fade-in-right"
       class="border-border bg-card text-foreground rounded-3xl border p-6 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.1)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.6)]"
     >
       <p class="text-muted-foreground text-xs tracking-[0.25em] uppercase">
@@ -439,6 +454,8 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
       </p>
       <div class="mt-4 space-y-3">
         <div
+          data-animate="animate-fade-in"
+          data-animate-delay="0ms"
           class="border-border bg-muted/30 text-foreground flex items-center justify-between rounded-2xl border px-4 py-3"
         >
           <span class="text-sm">
@@ -450,6 +467,8 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
           >
         </div>
         <div
+          data-animate="animate-fade-in"
+          data-animate-delay="80ms"
           class="border-border bg-muted/30 text-foreground flex items-center justify-between rounded-2xl border px-4 py-3"
         >
           <span class="text-sm">LinkedIn</span>
@@ -460,6 +479,8 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
           >
         </div>
         <div
+          data-animate="animate-fade-in"
+          data-animate-delay="160ms"
           class="border-border bg-muted/30 text-foreground flex items-center justify-between rounded-2xl border px-4 py-3"
         >
           <span class="text-sm">GitHub</span>
