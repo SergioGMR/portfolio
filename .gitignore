@@ -30,3 +30,7 @@ AGENTS.md
 
 # local assistant settings
 .claude/settings.local.json
+
+# Google Cloud credentials
+service-account.json
+.mcp.json
