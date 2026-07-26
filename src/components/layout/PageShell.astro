@@ -9,8 +9,6 @@ import faviconImg from '@/assets/favicon.avif'
 ---
 
 <BasePage {...Astro.props}>
-  <LanguageService />
-
   <header
     class="sticky top-2 z-50 mx-auto w-[calc(100%-1rem)] max-w-6xl sm:top-4 sm:w-[calc(100%-2rem)]"
   >
@@ -167,6 +165,8 @@ import faviconImg from '@/assets/favicon.avif'
       </div>
     </div>
   </footer>
+
+  <LanguageService />
 
   <script is:inline>
     ;(function () {
