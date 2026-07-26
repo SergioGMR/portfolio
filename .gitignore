@@ -9,6 +9,10 @@ dist/
 # Vercel build output
 .vercel
 
+# Lighthouse reports
+.lighthouse/
+.lighthouseci/
+
 # dependencies
 node_modules/
 
