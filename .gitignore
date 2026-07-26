@@ -34,3 +34,5 @@ AGENTS.md
 # Google Cloud credentials
 service-account.json
 .mcp.json
+.atl/
+.codegraph/
