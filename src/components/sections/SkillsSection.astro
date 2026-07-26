@@ -1,0 +1,98 @@
+---
+import LangText from '@/components/LangText.astro'
+import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
+
+const capabilities = PROFESSIONAL_PROFILE.capabilities
+const evidenceLabels = {
+  es: new Map(
+    PROFESSIONAL_PROFILE.experiences.map((experience) => [
+      experience.id,
+      experience.title.es,
+    ]),
+  ),
+  en: new Map(
+    PROFESSIONAL_PROFILE.experiences.map((experience) => [
+      experience.id,
+      experience.title.en,
+    ]),
+  ),
+}
+---
+
+<section
+  class="border-border bg-card text-foreground grid gap-6 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr] dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]"
+>
+  <div data-animate="animate-fade-in-left" class="space-y-4">
+    <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
+      <LangText es="Capacidades" en="Capabilities" />
+    </p>
+    <h2 class="text-foreground text-2xl font-semibold sm:text-3xl">
+      <LangText es="Stack y enfoque" en="Stack and focus" />
+    </h2>
+    <p class="text-muted-foreground">
+      <LangText
+        es="Capacidades conectadas con experiencias y casos verificables, sin separar la tecnología de la entrega."
+        en="Capabilities connected to verifiable experiences and case studies, keeping technology tied to delivery."
+      />
+    </p>
+    <div class="flex flex-wrap gap-2">
+      {
+        [
+          ...new Set(capabilities.flatMap(({ technologies }) => technologies)),
+        ].map((technology) => (
+          <span class="border-border bg-card/60 text-foreground/80 rounded-full border px-3 py-1 text-sm backdrop-blur">
+            {technology}
+          </span>
+        ))
+      }
+    </div>
+  </div>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    {
+      capabilities.map((capability, index) => (
+        <>
+          <article
+            data-lang-content="es"
+            data-animate="animate-zoom-in"
+            data-animate-delay={`${index * 100}ms`}
+            class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
+          >
+            <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
+              {capability.label.es}
+            </p>
+            <p class="text-foreground mt-2 text-lg font-semibold">
+              {capability.technologies.join(' · ')}
+            </p>
+            <p class="text-muted-foreground text-sm">{capability.summary.es}</p>
+            <p class="text-muted-foreground mt-3 text-[11px]">
+              Evidencia:{' '}
+              {capability.evidenceIds
+                .map((id) => evidenceLabels.es.get(id) ?? id)
+                .join(' · ')}
+            </p>
+          </article>
+          <article
+            data-lang-content="en"
+            data-animate="animate-zoom-in"
+            data-animate-delay={`${index * 100}ms`}
+            class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
+          >
+            <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
+              {capability.label.en}
+            </p>
+            <p class="text-foreground mt-2 text-lg font-semibold">
+              {capability.technologies.join(' · ')}
+            </p>
+            <p class="text-muted-foreground text-sm">{capability.summary.en}</p>
+            <p class="text-muted-foreground mt-3 text-[11px]">
+              Evidence:{' '}
+              {capability.evidenceIds
+                .map((id) => evidenceLabels.en.get(id) ?? id)
+                .join(' · ')}
+            </p>
+          </article>
+        </>
+      ))
+    }
+  </div>
+</section>

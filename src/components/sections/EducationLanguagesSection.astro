@@ -1,0 +1,79 @@
+---
+import LangText from '@/components/LangText.astro'
+import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
+
+const education = PROFESSIONAL_PROFILE.education[0]
+const language = PROFESSIONAL_PROFILE.languages[0]
+---
+
+<section
+  class="border-border bg-card text-foreground grid gap-6 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 lg:grid-cols-2 dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]"
+>
+  <div data-animate="animate-fade-in-left" class="space-y-3">
+    <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
+      <LangText es="Formación" en="Education" />
+    </p>
+    <h2 class="text-foreground text-xl font-semibold sm:text-2xl">
+      <span data-lang-content="es">{education.qualification.es}</span>
+      <span data-lang-content="en">{education.qualification.en}</span>
+    </h2>
+    <p class="text-muted-foreground text-sm">
+      <span data-lang-content="es"
+        >{education.institution.es}{' · '}{education.startDate.slice(0, 4)}{
+          ' — '
+        }{education.endDate.slice(0, 4)}{' · '}{education.level}</span
+      >
+      <span data-lang-content="en"
+        >{education.institution.en}{' · '}{education.startDate.slice(0, 4)}{
+          ' — '
+        }{education.endDate.slice(0, 4)}{' · '}{education.level}</span
+      >
+    </p>
+    <p class="text-muted-foreground text-sm">
+      <span data-lang-content="es">{education.location.es}</span>
+      <span data-lang-content="en">{education.location.en}</span>
+    </p>
+  </div>
+
+  <div data-animate="animate-fade-in-right" class="space-y-3">
+    <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
+      <LangText es="Idiomas" en="Languages" />
+    </p>
+    <h2 class="text-foreground text-xl font-semibold sm:text-2xl">
+      <span data-lang-content="es">{language.name.es}</span>
+      <span data-lang-content="en">{language.name.en}</span>
+    </h2>
+    <div class="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
+      <div class="border-border bg-muted/30 rounded-xl border p-3">
+        <span class="text-muted-foreground block text-xs uppercase">
+          <LangText es="Comprensión auditiva" en="Listening" />
+        </span>
+        {language.levels.listening}
+      </div>
+      <div class="border-border bg-muted/30 rounded-xl border p-3">
+        <span class="text-muted-foreground block text-xs uppercase">
+          <LangText es="Comprensión lectora" en="Reading" />
+        </span>
+        {language.levels.reading}
+      </div>
+      <div class="border-border bg-muted/30 rounded-xl border p-3">
+        <span class="text-muted-foreground block text-xs uppercase">
+          <LangText es="Expresión escrita" en="Writing" />
+        </span>
+        {language.levels.writing}
+      </div>
+      <div class="border-border bg-muted/30 rounded-xl border p-3">
+        <span class="text-muted-foreground block text-xs uppercase">
+          <LangText es="Producción oral" en="Spoken production" />
+        </span>
+        {language.levels.spokenProduction}
+      </div>
+      <div class="border-border bg-muted/30 rounded-xl border p-3">
+        <span class="text-muted-foreground block text-xs uppercase">
+          <LangText es="Interacción oral" en="Spoken interaction" />
+        </span>
+        {language.levels.spokenInteraction}
+      </div>
+    </div>
+  </div>
+</section>

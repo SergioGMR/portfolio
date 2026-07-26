@@ -1,0 +1,131 @@
+---
+import LangText from '@/components/LangText.astro'
+import { Image } from 'astro:assets'
+import heroImg from '@/assets/me_laptop.avif'
+import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
+
+const featuredTechnologies = [
+  'Laravel',
+  'Livewire',
+  'FilamentPHP',
+  'Laravel Sanctum',
+  'GitHub Actions',
+  'Plesk',
+]
+---
+
+<section
+  class="border-border hero-bg text-foreground relative overflow-hidden rounded-4xl border p-6 shadow-[0_20px_80px_-25px_rgba(0,0,0,0.15)] sm:p-8 lg:grid lg:grid-cols-[1.3fr_1fr] lg:items-center dark:shadow-[0_20px_80px_-25px_rgba(0,0,0,0.5)]"
+>
+  <div
+    class="pointer-events-none absolute inset-0 opacity-30 blur-3xl dark:opacity-70"
+  >
+    <div
+      class="absolute -top-8 -left-10 h-48 w-48 rounded-full bg-gradient-to-br from-[#5eb1ff] to-[#7f5dff] opacity-60"
+    >
+    </div>
+    <div
+      class="absolute top-10 right-0 h-40 w-40 rounded-full bg-gradient-to-br from-[#ffa9d1] to-[#7f5dff] opacity-50"
+    >
+    </div>
+    <div
+      class="absolute bottom-0 left-1/4 h-36 w-36 rounded-full bg-gradient-to-br from-[#6effd4] to-[#3b82f6] opacity-35"
+    >
+    </div>
+    <div
+      class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,0,0,0.04),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(126,92,255,0.06),transparent_35%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(126,92,255,0.08),transparent_35%)]"
+    >
+    </div>
+  </div>
+  <div class="relative z-10 space-y-6">
+    <p
+      class="animate-fade-in-down text-muted-foreground text-sm tracking-[0.25em] uppercase"
+    >
+      <LangText es="Tech Lead Full Stack" en="Tech Lead Full Stack" />
+    </p>
+    <h1
+      class="animate-blurred-fade-in animate-delay-100 text-foreground text-4xl leading-[1.1] font-semibold sm:text-5xl"
+    >
+      <LangText
+        es="Liderazgo técnico para convertir necesidades en producto."
+        en="Technical leadership that turns needs into product."
+      />
+    </h1>
+    <p
+      class="animate-fade-in-up animate-delay-200 text-muted-foreground max-w-2xl text-lg"
+    >
+      <LangText
+        es="Trabajo entre arquitectura, coordinación y entrega: diseño sistemas, desarrollo APIs y planifico pruebas con herramientas documentadas en mi experiencia."
+        en="I work across architecture, coordination, and delivery: designing systems, developing APIs, and planning tests with tools documented in my experience."
+      />
+    </p>
+    <div
+      class="animate-fade-in animate-delay-300 flex flex-wrap items-center gap-3"
+    >
+      <a
+        href="mailto:sergiogmr+portfolio@icloud.com"
+        class="rounded-full bg-[linear-gradient(135deg,#5eb1ff,#7f5dff)] px-5 py-2 text-sm font-semibold text-white shadow-[0_10px_40px_-18px_rgba(95,150,255,0.9)] shadow-lg transition hover:brightness-110"
+      >
+        <LangText es="Hablemos" en="Let's talk" />
+      </a>
+      <a
+        data-lang-content="es"
+        href={PROFESSIONAL_PROFILE.cvUrls.es}
+        class="border-border bg-card/80 text-foreground hover:border-foreground/30 hover:bg-card rounded-full border px-5 py-2 text-sm font-semibold backdrop-blur transition"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Ver CV
+      </a>
+      <a
+        data-lang-content="en"
+        href={PROFESSIONAL_PROFILE.cvUrls.en}
+        class="border-border bg-card/80 text-foreground hover:border-foreground/30 hover:bg-card rounded-full border px-5 py-2 text-sm font-semibold backdrop-blur transition"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View CV
+      </a>
+    </div>
+    <div
+      class="animate-fade-in animate-delay-500 text-muted-foreground flex flex-wrap gap-2 text-xs tracking-[0.2em] uppercase"
+    >
+      {
+        featuredTechnologies.map((item) => (
+          <span class="border-border bg-card/60 text-foreground/80 rounded-full border px-3 py-1 shadow-sm backdrop-blur">
+            {item}
+          </span>
+        ))
+      }
+    </div>
+  </div>
+  <div
+    class="animate-fade-in animate-delay-150 md:animate-slide-in-right relative z-10 flex justify-center"
+  >
+    <div
+      class="absolute top-6 -left-10 h-24 w-24 rounded-full bg-[linear-gradient(140deg,#5eb1ff,#7f5dff)] opacity-60 blur-3xl"
+    >
+    </div>
+    <div
+      class="absolute right-0 -bottom-4 h-28 w-28 rounded-full bg-[linear-gradient(160deg,#ffa9d1,#7f5dff)] opacity-50 blur-3xl"
+    >
+    </div>
+    <div
+      class="border-border bg-card/20 relative h-full w-full max-w-md overflow-hidden rounded-3xl border p-[1px] shadow-[0_25px_90px_-30px_rgba(0,0,0,0.2)] backdrop-blur-[18px] dark:shadow-[0_25px_90px_-30px_rgba(0,0,0,0.7)]"
+    >
+      <Image
+        src={heroImg}
+        alt="Sergio working on laptop"
+        class="h-full w-full rounded-[24px] object-cover"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+        format="avif"
+        quality={80}
+        width={512}
+        height={512}
+        densities={[1, 2]}
+      />
+    </div>
+  </div>
+</section>

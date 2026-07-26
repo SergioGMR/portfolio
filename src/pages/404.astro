@@ -1,7 +1,7 @@
 ---
-import BasePage from '../components/layout/BasePage.astro'
+import BasePage from '@/components/layout/BasePage.astro'
 import { Image } from 'astro:assets'
-import heroImg from '../../public/me_laptop.webp'
+import heroImg from '@/assets/me_laptop.avif'
 ---
 
 <BasePage
@@ -17,6 +17,8 @@ import heroImg from '../../public/me_laptop.webp'
       class="mb-8 h-auto w-52"
       loading="lazy"
       decoding="async"
+      format="avif"
+      quality={80}
       width={208}
       height={208}
     />

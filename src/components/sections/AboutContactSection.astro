@@ -1,0 +1,84 @@
+---
+import LangText from '@/components/LangText.astro'
+import { LINKS } from '@/lib/constants'
+---
+
+<section
+  class="border-border bg-card text-foreground grid gap-6 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr] dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]"
+>
+  <div data-animate="animate-fade-in-left" class="space-y-4">
+    <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
+      <LangText es="Sobre mí" en="About" />
+    </p>
+    <h2 class="text-foreground text-2xl font-semibold sm:text-3xl">
+      <LangText
+        es="Colaboro de forma cercana y pragmática."
+        en="I collaborate closely and pragmatically."
+      />
+    </h2>
+    <p class="text-muted-foreground">
+      <LangText
+        es="Me incorporo a proyectos con contexto, analizo necesidades, coordino trabajo técnico y convierto requisitos en entregables."
+        en="I join projects with context, analyse needs, coordinate technical work, and turn requirements into deliverables."
+      />
+    </p>
+    <div
+      data-animate="animate-fade-in"
+      data-animate-delay="150ms"
+      class="border-border bg-muted/50 text-muted-foreground rounded-2xl border p-4 text-sm shadow-[0_12px_40px_-28px_rgba(0,0,0,0.1)] backdrop-blur dark:shadow-[0_12px_40px_-28px_rgba(0,0,0,0.5)]"
+    >
+      <LangText
+        es="Ubicado en Las Palmas, España. Experiencia freelance en backend, frontend y aplicaciones web y móviles."
+        en="Based in Las Palmas, Spain. Freelance experience across backend, frontend, and web and mobile applications."
+      />
+    </div>
+  </div>
+  <div
+    data-animate="animate-fade-in-right"
+    class="border-border bg-card text-foreground rounded-3xl border p-6 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.1)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.6)]"
+  >
+    <p class="text-muted-foreground text-xs tracking-[0.25em] uppercase">
+      <LangText es="Contacto" en="Contact" />
+    </p>
+    <div class="mt-4 space-y-3">
+      <div
+        data-animate="animate-fade-in"
+        data-animate-delay="0ms"
+        class="border-border bg-muted/30 text-foreground flex items-center justify-between rounded-2xl border px-4 py-3"
+      >
+        <span class="text-sm">
+          <LangText es="Email" en="Email" />
+        </span>
+        <a class="font-semibold hover:underline" href={LINKS.mail}
+          >sergiogmr@icloud.com</a
+        >
+      </div>
+      <div
+        data-animate="animate-fade-in"
+        data-animate-delay="80ms"
+        class="border-border bg-muted/30 text-foreground flex items-center justify-between rounded-2xl border px-4 py-3"
+      >
+        <span class="text-sm">LinkedIn</span>
+        <a
+          class="font-semibold hover:underline"
+          href={LINKS.linkedin}
+          target="_blank"
+          rel="noopener noreferrer">@sergiogmr</a
+        >
+      </div>
+      <div
+        data-animate="animate-fade-in"
+        data-animate-delay="160ms"
+        class="border-border bg-muted/30 text-foreground flex items-center justify-between rounded-2xl border px-4 py-3"
+      >
+        <span class="text-sm">GitHub</span>
+        <a
+          class="font-semibold hover:underline"
+          href={LINKS.github}
+          target="_blank"
+          rel="noopener noreferrer">@sergiogmr</a
+        >
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,10 +1,10 @@
 ---
-import BasePage from './BasePage.astro'
-import ThemeToggleLite from '../ThemeToggleLite.astro'
-import LanguageToggleLite from '../LanguageToggleLite.astro'
-import LanguageService from '../LanguageService.astro'
+import BasePage from '@/components/layout/BasePage.astro'
+import ThemeToggleLite from '@/components/ThemeToggleLite.astro'
+import LanguageToggleLite from '@/components/LanguageToggleLite.astro'
+import LanguageService from '@/components/LanguageService.astro'
 import { Image } from 'astro:assets'
-import faviconImg from '../../../public/favicon.webp'
+import faviconImg from '@/assets/favicon.avif'
 ---
 
 <BasePage {...Astro.props}>
@@ -20,12 +20,14 @@ import faviconImg from '../../../public/favicon.webp'
           src={faviconImg}
           alt="Logo"
           class="h-10 w-10 rounded-lg"
-          width={60}
-          height={60}
+          width={80}
+          height={80}
+          format="avif"
+          quality={85}
         />
         <div class="leading-tight">
           <p class="text-muted-foreground text-xs tracking-[0.2em] uppercase">
-            Full Stack
+            Tech Lead Full Stack
           </p>
           <p class="text-sm font-semibold sm:hidden">SergioGMR</p>
           <p class="hidden text-sm font-semibold sm:block">
@@ -77,7 +79,10 @@ import faviconImg from '../../../public/favicon.webp'
           <span data-lang-content="es">Disponible para colaborar</span>
           <span data-lang-content="en">Open to collaborate</span>
         </p>
-        <p data-animate="animate-bounce-fade-in" class="text-2xl leading-tight font-semibold">
+        <p
+          data-animate="animate-bounce-fade-in"
+          class="text-2xl leading-tight font-semibold"
+        >
           <span data-lang-content="es">Construyamos algo útil y rápido.</span>
           <span data-lang-content="en">Let’s ship something useful.</span>
         </p>
@@ -123,21 +128,33 @@ import faviconImg from '../../../public/favicon.webp'
         <div class="text-muted-foreground flex items-center gap-2 text-sm">
           <a
             href="https://x.com/sergiogmr"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="X (Twitter)"
             class="border-border hover:border-foreground hover:text-foreground rounded-full border px-3 py-1 transition"
             >X</a
           >
           <a
             href="https://www.linkedin.com/in/sergiogmr"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="LinkedIn"
             class="border-border hover:border-foreground hover:text-foreground rounded-full border px-3 py-1 transition"
             >LinkedIn</a
           >
           <a
             href="https://github.com/sergiogmr"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
             class="border-border hover:border-foreground hover:text-foreground rounded-full border px-3 py-1 transition"
             >GitHub</a
           >
           <a
             href="https://github.com/sergiogmr/portfolio"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub Repository"
             class="border-border hover:border-foreground hover:text-foreground rounded-full border px-3 py-1 transition"
           >
             <span data-lang-content="es">Código</span>
@@ -148,15 +165,19 @@ import faviconImg from '../../../public/favicon.webp'
     </div>
   </footer>
   <script is:inline>
-    (function () {
-      var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ;(function () {
+      var prefersReduced = window.matchMedia(
+        '(prefers-reduced-motion: reduce)',
+      ).matches
 
       var observer = new IntersectionObserver(
         function (entries) {
           entries.forEach(function (entry) {
             if (!entry.isIntersecting) return
             var el = entry.target
-            var animClasses = (el.dataset.animate || '').split(' ').filter(Boolean)
+            var animClasses = (el.dataset.animate || '')
+              .split(' ')
+              .filter(Boolean)
             var delay = el.dataset.animateDelay
 
             el.classList.remove('is-hidden')
@@ -170,7 +191,7 @@ import faviconImg from '../../../public/favicon.webp'
             observer.unobserve(el)
           })
         },
-        { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+        { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
       )
 
       document.querySelectorAll('[data-animate]').forEach(function (el) {

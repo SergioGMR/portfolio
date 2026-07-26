@@ -1,6 +1,6 @@
 ---
-import '../../styles/globals.css'
-import HeadSEO from '../HeadSEO.astro'
+import '@/styles/globals.css'
+import HeadSEO from '@/components/HeadSEO.astro'
 import Analytics from '@vercel/analytics/astro'
 
 interface Props {
@@ -40,15 +40,7 @@ const {
         }
       } catch (_error) {}
     </script>
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
-    />
+
     <HeadSEO
       title={title}
       description={description}

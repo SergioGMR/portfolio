@@ -10,28 +10,32 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "astro build",
+    "build": "astro build && bun run verify:output",
     "dev": "astro dev",
     "format": "prettier -w . --cache",
     "preview": "astro preview",
-    "start": "astro dev"
+    "start": "astro dev",
+    "test": "bun test",
+    "verify:output": "bun scripts/verify-portfolio-output.ts"
   },
   "dependencies": {
-    "@astrojs/vercel": "10.0.2",
-    "@midudev/tailwind-animations": "^1.0.1",
-    "@tailwindcss/postcss": "^4.2.2",
-    "@tailwindcss/vite": "^4.2.2",
+    "@astrojs/vercel": "^11.0.3",
+    "@fontsource/space-grotesk": "^5.3.0",
+    "@midudev/tailwind-animations": "^1.0.2",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.3",
     "@vercel/analytics": "^1.6.1",
-    "astro": "6.0.8",
-    "sharp": "^0.34.5",
-    "tailwindcss": "^4.2.2",
-    "vite": "^8.0.1"
+    "astro": "7.1.3",
+    "sharp": "^0.35.3",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.1.5"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
-    "prettier": "^3.8.1",
+    "@types/bun": "^1.3.14",
+    "@types/node": "^25.9.5",
+    "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
-    "prettier-plugin-tailwindcss": "^0.7.2",
+    "prettier-plugin-tailwindcss": "^0.7.4",
     "typescript": "^5.9.3"
   },
   "packageManager": "bun@1.1.33"

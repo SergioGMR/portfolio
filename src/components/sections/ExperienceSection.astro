@@ -1,0 +1,148 @@
+---
+import LangText from '@/components/LangText.astro'
+import {
+  PROFESSIONAL_PROFILE,
+  sortExperiencesByStartDate,
+  type ExperienceStatus,
+  type Locale,
+} from '@/lib/professional-profile'
+
+const experiences = sortExperiencesByStartDate(PROFESSIONAL_PROFILE.experiences)
+
+const statusLabels: Record<Locale, Record<ExperienceStatus, string>> = {
+  es: { current: 'Actual', completed: 'Finalizado' },
+  en: { current: 'Current', completed: 'Completed' },
+}
+
+const employmentLabels = {
+  es: { freelance: 'Freelance' },
+  en: { freelance: 'Freelance' },
+} as const
+
+const formatDate = (date: string, locale: Locale) =>
+  new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${date}T00:00:00Z`))
+
+const dateRange = (experience: (typeof experiences)[number], locale: Locale) =>
+  `${formatDate(experience.startDate, locale)} — ${experience.endDate ? formatDate(experience.endDate, locale) : locale === 'es' ? 'Actualidad' : 'Current'}`
+---
+
+<section
+  class="border-border bg-card text-foreground grid gap-10 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]"
+>
+  <div
+    data-animate="animate-fade-in"
+    class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+  >
+    <div>
+      <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
+        <LangText es="Trayectoria" en="Background" />
+      </p>
+      <h2 class="text-foreground text-2xl font-semibold sm:text-3xl">
+        <LangText es="Experiencia profesional" en="Professional experience" />
+      </h2>
+    </div>
+    <a
+      href={PROFESSIONAL_PROFILE.links.linkedin}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="text-primary text-sm font-semibold underline-offset-4 hover:underline"
+    >
+      LinkedIn
+    </a>
+  </div>
+  <div
+    data-animate="animate-fade-in-up"
+    data-animate-delay="150ms"
+    class="grid gap-6 md:grid-cols-2"
+  >
+    {
+      experiences.map((experience) => (
+        <>
+          <article
+            data-lang-content="es"
+            class="border-border bg-card text-foreground hover:border-foreground/20 hover:bg-muted rounded-2xl border p-6 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)]"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <p class="text-muted-foreground text-xs tracking-[0.2em] uppercase">
+                {dateRange(experience, 'es')}
+              </p>
+              <span class="border-border bg-primary/20 text-foreground rounded-full border px-3 py-1 text-[11px] font-semibold">
+                {statusLabels.es[experience.status]} ·{' '}
+                {employmentLabels.es[experience.employmentType]}
+              </span>
+            </div>
+            <h3 class="text-foreground mt-3 text-xl font-semibold">
+              {experience.title.es}
+            </h3>
+            {experience.evidenceUrl ? (
+              <a
+                href={experience.evidenceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary text-sm underline-offset-4 hover:underline"
+              >
+                {experience.company.es} · {experience.location.es}
+              </a>
+            ) : (
+              <p class="text-primary text-sm">
+                {experience.company.es} · {experience.location.es}
+              </p>
+            )}
+            <ul class="text-muted-foreground mt-4 flex list-disc flex-col gap-2 pl-4 text-sm">
+              {experience.responsibilities.es.slice(0, 3).map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+            <p class="text-foreground/80 mt-4 text-sm font-medium">
+              {experience.outcomes.es[0]}
+            </p>
+          </article>
+          <article
+            data-lang-content="en"
+            class="border-border bg-card text-foreground hover:border-foreground/20 hover:bg-muted rounded-2xl border p-6 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)]"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <p class="text-muted-foreground text-xs tracking-[0.2em] uppercase">
+                {dateRange(experience, 'en')}
+              </p>
+              <span class="border-border bg-primary/20 text-foreground rounded-full border px-3 py-1 text-[11px] font-semibold">
+                {statusLabels.en[experience.status]} ·{' '}
+                {employmentLabels.en[experience.employmentType]}
+              </span>
+            </div>
+            <h3 class="text-foreground mt-3 text-xl font-semibold">
+              {experience.title.en}
+            </h3>
+            {experience.evidenceUrl ? (
+              <a
+                href={experience.evidenceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary text-sm underline-offset-4 hover:underline"
+              >
+                {experience.company.en} · {experience.location.en}
+              </a>
+            ) : (
+              <p class="text-primary text-sm">
+                {experience.company.en} · {experience.location.en}
+              </p>
+            )}
+            <ul class="text-muted-foreground mt-4 flex list-disc flex-col gap-2 pl-4 text-sm">
+              {experience.responsibilities.en.slice(0, 3).map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+            <p class="text-foreground/80 mt-4 text-sm font-medium">
+              {experience.outcomes.en[0]}
+            </p>
+          </article>
+        </>
+      ))
+    }
+  </div>
+</section>

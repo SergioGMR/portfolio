@@ -1,12 +1,12 @@
 import type { APIRoute } from 'astro'
 
-// Basic list; could be extended by reading filesystem or Contentful entries
-const staticPaths = ['/', '/work']
+const staticPaths = ['/', '/acezone/tos', '/wattly/tos']
 
-export const GET: APIRoute = async ({ site }) => {
+export const GET = (({ site, url }) => {
+  const baseUrl = site ?? url
   const urls = staticPaths
     .map((path) => {
-      const loc = new URL(path, site).toString()
+      const loc = new URL(path, baseUrl).toString()
       const lastmod = new Date().toISOString().split('T')[0]
       return `<url><loc>${loc}</loc><lastmod>${lastmod}</lastmod><changefreq>monthly</changefreq><priority>${
         path === '/' ? '1.0' : '0.8'
@@ -22,4 +22,4 @@ export const GET: APIRoute = async ({ site }) => {
       'Cache-Control': 'public, max-age=3600',
     },
   })
-}
+}) satisfies APIRoute

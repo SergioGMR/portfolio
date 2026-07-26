@@ -1,4 +1,4 @@
-import { EXPERIENCE } from './constants'
+import { PROFESSIONAL_PROFILE, type Locale } from './professional-profile'
 
 // Define language type
 export type Language = 'es' | 'en'
@@ -66,12 +66,12 @@ export const translations: Translations = {
       title: "Hi, my name's ",
       name: 'Sergio Morales Rodríguez.',
       description:
-        'I am a technology and web development enthusiast, with experience in modern frameworks. I love combining technical functionality with design to create efficient and attractive solutions.',
+        'I am a Tech Lead Full Stack focused on technical leadership, architecture, and product delivery.',
     },
     // Footer
     footer: {
       from: '"Forked" from',
-      by: 'Modded with 💜 using Astro and Tailwind CSS by',
+      by: 'Built with Astro by',
       source: 'The source code is available on',
     },
     // About Me
@@ -79,7 +79,7 @@ export const translations: Translations = {
       welcome: 'About me',
       title: 'I am ',
       name: 'Sergio Morales Rodríguez,',
-      description: ' a fullstack developer focused on backend.',
+      description: ' a Tech Lead Full Stack focused on technical delivery.',
       tools: 'The tools I usually use include:',
       beyond:
         "Beyond coding, I'm passionate about procedural series, video games like League of Legends, movies and above all, traveling. ( Not counting my cats, Ginny and Sirius ).",
@@ -88,7 +88,7 @@ export const translations: Translations = {
     now: {
       title: 'What are u doing now?',
       what: "what's that?",
-      currently: 'working as freelancer',
+      currently: 'working as a freelance Tech Lead Full Stack',
       found: 'foundme at:',
     },
     // Study card
@@ -134,12 +134,12 @@ export const translations: Translations = {
       title: 'Hola, me llamo ',
       name: 'Sergio Morales Rodríguez.',
       description:
-        'Soy una persona apasionada por la tecnología y el desarrollo web, con experiencia en frameworks modernos. Me encanta combinar funcionalidad técnica con diseño para crear soluciones eficientes y atractivas.',
+        'Soy Tech Lead Full Stack, centrado en liderazgo técnico, arquitectura y entrega de producto.',
     },
     // Footer
     footer: {
       from: '"Bifurcado" de',
-      by: 'Modificado con 💜 usando Astro y Tailwind CSS por',
+      by: 'Construido con Astro por',
       source: 'El código fuente está disponible en',
     },
     // About Me
@@ -147,7 +147,7 @@ export const translations: Translations = {
       welcome: 'Sobre mí',
       title: 'Soy ',
       name: 'Sergio Morales Rodríguez,',
-      description: ' desarrollador fullstack centrado en backend.',
+      description: ' Tech Lead Full Stack centrado en la entrega técnica.',
       tools: 'Las que suelo usar incluyen:',
       beyond:
         'Además de programar, me gustan las series procedimentales, los videojuegos, el cine y sobre todo, viajar. ( Sin contar mis gatos, Ginny y Sirius ).',
@@ -156,7 +156,7 @@ export const translations: Translations = {
     now: {
       title: '¿En qué estás ahora?',
       what: '¿eso qué es?',
-      currently: 'trabajando como freelance',
+      currently: 'trabajando como Tech Lead Full Stack freelance',
       found: 'encuentrame en:',
     },
     // Study card
@@ -214,7 +214,28 @@ export function getTranslation(lang: Language, keyPath: string): any {
 
 // Global store for experience data
 export function getExperienceData(lang: Language) {
-  return EXPERIENCE[lang]
+  return PROFESSIONAL_PROFILE.experiences.map((experience) => ({
+    company: experience.company[lang],
+    location: experience.location[lang],
+    position: experience.title[lang],
+    link: experience.evidenceUrl ?? '',
+    start: formatExperienceDate(experience.startDate, lang),
+    end: experience.endDate
+      ? formatExperienceDate(experience.endDate, lang)
+      : lang === 'es'
+        ? 'Actualidad'
+        : 'Current',
+    tasks: [...experience.responsibilities[lang]],
+  }))
+}
+
+function formatExperienceDate(date: string, lang: Locale): string {
+  return new Intl.DateTimeFormat(lang === 'es' ? 'es-ES' : 'en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${date}T00:00:00Z`))
 }
 
 // Create a language service script to be included in the head

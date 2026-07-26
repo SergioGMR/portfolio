@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://astro.build/config
 export default defineConfig({
-  site: process.env.CI ? 'https://sgmr.dev/' : 'http://localhost:4321',
+  site: 'https://sgmr.dev/',
 
   output: 'static',
   build: {},
