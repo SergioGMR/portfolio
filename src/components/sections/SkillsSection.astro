@@ -20,78 +20,75 @@ const evidenceLabels = {
 ---
 
 <section
-  class="border-border bg-card text-foreground grid gap-6 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr] dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]"
+  id="habilidades"
+  class="surface-panel grid gap-6 rounded-3xl p-5 sm:p-7 lg:p-8"
 >
-  <div data-animate="animate-fade-in-left" class="space-y-4">
+  <div data-animate="reveal" class="space-y-3">
     <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
       <LangText es="Capacidades" en="Capabilities" />
     </p>
-    <h2 class="text-foreground text-2xl font-semibold sm:text-3xl">
+    <h2
+      class="text-foreground text-2xl font-semibold tracking-tight sm:text-3xl"
+    >
       <LangText es="Stack y enfoque" en="Stack and focus" />
     </h2>
-    <p class="text-muted-foreground">
+    <p class="text-muted-foreground text-sm leading-relaxed">
       <LangText
         es="Capacidades conectadas con experiencias y casos verificables, sin separar la tecnología de la entrega."
         en="Capabilities connected to verifiable experiences and case studies, keeping technology tied to delivery."
       />
     </p>
-    <div class="flex flex-wrap gap-2">
+    <div class="flex flex-wrap gap-1.5 pt-1">
       {
         [
           ...new Set(capabilities.flatMap(({ technologies }) => technologies)),
         ].map((technology) => (
-          <span class="border-border bg-card/60 text-foreground/80 rounded-full border px-3 py-1 text-sm backdrop-blur">
+          <span class="tech-tag rounded-full px-2.5 py-1 text-xs">
             {technology}
           </span>
         ))
       }
     </div>
   </div>
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+  <div class="grid min-w-0 gap-3">
     {
       capabilities.map((capability, index) => (
-        <>
-          <article
-            data-lang-content="es"
-            data-animate="animate-zoom-in"
-            data-animate-delay={`${index * 100}ms`}
-            class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
-          >
-            <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-              {capability.label.es}
-            </p>
-            <p class="text-foreground mt-2 text-lg font-semibold">
-              {capability.technologies.join(' · ')}
-            </p>
-            <p class="text-muted-foreground text-sm">{capability.summary.es}</p>
-            <p class="text-muted-foreground mt-3 text-[11px]">
-              Evidencia:{' '}
+        <article
+          data-animate="reveal-up"
+          data-animate-delay={`${index * 70}ms`}
+          class="bento-card min-w-0 rounded-2xl p-4"
+        >
+          <p class="text-primary font-mono text-[10px] tracking-widest uppercase">
+            <span data-lang-content="es">{capability.label.es}</span>
+            <span data-lang-content="en">{capability.label.en}</span>
+          </p>
+          <p class="text-foreground mt-2 text-sm font-semibold tracking-tight">
+            {capability.technologies.join(' · ')}
+          </p>
+          <p class="text-muted-foreground mt-2 text-xs leading-relaxed">
+            <span data-lang-content="es">{capability.summary.es}</span>
+            <span data-lang-content="en">{capability.summary.en}</span>
+          </p>
+          <p class="text-muted-foreground border-border mt-3 border-t pt-2.5 font-mono text-[10px]">
+            <span data-lang-content="es">
+              <span class="text-foreground/70 tracking-wider uppercase">
+                Evidencia:
+              </span>{' '}
               {capability.evidenceIds
                 .map((id) => evidenceLabels.es.get(id) ?? id)
                 .join(' · ')}
-            </p>
-          </article>
-          <article
-            data-lang-content="en"
-            data-animate="animate-zoom-in"
-            data-animate-delay={`${index * 100}ms`}
-            class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
-          >
-            <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-              {capability.label.en}
-            </p>
-            <p class="text-foreground mt-2 text-lg font-semibold">
-              {capability.technologies.join(' · ')}
-            </p>
-            <p class="text-muted-foreground text-sm">{capability.summary.en}</p>
-            <p class="text-muted-foreground mt-3 text-[11px]">
-              Evidence:{' '}
+            </span>
+            <span data-lang-content="en">
+              <span class="text-foreground/70 tracking-wider uppercase">
+                Evidence:
+              </span>{' '}
               {capability.evidenceIds
                 .map((id) => evidenceLabels.en.get(id) ?? id)
                 .join(' · ')}
-            </p>
-          </article>
-        </>
+            </span>
+          </p>
+        </article>
       ))
     }
   </div>

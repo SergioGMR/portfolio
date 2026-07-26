@@ -6,26 +6,24 @@ const options = [
 ---
 
 <div class="flex items-center gap-2">
-  <label
-    class="text-muted-foreground inline-flex items-center gap-1 text-xs sm:hidden"
-  >
+  <label class="inline-flex items-center text-xs sm:hidden">
     <span class="sr-only">Idioma</span>
     <select
-      class="focus:ring-primary/50 bg-background rounded-md border px-2 py-1 text-sm focus:ring-2 focus:outline-none"
-      aria-label="Seleccionar idioma"
+      class="border-border bg-background text-foreground focus:ring-primary/50 min-h-10 max-w-[4.25rem] rounded-lg border px-2 text-xs focus:ring-2 focus:outline-none"
+      aria-label="Seleccionar idioma / Select language"
       data-lang-select
     >
       {options.map((opt) => <option value={opt.value}>{opt.label}</option>)}
     </select>
   </label>
   <div
-    class="hidden items-center gap-2 rounded-full border px-2 py-1 text-xs sm:inline-flex"
+    class="border-border bg-surface/60 hidden items-center gap-1 rounded-full border p-1 text-xs sm:inline-flex"
   >
     {
       options.map((opt) => (
         <button
           type="button"
-          class="hover:bg-muted focus-visible:outline-primary/70 data-[active=true]:bg-foreground data-[active=true]:text-background data-[active=true]:border-foreground cursor-pointer rounded-full px-3 py-1 transition focus-visible:outline focus-visible:outline-2 data-[active=true]:border data-[active=true]:shadow-sm"
+          class="hover:bg-muted focus-visible:outline-primary/70 data-[active=true]:bg-foreground data-[active=true]:text-background data-[active=true]:border-foreground min-h-8 cursor-pointer rounded-full px-2.5 py-1 transition focus-visible:outline focus-visible:outline-2 data-[active=true]:border data-[active=true]:shadow-sm"
           data-lang-option={opt.value}
           aria-pressed="false"
           aria-label={`Cambiar idioma a ${opt.label}`}
@@ -39,7 +37,10 @@ const options = [
 
 <script>
   const LANG_KEY = 'language'
-  const setLang = (lang) => {
+  const normalizeLanguage = (value) => (value === 'en' ? 'en' : 'es')
+
+  const setLang = (value) => {
+    const lang = normalizeLanguage(value)
     localStorage.setItem(LANG_KEY, lang)
     document.documentElement.setAttribute('lang', lang)
     document.querySelectorAll('[data-lang-content]').forEach((node) => {
@@ -65,7 +66,7 @@ const options = [
   }
 
   const init = () => {
-    const saved = localStorage.getItem(LANG_KEY) || 'es'
+    const saved = normalizeLanguage(localStorage.getItem(LANG_KEY))
     setLang(saved)
     const select = document.querySelector('select[data-lang-select]')
     if (select) {

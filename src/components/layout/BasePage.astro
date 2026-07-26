@@ -1,7 +1,8 @@
 ---
 import '@/styles/globals.css'
 import HeadSEO from '@/components/HeadSEO.astro'
-import Analytics from '@vercel/analytics/astro'
+import spaceGrotesk400 from '@fontsource/space-grotesk/files/space-grotesk-latin-400-normal.woff2?url'
+import spaceGrotesk600 from '@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff2?url'
 
 interface Props {
   title?: string
@@ -32,11 +33,33 @@ const {
 
 <html lang={locale}>
   <head>
+    <link rel="preload" href={spaceGrotesk400} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={spaceGrotesk600} as="font" type="font/woff2" crossorigin />
     <script is:inline>
       try {
+        const storedTheme = localStorage.getItem('theme')
+        const savedTheme =
+          storedTheme === 'light' ||
+          storedTheme === 'dark' ||
+          storedTheme === 'system'
+            ? storedTheme
+            : 'dark'
+        const systemPrefersDark = window.matchMedia(
+          '(prefers-color-scheme: dark)',
+        ).matches
+        const resolved =
+          savedTheme === 'system'
+            ? systemPrefersDark
+              ? 'dark'
+              : 'light'
+            : savedTheme
+        const root = document.documentElement
+        root.classList.toggle('dark', resolved === 'dark')
+        root.style.colorScheme = resolved
+
         const savedLanguage = localStorage.getItem('language')
         if (savedLanguage === 'es' || savedLanguage === 'en') {
-          document.documentElement.setAttribute('lang', savedLanguage)
+          root.setAttribute('lang', savedLanguage)
         }
       } catch (_error) {}
     </script>
@@ -56,6 +79,5 @@ const {
   </head>
   <body class="bg-background text-foreground min-h-screen antialiased">
     <slot />
-    <Analytics />
   </body>
 </html>

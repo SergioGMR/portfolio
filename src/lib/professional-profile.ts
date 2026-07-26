@@ -220,6 +220,37 @@ const experiences: readonly Experience[] = [
 
 const projects: readonly Project[] = [
   {
+    id: 'jauntjar',
+    title: { es: 'JauntJar', en: 'JauntJar' },
+    problem: {
+      es: 'Queríamos un espacio privado para planificar viajes, guardar destinos visitados y convertir experiencias en un ranking personal.',
+      en: 'We wanted a private space to plan trips, keep visited destinations, and turn experiences into a personal ranking.',
+    },
+    responsibility: {
+      es: 'Construcción conjunta con mi mujer, ingeniera de datos, desde el modelado de la información y la gestión de destinos hasta la interfaz para planificar y puntuar viajes.',
+      en: 'Built with my wife, a data engineer, from information modeling and destination management to the interface for planning and rating trips.',
+    },
+    solution: {
+      es: 'Aplicación web privada para registrar lugares visitados, preparar destinos futuros, valorar experiencias y consultar mapas y estadísticas de viaje.',
+      en: 'A private web app to record visited places, plan future destinations, rate experiences, and explore maps and travel statistics.',
+    },
+    result: {
+      es: 'Producto desplegado en trips.sgmr.es para organizar nuestros viajes y revisar cada experiencia.',
+      en: 'Product deployed at trips.sgmr.es to organize our trips and review each experience.',
+    },
+    technologies: [
+      'Laravel 12',
+      'PHP 8.4',
+      'Livewire',
+      'FilamentPHP',
+      'Tailwind CSS 4',
+      'Vite',
+    ],
+    evidenceUrl: 'https://trips.sgmr.es/',
+    imageKey: 'jauntjar',
+    experienceIds: [],
+  },
+  {
     id: 'todo-lux',
     title: { es: 'Todo-Lux', en: 'Todo-Lux' },
     problem: {
@@ -235,11 +266,11 @@ const projects: readonly Project[] = [
       en: 'Development with Laravel, Livewire, and FilamentPHP to centralize project operations.',
     },
     result: {
-      es: 'El proyecto cuenta con un sitio público verificable en projects.todo-lux.com.',
-      en: 'The project has a publicly verifiable site at projects.todo-lux.com.',
+      es: 'El proyecto cuenta con un sitio público verificable en todo-lux.com.',
+      en: 'The project has a publicly verifiable site at todo-lux.com.',
     },
     technologies: ['Laravel', 'Livewire', 'FilamentPHP'],
-    evidenceUrl: 'https://projects.todo-lux.com/',
+    evidenceUrl: 'https://todo-lux.com/',
     imageKey: 'todo-lux',
     experienceIds: ['current-project'],
   },
@@ -365,10 +396,10 @@ export const PROFESSIONAL_PROFILE: ProfessionalProfile = {
         en: 'Web and mobile applications',
       },
       summary: {
-        es: 'Entrega de frontend, aplicaciones web y aplicaciones móviles con las herramientas documentadas en el CV.',
-        en: 'Delivery of frontend, web applications, and mobile applications with the tools documented in the CV.',
+        es: 'Entrega de frontend, aplicaciones web y aplicaciones móviles con Astro, Livewire y Quasar Framework.',
+        en: 'Delivery of frontend, web applications, and mobile applications with Astro, Livewire, and Quasar Framework.',
       },
-      technologies: ['Livewire', 'Quasar Framework'],
+      technologies: ['Astro 7', 'Livewire', 'Quasar Framework'],
       evidenceIds: ['current-project', 'freelance-2020'],
     },
     {

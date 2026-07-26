@@ -3,111 +3,111 @@ import BasePage from '@/components/layout/BasePage.astro'
 import ThemeToggleLite from '@/components/ThemeToggleLite.astro'
 import LanguageToggleLite from '@/components/LanguageToggleLite.astro'
 import LanguageService from '@/components/LanguageService.astro'
+import LangText from '@/components/LangText.astro'
 import { Image } from 'astro:assets'
 import faviconImg from '@/assets/favicon.avif'
 ---
 
 <BasePage {...Astro.props}>
   <LanguageService />
+
   <header
-    class="border-border bg-background/80 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 border-b backdrop-blur"
+    class="sticky top-2 z-50 mx-auto w-[calc(100%-1rem)] max-w-6xl sm:top-4 sm:w-[calc(100%-2rem)]"
   >
     <div
-      class="text-foreground mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3"
+      class="surface-panel flex min-w-0 items-center justify-between gap-2 rounded-2xl px-3 py-2 sm:rounded-full sm:px-4"
     >
-      <div class="flex items-center gap-2">
+      <a href="#inicio" class="group flex min-w-0 items-center gap-2.5">
         <Image
           src={faviconImg}
           alt="Logo"
-          class="h-10 w-10 rounded-lg"
-          width={80}
-          height={80}
+          class="border-border h-8 w-8 shrink-0 rounded-full border transition-transform group-hover:scale-105"
+          width={64}
+          height={64}
           format="avif"
-          quality={85}
+          quality={80}
         />
-        <div class="leading-tight">
-          <p class="text-muted-foreground text-xs tracking-[0.2em] uppercase">
-            Tech Lead Full Stack
+        <div class="min-w-0 leading-none">
+          <p
+            class="text-foreground group-hover:text-primary truncate text-xs font-semibold tracking-tight transition-colors"
+          >
+            SergioGMR
           </p>
-          <p class="text-sm font-semibold sm:hidden">SergioGMR</p>
-          <p class="hidden text-sm font-semibold sm:block">
-            Sergio Morales Rodríguez
+          <p
+            class="text-muted-foreground truncate pt-1 font-mono text-[9px] tracking-wider uppercase"
+          >
+            Tech Lead
           </p>
         </div>
-      </div>
-      <div
-        class="flex flex-1 flex-wrap items-center justify-end gap-2 sm:flex-none sm:gap-3"
+      </a>
+
+      <nav
+        class="text-muted-foreground hidden items-center gap-5 font-mono text-xs md:flex"
+        aria-label="Primary navigation"
       >
+        <a href="#experiencia" class="hover:text-foreground transition-colors">
+          <LangText es="Experiencia" en="Experience" />
+        </a>
+        <a href="#habilidades" class="hover:text-foreground transition-colors">
+          <LangText es="Stack" en="Stack" />
+        </a>
+        <a href="#proyectos" class="hover:text-foreground transition-colors">
+          <LangText es="Proyectos" en="Projects" />
+        </a>
+        <a href="#contacto" class="hover:text-foreground transition-colors">
+          <LangText es="Contacto" en="Contact" />
+        </a>
+      </nav>
+
+      <div class="flex shrink-0 items-center gap-1 sm:gap-2">
         <LanguageToggleLite />
         <ThemeToggleLite />
-        <a
-          href="mailto:sergiogmr+portfolio@icloud.com"
-          class="border-border flex h-9 items-center justify-center rounded-full border bg-[linear-gradient(135deg,#5eb1ff,#7f5dff)] px-4 text-sm font-semibold text-white shadow-[0_10px_30px_-18px_rgba(95,150,255,0.9)] transition hover:brightness-110"
-          aria-label="Contactar por email"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            class="h-4 w-4 sm:hidden"
-          >
-            <path
-              d="M4 6h16c.6 0 1 .4 1 1v10c0 .6-.4 1-1 1H4c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1z"
-            ></path>
-            <path d="m3 7 9 6 9-6"></path>
-          </svg>
-          <span class="hidden sm:inline">Contacto</span>
-        </a>
       </div>
     </div>
   </header>
 
   <main
-    class="mx-auto flex max-w-6xl flex-col gap-16 px-4 pt-12 pb-20 sm:gap-20 sm:pt-16"
+    class="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pt-6 pb-16 sm:gap-12 sm:px-6 sm:pt-10 sm:pb-20 lg:px-8"
   >
     <slot />
   </main>
 
-  <footer class="border-border bg-muted/30 border-t py-10">
+  <footer class="border-border bg-muted/30 border-t py-10 sm:py-12">
     <div
-      class="text-foreground mx-auto flex max-w-6xl flex-col gap-6 px-4 sm:flex-row sm:items-center sm:justify-between"
+      class="text-foreground mx-auto flex max-w-6xl flex-col gap-7 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6"
     >
-      <div class="space-y-2">
+      <div class="space-y-3">
         <p class="text-muted-foreground text-xs tracking-[0.25em] uppercase">
           <span data-lang-content="es">Disponible para colaborar</span>
           <span data-lang-content="en">Open to collaborate</span>
         </p>
-        <p
-          data-animate="animate-bounce-fade-in"
-          class="text-2xl leading-tight font-semibold"
-        >
+        <p data-animate="reveal" class="text-2xl leading-tight font-semibold">
           <span data-lang-content="es">Construyamos algo útil y rápido.</span>
-          <span data-lang-content="en">Let’s ship something useful.</span>
+          <span data-lang-content="en">Let's ship something useful.</span>
         </p>
         <div class="text-muted-foreground flex flex-wrap gap-2 text-sm">
           <span
-            class="border-border inline-flex items-center gap-2 rounded-full border px-3 py-1"
+            class="border-border inline-flex min-h-8 items-center gap-2 rounded-full border px-3 py-1"
           >
             <span
               class="relative inline-flex h-3 w-3 items-center justify-center"
+              aria-hidden="true"
             >
               <span
-                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500/60"
+                class="bg-success/50 absolute inline-flex h-full w-full animate-ping rounded-full"
               ></span>
-              <span
-                class="relative inline-flex h-2 w-2 rounded-full bg-green-500"
+              <span class="bg-success relative inline-flex h-2 w-2 rounded-full"
               ></span>
             </span>
             <span>UTC+0/+1</span>
           </span>
         </div>
       </div>
-      <div class="flex flex-wrap items-center gap-3">
+
+      <div class="flex flex-col items-start gap-4 sm:items-end">
         <a
           href="mailto:sergiogmr+portfolio@icloud.com"
-          class="bg-foreground text-background inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition hover:opacity-90"
+          class="bg-foreground text-background inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition hover:opacity-90"
         >
           <span data-lang-content="es">Escríbeme</span>
           <span data-lang-content="en">Email me</span>
@@ -118,6 +118,7 @@ import faviconImg from '@/assets/favicon.avif'
             stroke="currentColor"
             stroke-width="1.8"
             class="h-4 w-4"
+            aria-hidden="true"
           >
             <path
               d="M4 6h16c.6 0 1 .4 1 1v10c0 .6-.4 1-1 1H4c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1z"
@@ -125,7 +126,9 @@ import faviconImg from '@/assets/favicon.avif'
             <path d="m3 7 9 6 9-6"></path>
           </svg>
         </a>
-        <div class="text-muted-foreground flex items-center gap-2 text-sm">
+        <div
+          class="text-muted-foreground flex flex-wrap items-center gap-2 text-sm"
+        >
           <a
             href="https://x.com/sergiogmr"
             target="_blank"
@@ -164,39 +167,40 @@ import faviconImg from '@/assets/favicon.avif'
       </div>
     </div>
   </footer>
+
   <script is:inline>
     ;(function () {
+      var elements = Array.from(document.querySelectorAll('[data-animate]'))
       var prefersReduced = window.matchMedia(
         '(prefers-reduced-motion: reduce)',
       ).matches
+
+      if (prefersReduced || !('IntersectionObserver' in window)) {
+        elements.forEach(function (element) {
+          element.classList.add('is-visible')
+        })
+        return
+      }
 
       var observer = new IntersectionObserver(
         function (entries) {
           entries.forEach(function (entry) {
             if (!entry.isIntersecting) return
-            var el = entry.target
-            var animClasses = (el.dataset.animate || '')
-              .split(' ')
-              .filter(Boolean)
-            var delay = el.dataset.animateDelay
+            var element = entry.target
+            var delay = element.dataset.animateDelay
 
-            el.classList.remove('is-hidden')
-            el.classList.add('is-visible')
-
-            if (!prefersReduced && animClasses.length) {
-              if (delay) el.style.animationDelay = delay
-              el.classList.add.apply(el.classList, animClasses)
-            }
-
-            observer.unobserve(el)
+            if (delay) element.style.transitionDelay = delay
+            element.classList.remove('is-hidden')
+            element.classList.add('is-visible')
+            observer.unobserve(element)
           })
         },
-        { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
+        { threshold: 0.01, rootMargin: '0px 0px 120px 0px' },
       )
 
-      document.querySelectorAll('[data-animate]').forEach(function (el) {
-        el.classList.add('is-hidden')
-        observer.observe(el)
+      elements.forEach(function (element) {
+        element.classList.add('is-hidden')
+        observer.observe(element)
       })
     })()
   </script>

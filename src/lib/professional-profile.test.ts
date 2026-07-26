@@ -69,7 +69,7 @@ describe('professional profile', () => {
     expect(new Set(ids).size).toBe(ids.length)
     expect(new Set(projectIds).size).toBe(projectIds.length)
     expect(PROFESSIONAL_PROFILE.experiences).toHaveLength(3)
-    expect(PROFESSIONAL_PROFILE.projects).toHaveLength(3)
+    expect(PROFESSIONAL_PROFILE.projects).toHaveLength(4)
 
     for (const experience of PROFESSIONAL_PROFILE.experiences) {
       expect(experience.title.es).toBeTruthy()
@@ -83,12 +83,13 @@ describe('professional profile', () => {
     }
   })
 
-  test('keeps projects independent while linking them to evidence and experiences', () => {
+  test('keeps projects independent with optional experience links', () => {
     const projects = PROFESSIONAL_PROFILE.projects as readonly Project[]
     const experiences =
       PROFESSIONAL_PROFILE.experiences as readonly Experience[]
 
     expect(projects.map(({ id }) => id)).toEqual([
+      'jauntjar',
       'todo-lux',
       'basuraleza',
       'solutec',
@@ -100,18 +101,24 @@ describe('professional profile', () => {
       expect(project.solution.es).toBeTruthy()
       expect(project.result.es).toBeTruthy()
       expect(project.technologies.length).toBeGreaterThan(0)
-      expect(project.experienceIds.length).toBeGreaterThan(0)
-      expect(
-        project.experienceIds.every((experienceId) =>
-          experiences.some(({ id }) => id === experienceId),
-        ),
-      ).toBe(true)
+      if (project.experienceIds.length > 0) {
+        expect(
+          project.experienceIds.every((experienceId) =>
+            experiences.some(({ id }) => id === experienceId),
+          ),
+        ).toBe(true)
+      }
     }
 
+    expect(projects[0]).toMatchObject({
+      id: 'jauntjar',
+      title: { es: 'JauntJar', en: 'JauntJar' },
+      evidenceUrl: 'https://trips.sgmr.es/',
+      experienceIds: [],
+    })
+
     expect(JSON.stringify(projects)).not.toMatch(/Tca-Tik/i)
-    expect(JSON.stringify(projects)).not.toMatch(
-      /React|Tailwind|hexagonal|TDD/i,
-    )
+    expect(JSON.stringify(projects)).not.toMatch(/React|hexagonal|TDD/i)
   })
 
   test('includes canonical education, language evidence, and stable CV URLs', () => {
@@ -166,13 +173,19 @@ describe('professional profile', () => {
         true,
       )
     }
+
+    expect(
+      PROFESSIONAL_PROFILE.capabilities
+        .find(({ id }) => id === 'web-and-mobile')
+        ?.technologies.includes('Astro 7'),
+    ).toBe(true)
   })
 
   test('does not include unsupported or stale professional claims', () => {
     const serialized = JSON.stringify(PROFESSIONAL_PROFILE)
 
     expect(serialized).not.toMatch(/Tca-Tik/i)
-    expect(serialized).not.toMatch(/React|Tailwind|hexagonal architecture|TDD/i)
+    expect(serialized).not.toMatch(/React|hexagonal architecture|TDD/i)
     expect(
       esText(PROFESSIONAL_PROFILE.experiences[0].responsibilities),
     ).toContain('Laravel')

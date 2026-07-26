@@ -241,13 +241,33 @@ function formatExperienceDate(date: string, lang: Locale): string {
 // Create a language service script to be included in the head
 export const languageServiceScript = `
   // Initialize language from localStorage or default to 'es'
-  let currentLanguage = localStorage.getItem('language') || 'es';
+  const storedLanguage = localStorage.getItem('language');
+  let currentLanguage = storedLanguage === 'en' ? 'en' : 'es';
+
+  function normalizeLanguage(lang) {
+    return lang === 'en' ? 'en' : 'es';
+  }
+
+  function applyLanguageContent(lang) {
+    document.documentElement.setAttribute('lang', lang);
+    document.querySelectorAll('[data-lang-content]').forEach(element => {
+      element.classList.toggle('hidden', element.getAttribute('data-lang-content') !== lang);
+    });
+    document.querySelectorAll('[data-lang-option]').forEach(option => {
+      const isActive = option.getAttribute('data-lang-option') === lang;
+      option.dataset.active = isActive ? 'true' : 'false';
+      option.setAttribute('aria-pressed', String(isActive));
+    });
+    const select = document.querySelector('select[data-lang-select]');
+    if (select) select.value = lang;
+  }
 
   // Set language in localStorage and dispatch event
   function setLanguage(lang) {
-    currentLanguage = lang;
-    localStorage.setItem('language', lang);
-    window.dispatchEvent(new CustomEvent('languageChange', { detail: { language: lang } }));
+    currentLanguage = normalizeLanguage(lang);
+    localStorage.setItem('language', currentLanguage);
+    applyLanguageContent(currentLanguage);
+    window.dispatchEvent(new CustomEvent('languageChange', { detail: { language: currentLanguage } }));
   }
 
   // Get current language
@@ -290,15 +310,26 @@ export const languageServiceScript = `
   }
 
   // Listen for language change events
-  window.addEventListener('languageChange', () => {
+  window.addEventListener('languageChange', event => {
+    const requestedLanguage = event.detail && event.detail.language;
+    if (requestedLanguage === 'es' || requestedLanguage === 'en') {
+      currentLanguage = requestedLanguage;
+    }
+    applyLanguageContent(currentLanguage);
     initializeI18nElements();
   });
 
   // Initialize when the DOM is ready
-  document.addEventListener('DOMContentLoaded', initializeI18nElements);
+  document.addEventListener('DOMContentLoaded', () => {
+    applyLanguageContent(currentLanguage);
+    initializeI18nElements();
+  });
 
   // Initialize after Astro view transitions
-  document.addEventListener('astro:after-swap', initializeI18nElements);
+  document.addEventListener('astro:after-swap', () => {
+    applyLanguageContent(currentLanguage);
+    initializeI18nElements();
+  });
 
   // Make the functions available globally
   window.portfolioLanguage = {

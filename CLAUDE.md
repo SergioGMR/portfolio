@@ -15,7 +15,7 @@ Package manager is **bun** (not npm/yarn). Node ≥ 22 required.
 
 ## Architecture
 
-Astro 6 static site (`output: 'static'`) deployed to Vercel. No React — pure Astro components with Tailwind CSS v4 (via Vite plugin, no config file).
+Astro 7 static site (`output: 'static'`) deployed to Vercel. No React — pure Astro components with Tailwind CSS v4 (via Vite plugin, no config file).
 
 ### Bilingual i18n system
 
@@ -42,7 +42,7 @@ BasePage.astro       ← <html>, <head>, HeadSEO, global styles
 
 ### Scroll-triggered animations
 
-`PageShell.astro` includes an inline `IntersectionObserver` script. Elements with `data-animate="animate-*"` and optionally `data-animate-delay="Xms"` are hidden on load and animated in when they enter the viewport. Animation classes come from `@midudev/tailwind-animations`.
+`PageShell.astro` includes an inline `IntersectionObserver` script. Elements with `data-animate` and optionally `data-animate-delay="Xms"` are hidden on load and revealed with lightweight opacity/transform transitions when they enter the viewport.
 
 ### Adding/editing content
 
