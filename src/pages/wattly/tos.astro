@@ -1,11 +1,9 @@
 ---
 import PageShell from '../../components/layout/PageShell.astro'
+import { PAGE_METADATA } from '../../lib/page-metadata'
 ---
 
-<PageShell
-  title="Términos de Servicio — Wattly"
-  description="Términos de Servicio de la aplicación Wattly. Terms of Service for Wattly app."
->
+<PageShell localizedMetadata={PAGE_METADATA.wattly}>
   <article
     class="border-border bg-card text-foreground rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]"
   >

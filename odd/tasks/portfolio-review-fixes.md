@@ -61,7 +61,7 @@ direct animations. The code already uses Astro 6.0.8, which is intentional.
       Route: delegated; shared URL invariant and multiple consumers.
       Rollback: revert only canonical/discovery behavior and regression tests.
 
-- [ ] PF-03 — Synchronize client language and document metadata.
+- [x] PF-03 — Synchronize client language and document metadata.
       Preserve bilingual UI and one URL. Update title, description, social
       metadata and JSON-LD on ES/EN selection and persisted-language reload.
       Remove nonexistent SearchAction and unsupported same-URL alternates.
@@ -156,3 +156,25 @@ passed 3/3 after both TOS sitemap paths were canonicalized with trailing
 slashes. The final built sitemap URLs now equal the three generated page
 canonicals exactly. PF-02 remains unchecked pending parent verification and
 commit.
+
+PF-02 closed after independent correction verification and parent3-test spot
+check. Commit: e3eb31ec0884165c82910323db3b6fb7d8493197.
+Risk: unassessable/high; independent verifier passed, RDD disabled/unmanaged.
+Actual commit snapshot: 140 authored lines including prior closure evidence;
+no lock changes. Running authored commit count: 548.
+Next: implement PF-03 with observed DOM regression RED/GREEN.
+
+PF-03 candidate implemented locally without a commit. The new Happy DOM suite
+first failed 4/4 tests against the missing synchronized client behavior and
+unsafe raw script serialization, then passed 6/6 after wiring the real homepage,
+AceZone and Wattly metadata through one typed language client. Saved-language
+restore, ES→EN→ES controls, invalid and blocked storage, visible content,
+document metadata and localized JSON-LD are covered. Custom Person identity and
+social URLs remain intact; the TOS schemas retain their site and author URLs.
+The unsupported SearchAction and same-URL hreflang links are absent, and the
+legacy language service is no longer mounted. Formatting, Astro check (18
+files, zero diagnostics), the full Vitest suite (3 files, 11 tests), build and
+diff checks pass. Built output contains the localized payload, Spanish initial
+SEO, stable sgmr.dev canonicals and one Vercel Analytics loader per page. No
+real-browser smoke was run in this worker; parent integration readback remains
+pending. PF-03 stays unchecked until independent verification and commit.

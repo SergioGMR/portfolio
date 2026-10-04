@@ -1,30 +1,31 @@
 ---
-import '../../styles/globals.css'
+import type { LanguageMetadata } from '../../lib/language-client'
 import HeadSEO from '../HeadSEO.astro'
+import '../../styles/globals.css'
 
 interface Props {
   title?: string
   description?: string
-  schema?: object
+  localizedMetadata?: LanguageMetadata
+  schema?: Record<string, unknown>
   locale?: 'es' | 'en'
   ogImage?: URL | string
   ogType?: string
   noindex?: boolean
   nofollow?: boolean
-  alternateLocales?: string[]
   canonicalOverride?: URL | string
 }
 
 const {
   title,
   description,
+  localizedMetadata,
   schema,
   locale = 'es',
   ogImage,
   ogType,
   noindex,
   nofollow,
-  alternateLocales,
   canonicalOverride,
 } = Astro.props
 ---
@@ -51,15 +52,20 @@ const {
     <HeadSEO
       title={title}
       description={description}
+      localizedMetadata={localizedMetadata}
       schema={schema}
       ogImage={ogImage}
       ogType={ogType}
       locale={locale}
-      alternateLocales={alternateLocales}
       noindex={noindex}
       nofollow={nofollow}
       canonicalOverride={canonicalOverride}
     />
+    <script>
+      import { initializeBrowserLanguage } from '../../lib/language-client'
+
+      initializeBrowserLanguage()
+    </script>
   </head>
   <body class="bg-background text-foreground min-h-screen antialiased">
     <slot />

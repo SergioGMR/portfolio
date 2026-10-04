@@ -1,48 +1,55 @@
 ---
+import type {
+  Language,
+  LanguageMetadata,
+  LanguageMetadataEntry,
+} from '../lib/language-client'
+import {
+  serializeJsonForScript,
+  serializeLanguageMetadata,
+} from '../lib/language-client'
+
 interface Props {
   title?: string
   description?: string
+  localizedMetadata?: LanguageMetadata
   ogImage?: URL | string
   noindex?: boolean
   nofollow?: boolean
-  locale?: string
-  alternateLocales?: string[]
+  locale?: Language
   canonicalOverride?: URL | string
-  schema?: object
+  schema?: Record<string, unknown>
   ogType?: string
 }
 
-const site = Astro.site?.toString() || ''
+const site = Astro.site?.toString() ?? ''
 const canonicalURL = new URL(
-  (Astro.props.canonicalOverride as any) || Astro.url.pathname,
+  Astro.props.canonicalOverride ?? Astro.url.pathname,
   site,
 )
-
-if (Astro.props.ogImage === undefined) {
-  Astro.props.ogImage = new URL('/og.webp', site)
-} else if (typeof Astro.props.ogImage === 'string') {
-  Astro.props.ogImage = new URL(Astro.props.ogImage, site)
-}
+const resolvedOgImage =
+  Astro.props.ogImage === undefined
+    ? new URL('/og.webp', site)
+    : typeof Astro.props.ogImage === 'string'
+      ? new URL(Astro.props.ogImage, site)
+      : Astro.props.ogImage
 
 const {
-  title,
-  description,
-  ogImage,
+  title = '',
+  description = '',
+  localizedMetadata,
   noindex = false,
   nofollow = false,
   locale = 'es',
-  alternateLocales = [],
   schema,
   ogType = 'website',
 } = Astro.props
 
-// Robots directives
 const robotsContent = [
   noindex ? 'noindex' : 'index',
   nofollow ? 'nofollow' : 'follow',
 ].join(', ')
 
-// Lista de keywords extraídas del contenido del portfolio
 const keywords = [
   'Sergio Morales Rodríguez',
   'desarrollador fullstack',
@@ -77,69 +84,85 @@ const keywords = [
   'España',
   'desarrollador web',
 ].join(', ')
+
+const fallbackEntry: LanguageMetadataEntry = {
+  title,
+  description,
+  imageAlt: `Image for ${title}`,
+  schema,
+}
+const sourceMetadata =
+  localizedMetadata ??
+  ({ es: fallbackEntry, en: fallbackEntry } satisfies LanguageMetadata)
+
+const defaultSchema = (entry: LanguageMetadataEntry, language: Language) => ({
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Sergio Morales Rodríguez - Portfolio',
+  url: site,
+  description: entry.description,
+  inLanguage: language,
+  author: {
+    '@type': 'Person',
+    name: 'Sergio Morales Rodríguez',
+    url: canonicalURL.toString(),
+    jobTitle:
+      language === 'es' ? 'Desarrollador Full Stack' : 'Full Stack Developer',
+    sameAs: [
+      'https://github.com/SergioGMR',
+      'https://www.linkedin.com/in/sergiogmr',
+    ],
+  },
+  keywords: keywords.split(', '),
+})
+
+const resolveEntry = (
+  entry: LanguageMetadataEntry,
+  language: Language,
+): LanguageMetadataEntry => ({
+  ...entry,
+  schema: entry.schema ?? defaultSchema(entry, language),
+})
+const metadata: LanguageMetadata = {
+  es: resolveEntry(sourceMetadata.es, 'es'),
+  en: resolveEntry(sourceMetadata.en, 'en'),
+}
+const initial = metadata[locale]
+const initialOgLocale = locale === 'es' ? 'es_ES' : 'en_US'
 ---
 
-<!-- Character set and viewport -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-<!-- SEO Meta Tags -->
-<title>{title}</title>
+<title>{initial.title}</title>
 <meta name="robots" content={robotsContent} />
 <meta name="googlebot" content={robotsContent} />
 <link rel="canonical" href={canonicalURL} />
-<!-- Eliminado meta name="title" redundante -->
-<meta name="description" content={description} />
+<meta name="description" content={initial.description} />
 <meta name="author" content="Sergio Morales Rodríguez" />
 <meta name="keywords" content={keywords} />
+<meta property="og:locale" content={initialOgLocale} />
 
-<!-- Language Tags -->
-<meta property="og:locale" content={locale} />
-{
-  alternateLocales.map((altLocale) => (
-    <meta property="og:locale:alternate" content={altLocale} />
-  ))
-}
-<!-- lang se gestiona en el layout root -->
-
-<!-- Favicon -->
 <link rel="icon" type="image/webp" href="/favicon.webp" />
 
-<!-- Open Graph / Facebook -->
 <meta property="og:type" content={ogType} />
 <meta property="og:url" content={canonicalURL} />
-<meta property="og:title" content={title} />
-<meta property="og:description" content={description} />
-<meta property="og:image" content={ogImage} />
-<meta property="og:image:secure_url" content={ogImage} />
+<meta property="og:title" content={initial.title} />
+<meta property="og:description" content={initial.description} />
+<meta property="og:image" content={resolvedOgImage} />
+<meta property="og:image:secure_url" content={resolvedOgImage} />
 <meta property="og:image:type" content="image/webp" />
-<meta property="og:image:alt" content={`Imagen para ${title}`} />
+<meta property="og:image:alt" content={initial.imageAlt} />
 <meta property="og:site_name" content="Sergio Morales Rodríguez - Portfolio" />
 
-<!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={canonicalURL} />
-<meta property="twitter:title" content={title} />
-<meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={ogImage} />
-<meta property="twitter:image:alt" content={`Imagen para ${title}`} />
+<meta property="twitter:title" content={initial.title} />
+<meta property="twitter:description" content={initial.description} />
+<meta property="twitter:image" content={resolvedOgImage} />
+<meta property="twitter:image:alt" content={initial.imageAlt} />
 <meta name="twitter:site" content="@sergiogmr" />
 <meta name="twitter:creator" content="@sergiogmr" />
 
-<!-- hreflang alternates -->
-{
-  alternateLocales.map((alt) => (
-    <link
-      rel="alternate"
-      hreflang={alt}
-      href={new URL(Astro.url.pathname, site).toString()}
-    />
-  ))
-}
-<link rel="alternate" hreflang={locale} href={canonicalURL.toString()} />
-<link rel="alternate" hreflang="x-default" href={canonicalURL.toString()} />
-
-<!-- Theme color -->
 <meta
   name="theme-color"
   media="(prefers-color-scheme: light)"
@@ -152,42 +175,13 @@ const keywords = [
 />
 <meta name="color-scheme" content="light dark" />
 
-<!-- Structured Data / Schema.org -->
-{
-  schema && (
-    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-  )
-}
-
-<!-- Default Schema.org WebSite if none provided -->
-{
-  !schema && (
-    <script
-      type="application/ld+json"
-      set:html={JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'WebSite',
-        name: 'Sergio Morales Rodríguez - Portfolio',
-        url: site,
-        description,
-        inLanguage: locale,
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: `${site}?q={search_term_string}`,
-          'query-input': 'required name=search_term_string',
-        },
-        author: {
-          '@type': 'Person',
-          name: 'Sergio Morales Rodríguez',
-          url: canonicalURL.toString(),
-          jobTitle: 'Full Stack Developer',
-          sameAs: [
-            'https://github.com/SergioGMR',
-            'https://www.linkedin.com/in/sergiogmr',
-          ],
-        },
-        keywords: keywords.split(', '),
-      })}
-    />
-  )
-}
+<script
+  type="application/json"
+  data-language-metadata
+  set:html={serializeLanguageMetadata(metadata)}
+/>
+<script
+  type="application/ld+json"
+  data-language-schema
+  set:html={serializeJsonForScript(initial.schema)}
+/>

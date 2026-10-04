@@ -1,7 +1,8 @@
 ---
 import PageShell from '../components/layout/PageShell.astro'
 import LangText from '../components/LangText.astro'
-import { EXPERIENCE, LINKS, STACK } from '../lib/constants'
+import { PAGE_METADATA } from '../lib/page-metadata'
+import { EXPERIENCE, STACK } from '../lib/constants'
 import { Image } from 'astro:assets'
 import heroImg from '../../public/me_laptop.webp'
 import todoLuxImg from '../../public/experience/todo-lux.webp'
@@ -26,17 +27,7 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
 }))
 ---
 
-<PageShell
-  title="Sergio Morales Rodríguez — Full Stack Developer"
-  description="Full Stack portfolio of Sergio Morales Rodríguez. Backend-focused (PHP/Laravel) con TypeScript/React para entregar producto."
-  schema={{
-    '@context': 'https://schema.org',
-    '@type': 'Person',
-    name: 'Sergio Morales Rodríguez',
-    jobTitle: 'Full Stack Developer',
-    sameAs: [LINKS.github, LINKS.linkedin, LINKS.twitter],
-  }}
->
+<PageShell localizedMetadata={PAGE_METADATA.home}>
   <section
     class="border-border hero-bg text-foreground relative overflow-hidden rounded-4xl border p-6 shadow-[0_20px_80px_-25px_rgba(0,0,0,0.15)] sm:p-8 lg:grid lg:grid-cols-[1.3fr_1fr] lg:items-center dark:shadow-[0_20px_80px_-25px_rgba(0,0,0,0.5)]"
   >
