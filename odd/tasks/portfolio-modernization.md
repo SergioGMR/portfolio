@@ -72,7 +72,7 @@ production or changing the portfolio's identity.
   keyboard/skip/controls checks, with unavailable evidence recorded honestly.
   Rollback: only this presentation/copy/template work unit and its tests.
 
-- [ ] SEC-01 — Audit the frozen green source and document attack coverage.
+- [x] SEC-01 — Audit the frozen green source and document attack coverage.
   Route: delegated reconnaissance, hunters, coverage critic and independent
   candidate verification; parent owns shared audit artifacts.
   Cover browser inputs/sinks, serialization, routes/assets, build/CI/dependency
@@ -94,8 +94,8 @@ Applicable ordinary implementation gates: `bun ci`, `bun pm ls --depth=0`,
 Normalize owned files only before final verification; never run broad formatting
 against protected dirt.
 
-DEP-01 and UI-01 implementation and verification are complete; SEC-01 has not
-started. Full
+DEP-01 and UI-01 implementation and verification are complete. SEC-01 reached
+the terminal quick audit report with explicitly partial, source-only coverage.
 Engram mirror: `odd/portfolio-modernization/tasks`. Commit IDs, exact
 RED/GREEN/check evidence, authored counts, audit paths and proof gaps will be
 recorded per completed unit.
@@ -231,6 +231,90 @@ Independent verification and parent spot-check passed before commit.
 
 ## Remaining work
 
-- SEC-01 has not started: no security findings or attack coverage are claimed.
-  Audit the frozen green source using the external quick-profile report and
-  required sandbox checks. Source fixes and production probes remain excluded.
+- No authorized modernization task remains. The quick audit is complete as a
+  workflow, not exhaustive security coverage. Five blocked and three deferred
+  coverage units remain for a separately scoped follow-up. Source hardening,
+  sandbox provisioning, advisory/provider inspection and remote delivery are
+  not executed or automatically authorized by the report.
+
+### SEC-01 run setup
+
+- Source ref: `26dab11bf2bdbf223abf9b0ab22eec6288de3d2b`; application source is
+  unchanged from the verified UI-01 commit. Existing unrelated worktree dirt
+  is preserved and excluded from security conclusions about committed source.
+- External output: `~/security-audit-skill/portfolio/run-1/`.
+- Route: delegated; four baseline reconnaissance calls, one bounded hunter
+  wave, one final quick-profile coverage critic, and fresh independent
+  verification of each candidate. Parent owns shared artifacts and final report.
+- No user budget was set. Reserve the four baseline calls, final critic and at
+  least one candidate verifier before any hunter assignment; update the forecast
+  after reconnaissance. No implicit invocation cap or complete-coverage claim.
+- Strict TDD remains enabled for implementation, but this audit changes no
+  target behavior and runs no target test/build/browser until every required
+  offline OS sandbox, read-only mount, scratch and resource limit is demonstrated.
+- Applicable audit checks: official findings and coverage validators, exact
+  source/evidence trace readback, final source/protected-dirt hash comparison,
+  and passive recovery-document diff check. Prior functional proof is historical,
+  not evidence of security or sandbox availability.
+
+### SEC-01 completed evidence
+
+- Quick audit source ref: `26dab11bf2bdbf223abf9b0ab22eec6288de3d2b`.
+  Application source is unchanged by SEC-01; only this recovery document is
+  changed in the repository. External report directory:
+  `~/security-audit-skill/portfolio/run-1/` (`REPORT.md`).
+- Eight completed actors: four baseline reconnaissance, three source hunters in
+  exactly one wave, one fresh independent final coverage critic. No candidate
+  survived the candidate gate; the reserved verifier call was unused. Phase 3
+  and quick-merged Phase 5 have empty input sets, not fabricated reproductions.
+- All six phases reached terminal reporting. All seven parent-owned shared files
+  exist and were read back: run-metadata, architecture, coverage-ledger,
+  findings, REPORT, FINDINGS-DETAIL and NEEDS-VALIDATION.
+- Result: zero confirmed vulnerabilities, zero retained needs-validation
+  vulnerability records, zero rejected records. `findings.json` is `[]`.
+  This is NOT a clean bill of health or an executed penetration test.
+- Final ledger: 29 units = 18 source-covered, 5 blocked, 3 deferred, 3 out of
+  scope. `covered` means the source invariant was reviewed with owned checks,
+  not that deployed/runtime behavior was tested. The final critic returned
+  `stop:false`: it added build-plugin/Analytics and Google Fonts handoffs and
+  reopened mutable Action/remote Renovate authority. The exact earlier covered
+  evidence is archived in `attempts`; live work is deferred under the quick
+  one-wave contract, without a second hunter or critic.
+- Blocked: generated image/output provenance, binary/public-output inspection,
+  build-context inclusion, runner fairness/quota facts and build-to-promotion
+  identity. External exclusions include live hosting/security policy, current
+  advisories/publisher state, historic secrets and ambient tooling/credentials.
+- macOS sandbox-exec availability did not establish the complete required
+  execution sandbox: read-only source/tools, scratch-only writes, resource/disk
+  bounds and isolated loopback were not demonstrated. No target-controlled
+  attacks, tests, builds, browsers or binary parsing ran; no artifact promotion.
+  Existing green functional/browser proof is historical, not attack evidence.
+- Official validators: `validate-findings.cjs`: PASS, 0 records;
+  `validate-coverage-ledger.cjs`: PASS, 29 units after every admitted result,
+  critic reconciliation and final report. Validators prove format/state only.
+- Parent source spot-check re-read serializer escaping and the primary CI/stale
+  token/action paths. Fifty live scoped files match the exact ref; the additional
+  committed `.gitignore` baseline is separately identified in the 51-entry
+  manifest, with dirty worktree bytes excluded. All six protected dirt hashes
+  remained unchanged. No source fix, install/fetch, live traffic, ambient
+  credential/service access, push, PR, merge, deployment or RDD activation.
+- Hardening recommendations only: immutable Action/preset references, explicit
+  stale token permissions, equivalent locked provider builds, CI cancellation/
+  timeout, theme storage-error resilience and unused language-service cleanup.
+  No severity is assigned to these preventive or presentation notes.
+- Strict TDD remains configured but is N/A for this passive recovery-document
+  unit; it introduces no target behavior. Functional/audit attack execution is
+  explicitly skipped because the mandatory sandbox is unavailable, not passed.
+- RDD status rechecked: off, decided by global (`disabled/unmanaged`). Commit
+  hooks are absent; no hooks or protections need to be bypassed. Recovery diff
+  check and source/dirt hash comparison are the applicable closure checks.
+- Formatting/build/test commands were not re-executed: the audit execution
+  policy prohibits target toolchain execution without the complete sandbox.
+  This passive Markdown unit was structurally read back and diff-checked.
+- Recovery work-unit commit: pending local evidence commit after structural
+  readback. Rollback boundary is this SEC-01 recovery-document update only;
+  external local audit artifacts and prior DEP/UI work remain independent.
+- Next step: a separately scoped source pass for the deferred units and a proven
+  offline sandbox before target fixtures; owner-supplied sanitized provider
+  provenance/policy can resolve external facts without audit traffic. No further
+  implementation or remote delivery is implied.
