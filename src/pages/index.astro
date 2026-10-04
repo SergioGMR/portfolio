@@ -1,18 +1,20 @@
 ---
-import PageShell from '../components/layout/PageShell.astro'
-import LangText from '../components/LangText.astro'
-import { PAGE_METADATA } from '../lib/page-metadata'
-import { EXPERIENCE, STACK } from '../lib/constants'
 import { Image } from 'astro:assets'
-import heroImg from '../../public/me_laptop.webp'
-import todoLuxImg from '../../public/experience/todo-lux.webp'
+
+import LangText from '../components/LangText.astro'
+import PageShell from '../components/layout/PageShell.astro'
+import { EXPERIENCE } from '../lib/constants'
+import { PAGE_METADATA } from '../lib/page-metadata'
 import basuralezaImg from '../../public/experience/basuraleza.webp'
 import solutecImg from '../../public/experience/solutec.webp'
 import tcatikImg from '../../public/experience/tcatik.webp'
-const experiencesEs = EXPERIENCE.es.slice(0, 3)
-const experiencesEn = EXPERIENCE.en.slice(0, 3)
+import todoLuxImg from '../../public/experience/todo-lux.webp'
+import heroImg from '../../public/me_laptop.webp'
 
-const experienceImages: Record<string, any> = {
+const experiencesEs = EXPERIENCE.es.slice(0, 4)
+const experiencesEn = EXPERIENCE.en.slice(0, 4)
+
+const experienceImages: Record<string, typeof todoLuxImg> = {
   'https://projects.todo-lux.com/': todoLuxImg,
   'https://proyectolibera.org/caracterizacion-residuos/basuraleza':
     basuralezaImg,
@@ -23,29 +25,44 @@ const experienceImages: Record<string, any> = {
 const experienceCards = experiencesEs.map((exp, idx) => ({
   es: exp,
   en: experiencesEn[idx],
-  image: experienceImages[exp.link] || todoLuxImg,
+  image: experienceImages[exp.link] ?? todoLuxImg,
 }))
+
+const skillGroups = [
+  {
+    title: { es: 'Backend', en: 'Backend' },
+    items: ['PHP', 'Laravel', 'APIs', 'Livewire', 'Filament'],
+  },
+  {
+    title: { es: 'Frontend', en: 'Frontend' },
+    items: ['TypeScript', 'React', 'React Native', 'Vue', 'Tailwind CSS'],
+  },
+  {
+    title: { es: 'Entrega', en: 'Delivery' },
+    items: ['Git', 'CI/CD', 'Queues', 'Events', 'Testing'],
+  },
+]
 ---
 
 <PageShell localizedMetadata={PAGE_METADATA.home}>
-  <section class="border-border hero-bg text-foreground relative overflow-hidden rounded-4xl border p-6 shadow-[0_20px_80px_-25px_rgba(0,0,0,0.15)] sm:p-8 lg:grid lg:grid-cols-[1.3fr_1fr] lg:items-center dark:shadow-[0_20px_80px_-25px_rgba(0,0,0,0.5)]">
-    <div class="pointer-events-none absolute inset-0 opacity-30 blur-3xl dark:opacity-70">
-      <div class="absolute -top-8 -left-10 h-48 w-48 rounded-full bg-gradient-to-br from-[#5eb1ff] to-[#7f5dff] opacity-60"></div>
-      <div class="absolute top-10 right-0 h-40 w-40 rounded-full bg-gradient-to-br from-[#ffa9d1] to-[#7f5dff] opacity-50"></div>
-      <div class="absolute bottom-0 left-1/4 h-36 w-36 rounded-full bg-gradient-to-br from-[#6effd4] to-[#3b82f6] opacity-35"></div>
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,0,0,0.04),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(126,92,255,0.06),transparent_35%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(126,92,255,0.08),transparent_35%)]"></div>
-    </div>
-    <div class="relative z-10 space-y-6">
-      <p class="animate-fade-in-down text-muted-foreground text-sm tracking-[0.25em] uppercase">
+  <section
+    aria-labelledby="hero-title"
+    class="hero-bg border-border text-foreground grid min-h-[calc(100dvh-5rem)] items-center gap-10 rounded-[2rem] border px-6 py-10 sm:px-10 sm:py-14 lg:grid-cols-[1.15fr_0.85fr] lg:px-14"
+  >
+    <div class="max-w-2xl space-y-6">
+      <p class="accent-text animate-fade-in-down text-sm font-semibold">
         <LangText es="Desarrollador Full Stack" en="Full Stack Developer" />
       </p>
-      <h1 class="animate-blurred-fade-in animate-delay-100 text-foreground text-4xl leading-[1.1] font-semibold sm:text-5xl">
+      <h1
+        id="hero-title"
+        class="animate-blurred-fade-in animate-delay-100 text-foreground text-4xl leading-[1.08] font-semibold tracking-[-0.035em] sm:text-5xl lg:text-6xl"
+      >
         <LangText
           es="Diseño, construyo y optimizo productos digitales."
           en="I design, build, and optimize digital products."
         />
       </h1>
-      <p class="animate-fade-in-up animate-delay-200 text-muted-foreground max-w-2xl text-lg">
+      <p class="animate-fade-in-up animate-delay-200 text-muted-foreground max-w-xl text-base leading-relaxed sm:text-lg">
         <LangText
           es="Backend first con PHP/Laravel, APIs y un toque de front con TypeScript/React. Orientado a entregar rápido y con calidad."
           en="Backend-first with PHP/Laravel, APIs, and a front touch with TypeScript/React. Focused on shipping fast with quality."
@@ -54,14 +71,14 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
       <div class="animate-fade-in animate-delay-300 flex flex-wrap items-center gap-3">
         <a
           href="mailto:sergiogmr+portfolio@icloud.com"
-          class="rounded-full bg-[linear-gradient(135deg,#5eb1ff,#7f5dff)] px-5 py-2 text-sm font-semibold text-white shadow-[0_10px_40px_-18px_rgba(95,150,255,0.9)] shadow-lg transition hover:brightness-110"
+          class="primary-action rounded-full px-5 py-2.5 text-sm font-semibold transition hover:brightness-110 active:translate-y-px"
         >
-          <LangText es="Hablemos" en="Let's talk" />
+          <LangText es="Contacto" en="Contact" />
         </a>
         <a
           data-lang-content="es"
           href="/sergio-morales-2024-es.pdf"
-          class="border-border bg-card/80 text-foreground hover:border-foreground/30 hover:bg-card rounded-full border px-5 py-2 text-sm font-semibold backdrop-blur transition"
+          class="border-border bg-background/70 text-foreground hover:border-primary rounded-full border px-5 py-2.5 text-sm font-semibold transition"
           target="_blank"
         >
           Ver CV
@@ -69,383 +86,283 @@ const experienceCards = experiencesEs.map((exp, idx) => ({
         <a
           data-lang-content="en"
           href="/sergio-morales-2024-en.pdf"
-          class="border-border bg-card/80 text-foreground hover:border-foreground/30 hover:bg-card rounded-full border px-5 py-2 text-sm font-semibold backdrop-blur transition"
+          class="border-border bg-background/70 text-foreground hover:border-primary rounded-full border px-5 py-2.5 text-sm font-semibold transition"
           target="_blank"
         >
           View CV
         </a>
       </div>
-      <div class="animate-fade-in animate-delay-500 text-muted-foreground flex flex-wrap gap-2 text-xs tracking-[0.2em] uppercase">
-        {['PHP', 'Laravel', 'TypeScript', 'React', 'Tailwind'].map((item) => (
-          <span class="border-border bg-card/60 text-foreground/80 rounded-full border px-3 py-1 shadow-sm backdrop-blur">
-            {item}
-          </span>
-        ))}
-      </div>
     </div>
-    <div class="animate-fade-in animate-delay-150 md:animate-slide-in-right relative z-10 flex justify-center">
-      <div class="absolute top-6 -left-10 h-24 w-24 rounded-full bg-[linear-gradient(140deg,#5eb1ff,#7f5dff)] opacity-60 blur-3xl"></div>
-      <div class="absolute right-0 -bottom-4 h-28 w-28 rounded-full bg-[linear-gradient(160deg,#ffa9d1,#7f5dff)] opacity-50 blur-3xl"></div>
-      <div class="border-border bg-card/20 relative h-full w-full max-w-md overflow-hidden rounded-3xl border p-[1px] shadow-[0_25px_90px_-30px_rgba(0,0,0,0.2)] backdrop-blur-[18px] dark:shadow-[0_25px_90px_-30px_rgba(0,0,0,0.7)]">
-        <Image
-          src={heroImg}
-          alt="Sergio working on laptop"
-          class="h-full w-full rounded-[24px] object-cover"
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-          width={900}
-          height={900}
-          sizes="(min-width: 1024px) 50vw, 100vw"
-        />
-      </div>
+
+    <div class="animate-fade-in animate-delay-150 md:animate-slide-in-right mx-auto w-full max-w-md">
+      <Image
+        src={heroImg}
+        alt="Sergio working on laptop"
+        class="border-border aspect-square w-full rounded-[1.5rem] border object-cover shadow-[0_24px_70px_-36px_hsl(var(--foreground)/0.4)]"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+        width={900}
+        height={900}
+        sizes="(min-width: 1024px) 38vw, (min-width: 640px) 28rem, calc(100vw - 5rem)"
+      />
     </div>
   </section>
 
-  <section class="border-border bg-card text-foreground grid gap-10 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]">
-    <div
-      data-animate="animate-fade-in"
-      class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-    >
-      <div>
-        <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-          <LangText es="Trayectoria" en="Background" />
-        </p>
-        <h2 class="text-foreground text-2xl font-semibold sm:text-3xl">
-          <LangText es="Experiencia seleccionada" en="Selected experience" />
-        </h2>
-      </div>
+  <section id="experience" aria-labelledby="experience-title" class="py-4">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <h2
+        id="experience-title"
+        class="text-foreground text-3xl font-semibold tracking-[-0.025em] sm:text-4xl"
+      >
+        <LangText es="Experiencia seleccionada" en="Selected experience" />
+      </h2>
       <a
         href="https://www.linkedin.com/in/sergiogmr"
-        class="text-primary text-sm font-semibold underline-offset-4 hover:underline"
+        class="accent-text w-fit text-sm font-semibold underline-offset-4 hover:underline"
       >
         LinkedIn
       </a>
     </div>
-    <div
-      data-animate="animate-fade-in-up"
-      data-animate-delay="150ms"
-      class="grid gap-6 md:grid-cols-2"
-    >
-      {EXPERIENCE.es.slice(0, 4).map((exp, idx) => (
+
+    <div class="border-border mt-8 border-t">
+      {EXPERIENCE.es.slice(0, 4).map((exp) => (
         <article
           data-lang-content="es"
-          class="border-border bg-card text-foreground hover:border-foreground/20 hover:bg-muted rounded-2xl border p-6 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)]"
+          data-animate="animate-fade-in-up"
+          class="border-border grid gap-3 border-b py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8"
         >
-          <div class="flex items-center justify-between">
-            <p class="text-muted-foreground text-xs tracking-[0.2em] uppercase">
-              {exp.start} — {exp.end}
-            </p>
-            <span class="border-border bg-primary/20 text-foreground rounded-full border px-3 py-1 text-[11px] font-semibold">
-              {idx === 0 ? 'Actual' : 'Freelance'}
-            </span>
+          <p class="text-muted-foreground font-mono text-sm">
+            {exp.start} - {exp.end}
+          </p>
+          <div>
+            <h3 class="text-foreground text-xl font-semibold">
+              {exp.position}
+            </h3>
+            <a
+              class="accent-text mt-1 inline-block text-sm underline-offset-4 hover:underline"
+              href={exp.link}
+            >
+              {exp.company}
+            </a>
+            <ul class="text-muted-foreground mt-3 grid gap-1 text-sm leading-relaxed sm:grid-cols-2 sm:gap-x-8">
+              {exp.tasks.slice(0, 2).map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
           </div>
-          <h3 class="text-foreground mt-3 text-xl font-semibold">
-            {exp.position}
-          </h3>
-          <a
-            class="text-primary text-sm underline-offset-4 hover:underline"
-            href={exp.link}
-          >
-            {exp.company}
-          </a>
-          <ul class="text-muted-foreground mt-4 flex list-disc flex-col gap-2 pl-4 text-sm">
-            {exp.tasks.slice(0, 3).map((item) => (
-              <li>{item}</li>
-            ))}
-          </ul>
         </article>
       ))}
-      {EXPERIENCE.en.slice(0, 4).map((exp, idx) => (
+      {EXPERIENCE.en.slice(0, 4).map((exp) => (
         <article
           data-lang-content="en"
-          class="border-border bg-card text-foreground hover:border-foreground/20 hover:bg-muted rounded-2xl border p-6 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.4)]"
+          data-animate="animate-fade-in-up"
+          class="border-border grid gap-3 border-b py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8"
         >
-          <div class="flex items-center justify-between">
-            <p class="text-muted-foreground text-xs tracking-[0.2em] uppercase">
-              {exp.start} — {exp.end}
-            </p>
-            <span class="border-border bg-primary/20 text-foreground rounded-full border px-3 py-1 text-[11px] font-semibold">
-              {idx === 0 ? 'Current' : 'Freelance'}
-            </span>
+          <p class="text-muted-foreground font-mono text-sm">
+            {exp.start} - {exp.end}
+          </p>
+          <div>
+            <h3 class="text-foreground text-xl font-semibold">
+              {exp.position}
+            </h3>
+            <a
+              class="accent-text mt-1 inline-block text-sm underline-offset-4 hover:underline"
+              href={exp.link}
+            >
+              {exp.company}
+            </a>
+            <ul class="text-muted-foreground mt-3 grid gap-1 text-sm leading-relaxed sm:grid-cols-2 sm:gap-x-8">
+              {exp.tasks.slice(0, 2).map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
           </div>
-          <h3 class="text-foreground mt-3 text-xl font-semibold">
-            {exp.position}
-          </h3>
-          <a
-            class="text-primary text-sm underline-offset-4 hover:underline"
-            href={exp.link}
-          >
-            {exp.company}
-          </a>
-          <ul class="text-muted-foreground mt-4 flex list-disc flex-col gap-2 pl-4 text-sm">
-            {exp.tasks.slice(0, 3).map((item) => (
-              <li>{item}</li>
-            ))}
-          </ul>
         </article>
       ))}
     </div>
   </section>
 
-  <section class="border-border bg-card text-foreground grid gap-6 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr] dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]">
-    <div data-animate="animate-fade-in-left" class="space-y-4">
-      <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-        <LangText es="Skills" en="Skills" />
-      </p>
-      <h2 class="text-foreground text-2xl font-semibold sm:text-3xl">
+  <section
+    id="skills"
+    aria-labelledby="skills-title"
+    class="border-border border-y py-12 sm:py-16"
+  >
+    <div class="max-w-2xl">
+      <h2
+        id="skills-title"
+        class="text-foreground text-3xl font-semibold tracking-[-0.025em] sm:text-4xl"
+      >
         <LangText es="Stack y enfoque" en="Stack and focus" />
       </h2>
-      <p class="text-muted-foreground">
+      <p class="text-muted-foreground mt-3 leading-relaxed">
         <LangText
           es="Foco en backend escalable y APIs limpias. Priorizo flujos claros de entrega y comunicación con negocio."
           en="Focus on scalable backend and clean APIs. I prioritize clear delivery flows and business alignment."
         />
       </p>
-      <div class="flex flex-wrap gap-2">
-        {STACK.map((item) => (
-          <span class="border-border bg-card/60 text-foreground/80 rounded-full border px-3 py-1 text-sm backdrop-blur">
-            {item}
-          </span>
-        ))}
-      </div>
     </div>
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <div
-        data-animate="animate-zoom-in"
-        data-animate-delay="0ms"
-        class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
-      >
-        <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-          <LangText es="Backend" en="Backend" />
-        </p>
-        <p class="text-foreground mt-2 text-lg font-semibold">
-          PHP · Laravel · APIs
-        </p>
-        <p class="text-muted-foreground text-sm">
-          <LangText
-            es="Arquitectura hexagonal, colas, eventos, auth."
-            en="Hexagonal architecture, queues, events, auth."
-          />
-        </p>
-      </div>
-      <div
-        data-animate="animate-zoom-in"
-        data-animate-delay="100ms"
-        class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
-      >
-        <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-          Frontend
-        </p>
-        <p class="text-foreground mt-2 text-lg font-semibold">
-          TypeScript · React
-        </p>
-        <p class="text-muted-foreground text-sm">
-          <LangText
-            es="UI accesible con Tailwind, componentes a medida."
-            en="Accessible UI with Tailwind, custom components."
-          />
-        </p>
-      </div>
-      <div
-        data-animate="animate-zoom-in"
-        data-animate-delay="200ms"
-        class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
-      >
-        <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-          <LangText es="Comunicación" en="Communication" />
-        </p>
-        <p class="text-foreground mt-2 text-lg font-semibold">
-          <LangText es="Negocio & producto" en="Business & product" />
-        </p>
-        <p class="text-muted-foreground text-sm">
-          <LangText
-            es="Traducción de requisitos a entregables medibles."
-            en="Translate requirements into measurable deliverables."
-          />
-        </p>
-      </div>
-      <div
-        data-animate="animate-zoom-in"
-        data-animate-delay="300ms"
-        class="border-border bg-card text-foreground rounded-2xl border p-5 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
-      >
-        <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-          <LangText es="Soft Skills" en="Soft Skills" />
-        </p>
-        <p class="text-foreground mt-2 text-lg font-semibold">
-          <LangText es="Resolución de problemas" en="Problem solving" />
-        </p>
-        <p class="text-muted-foreground text-sm">
-          <LangText
-            es="Análisis, debugging y toma de decisiones técnicas."
-            en="Analysis, debugging, and technical decision-making."
-          />
-        </p>
-      </div>
+
+    <div class="mt-10 grid gap-8 md:grid-cols-3 md:gap-0">
+      {skillGroups.map((group, idx) => (
+        <section
+          data-skill-group
+          data-animate="animate-fade-in-up"
+          data-animate-delay={`${idx * 100}ms`}
+          class="border-border md:border-l md:px-8 md:first:border-l-0 md:first:pl-0"
+        >
+          <h3 class="text-foreground text-lg font-semibold">
+            <span data-lang-content="es">{group.title.es}</span>
+            <span data-lang-content="en">{group.title.en}</span>
+          </h3>
+          <ul class="text-muted-foreground mt-4 space-y-2 text-sm">
+            {group.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   </section>
 
-  <section class="border-border bg-card text-foreground grid gap-6 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]">
-    <div
-      data-animate="animate-fade-in"
-      class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+  <section id="projects" aria-labelledby="projects-title">
+    <h2
+      id="projects-title"
+      class="text-foreground text-3xl font-semibold tracking-[-0.025em] sm:text-4xl"
     >
-      <div>
-        <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-          <LangText es="Proyectos" en="Projects" />
-        </p>
-        <h2 class="text-foreground text-2xl font-semibold sm:text-3xl">
-          <LangText es="Trabajo reciente" en="Recent work" />
-        </h2>
-      </div>
-    </div>
-    <div class="grid gap-4 md:grid-cols-3">
+      <LangText es="Trabajo reciente" en="Recent work" />
+    </h2>
+
+    <div class="mt-8 grid gap-x-8 gap-y-12 md:grid-cols-12">
       {experienceCards.map((card, idx) => (
         <a
           href={card.es.link}
           target="_blank"
           rel="noreferrer noopener"
           data-animate="animate-slide-up-fade"
-          data-animate-delay={`${idx * 120}ms`}
-          class="group border-border bg-card text-foreground hover:border-foreground/20 hover:bg-muted block rounded-2xl border p-4 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.08)] backdrop-blur transition hover:-translate-y-1 dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.5)]"
+          data-animate-delay={`${idx * 100}ms`}
+          data-project-priority={idx === 0 ? 'lead' : 'supporting'}
+          class:list={[
+            'group block min-w-0',
+            idx === 0 ? 'md:col-span-7 md:row-span-2' : 'md:col-span-5',
+          ]}
         >
-          <div class="border-border bg-muted/40 relative mb-4 overflow-hidden rounded-xl border">
+          <div class="border-border bg-muted overflow-hidden rounded-[1.25rem] border">
             <Image
               src={card.image}
               alt={card.es.company}
-              class="h-40 w-full object-cover transition duration-300 group-hover:scale-105"
+              class:list={[
+                'w-full object-cover transition duration-300 group-hover:scale-[1.02]',
+                idx === 0 ? 'h-64 sm:h-80 md:h-full md:min-h-[31rem]' : 'h-52',
+              ]}
               loading="lazy"
               decoding="async"
               widths={[260, 352, 525, 700, 900]}
               width={900}
               height={480}
-              sizes="(min-width: 1280px) 352px, (min-width: 768px) calc((100vw - 8rem) / 3), calc(100vw - 8rem)"
+              sizes={
+                idx === 0
+                  ? '(min-width: 768px) 58vw, calc(100vw - 2rem)'
+                  : '(min-width: 768px) 42vw, calc(100vw - 2rem)'
+              }
             />
           </div>
-          <div data-lang-content="es" class="space-y-2">
-            <div class="flex items-center justify-between">
-              <h3 class="text-foreground text-lg font-semibold">
+          <div data-lang-content="es" class="mt-4">
+            <div class="flex items-start justify-between gap-4">
+              <h3 class="text-foreground text-xl font-semibold">
                 {card.es.company}
               </h3>
-              <span class="text-primary text-sm">→</span>
+              <span aria-hidden="true" class="accent-text text-lg">
+                ↗
+              </span>
             </div>
-            <p class="text-foreground/90 text-sm font-semibold">
+            <p class="text-foreground/90 mt-1 text-sm font-semibold">
               {card.es.position}
             </p>
-            <p class="text-muted-foreground text-xs tracking-[0.18em] uppercase">
-              {card.es.start} — {card.es.end}
-            </p>
-            <p class="text-muted-foreground text-sm">
-              {card.es.tasks.slice(0, 2).join(' • ')}
+            <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
+              {card.es.tasks.slice(0, 2).join(' · ')}
             </p>
           </div>
-          <div data-lang-content="en" class="space-y-2">
-            <div class="flex items-center justify-between">
-              <h3 class="text-foreground text-lg font-semibold">
+          <div data-lang-content="en" class="mt-4">
+            <div class="flex items-start justify-between gap-4">
+              <h3 class="text-foreground text-xl font-semibold">
                 {card.en?.company}
               </h3>
-              <span class="text-primary text-sm">→</span>
+              <span aria-hidden="true" class="accent-text text-lg">
+                ↗
+              </span>
             </div>
-            <p class="text-foreground/90 text-sm font-semibold">
+            <p class="text-foreground/90 mt-1 text-sm font-semibold">
               {card.en?.position}
             </p>
-            <p class="text-muted-foreground text-xs tracking-[0.18em] uppercase">
-              {card.en?.start} — {card.en?.end}
+            <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
+              {card.en?.tasks?.slice(0, 2).join(' · ')}
             </p>
-            <p class="text-muted-foreground text-sm">
-              {card.en?.tasks?.slice(0, 2).join(' • ')}
-            </p>
-          </div>
-          <div class="text-muted-foreground mt-4 flex flex-wrap gap-2 text-[11px] font-semibold tracking-[0.18em] uppercase">
-            <span class="border-border bg-card/60 rounded-full border px-2 py-1 backdrop-blur">
-              {idx === 0 ? 'Live' : 'Project'}
-            </span>
           </div>
         </a>
       ))}
     </div>
   </section>
 
-  <section class="border-border bg-card text-foreground grid gap-6 rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 lg:grid-cols-[1.1fr_1fr] dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]">
-    <div data-animate="animate-fade-in-left" class="space-y-4">
-      <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-        <LangText es="Sobre mí" en="About" />
-      </p>
-      <h2 class="text-foreground text-2xl font-semibold sm:text-3xl">
+  <section
+    id="contact"
+    aria-labelledby="about-title"
+    class="border-border grid gap-10 border-t pt-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16"
+  >
+    <div data-animate="animate-fade-in-left" class="max-w-2xl">
+      <h2
+        id="about-title"
+        class="text-foreground text-3xl font-semibold tracking-[-0.025em] sm:text-4xl"
+      >
         <LangText
           es="Colaboro de forma cercana y pragmática."
           en="I collaborate closely and pragmatically."
         />
       </h2>
-      <p class="text-muted-foreground">
+      <p class="text-muted-foreground mt-4 leading-relaxed">
         <LangText
           es="Me gusta entrar en proyectos con contexto, mapear riesgos, definir métricas y entregar rápido. Hablo con negocio y con ingeniería."
           en="I like to enter projects with context, map risks, define metrics, and ship fast. I talk with business and engineering."
         />
       </p>
-      <div
-        data-animate="animate-fade-in"
-        data-animate-delay="150ms"
-        class="border-border bg-muted/50 text-muted-foreground rounded-2xl border p-4 text-sm shadow-[0_12px_40px_-28px_rgba(0,0,0,0.1)] backdrop-blur dark:shadow-[0_12px_40px_-28px_rgba(0,0,0,0.5)]"
-      >
+      <p class="text-muted-foreground mt-4 text-sm">
         <LangText
           es="Ubicado en Islas Canarias (UTC+0/+1). Trabajo remoto y asincrónico con equipos distribuidos."
           en="Based in Canary Islands (UTC+0/+1). Remote and async with distributed teams."
         />
-      </div>
-    </div>
-    <div
-      data-animate="animate-fade-in-right"
-      class="border-border bg-card text-foreground rounded-3xl border p-6 shadow-[0_15px_50px_-30px_rgba(0,0,0,0.1)] backdrop-blur dark:shadow-[0_15px_50px_-30px_rgba(0,0,0,0.6)]"
-    >
-      <p class="text-muted-foreground text-xs tracking-[0.25em] uppercase">
-        <LangText es="Contacto" en="Contact" />
       </p>
-      <div class="mt-4 space-y-3">
-        <div
-          data-animate="animate-fade-in"
-          data-animate-delay="0ms"
-          class="border-border bg-muted/30 text-foreground flex items-center justify-between rounded-2xl border px-4 py-3"
+    </div>
+
+    <div data-animate="animate-fade-in-right">
+      <h2 class="text-foreground text-2xl font-semibold">
+        <LangText es="Contacto" en="Contact" />
+      </h2>
+      <div class="border-border mt-5 border-t">
+        <a
+          class="accent-hover border-border text-foreground flex items-center justify-between gap-4 border-b py-4 font-semibold transition"
+          href="mailto:sergiogmr+portfolio@icloud.com"
         >
-          <span class="text-sm">
-            <LangText es="Email" en="Email" />
-          </span>
-          <a
-            class="font-semibold hover:underline"
-            href="mailto:sergiogmr+portfolio@icloud.com"
-          >
-            sergiogmr@icloud.com
-          </a>
-        </div>
-        <div
-          data-animate="animate-fade-in"
-          data-animate-delay="80ms"
-          class="border-border bg-muted/30 text-foreground flex items-center justify-between rounded-2xl border px-4 py-3"
+          Email
+          <span aria-hidden="true">↗</span>
+        </a>
+        <a
+          class="accent-hover border-border text-foreground flex items-center justify-between gap-4 border-b py-4 font-semibold transition"
+          href="https://www.linkedin.com/in/sergiogmr"
+          target="_blank"
+          rel="noreferrer noopener"
         >
-          <span class="text-sm">LinkedIn</span>
-          <a
-            class="font-semibold hover:underline"
-            href="https://www.linkedin.com/in/sergiogmr"
-            target="_blank"
-          >
-            @sergiogmr
-          </a>
-        </div>
-        <div
-          data-animate="animate-fade-in"
-          data-animate-delay="160ms"
-          class="border-border bg-muted/30 text-foreground flex items-center justify-between rounded-2xl border px-4 py-3"
+          LinkedIn
+          <span aria-hidden="true">↗</span>
+        </a>
+        <a
+          class="accent-hover border-border text-foreground flex items-center justify-between gap-4 border-b py-4 font-semibold transition"
+          href="https://github.com/sergiogmr"
+          target="_blank"
+          rel="noreferrer noopener"
         >
-          <span class="text-sm">GitHub</span>
-          <a
-            class="font-semibold hover:underline"
-            href="https://github.com/sergiogmr"
-            target="_blank"
-          >
-            @sergiogmr
-          </a>
-        </div>
+          GitHub
+          <span aria-hidden="true">↗</span>
+        </a>
       </div>
     </div>
   </section>

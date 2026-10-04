@@ -55,7 +55,7 @@ const directAnimationClasses = () => {
 }
 
 describe('reduced motion', () => {
-  it('selects every direct hero animation and the decorative pulse', () => {
+  it('selects every direct interface animation', () => {
     const { mediaStart, selectors } = extractReducedMotionRule()
     const classes = directAnimationClasses()
 
@@ -65,7 +65,6 @@ describe('reduced motion', () => {
       'animate-fade-in-up',
       'animate-fade-in',
       'md:animate-slide-in-right',
-      'animate-ping',
     ])
     expect(mediaStart).toBeGreaterThan(
       css.indexOf("@import '@midudev/tailwind-animations'"),

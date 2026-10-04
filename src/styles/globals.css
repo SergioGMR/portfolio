@@ -10,8 +10,9 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 217 91% 60%;
+    --primary: 217 91% 48%;
     --primary-foreground: 0 0% 100%;
+    --action-foreground: 0 0% 100%;
     --secondary: 262 83% 58%;
     --secondary-foreground: 0 0% 100%;
     --muted: 220 14% 92%;
@@ -29,9 +30,9 @@
     --glass: 0 0% 100%;
     --glass-opacity: 0.72;
     --glass-border: 220 14% 90%;
-    --hero-start: 230 100% 98%;
-    --hero-via: 240 60% 96%;
-    --hero-end: 250 40% 94%;
+    --hero-start: 214 100% 98%;
+    --hero-via: 218 55% 97%;
+    --hero-end: 220 40% 95%;
   }
 
   .dark {
@@ -44,6 +45,7 @@
     --popover-foreground: 0 0% 98%;
     --primary: 217 91% 65%;
     --primary-foreground: 0 0% 98%;
+    --action-foreground: 222 47% 11%;
     --secondary: 262 83% 68%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 15% 12%;
@@ -60,9 +62,9 @@
     --glass: 240 20% 8%;
     --glass-opacity: 0.65;
     --glass-border: 240 15% 20%;
-    --hero-start: 240 25% 6%;
-    --hero-via: 250 30% 8%;
-    --hero-end: 260 35% 10%;
+    --hero-start: 225 30% 7%;
+    --hero-via: 220 30% 8%;
+    --hero-end: 215 28% 10%;
   }
 
   *,
@@ -74,6 +76,14 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    min-height: 100dvh;
+    overflow-x: clip;
+  }
+
+  :focus-visible {
+    border-radius: 0.5rem;
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 4px;
   }
 
   html[lang='es'] [data-lang-content='en'],
@@ -101,6 +111,43 @@
 }
 
 @layer components {
+  .primary-action {
+    background: hsl(var(--primary));
+    color: hsl(var(--action-foreground));
+  }
+
+  .inverse-action {
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+  }
+
+  .accent-text {
+    color: hsl(var(--primary));
+  }
+
+  .accent-hover:hover {
+    color: hsl(var(--primary));
+  }
+
+  .skip-link {
+    background: hsl(var(--foreground));
+    border-radius: 0.75rem;
+    color: hsl(var(--background));
+    font-size: 0.875rem;
+    font-weight: 600;
+    left: 1rem;
+    padding: 0.75rem 1rem;
+    position: fixed;
+    top: 1rem;
+    transform: translateY(-200%);
+    transition: transform 150ms ease;
+    z-index: 50;
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+
   /* iOS 26 Liquid Glass effects */
   .glass {
     background: hsl(var(--glass) / var(--glass-opacity));
