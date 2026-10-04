@@ -15,7 +15,11 @@ This document is recovery state. INT-01 is complete at merge commit
 `5ce09c8`. VAL-01 independently verified exact candidate
 `f3099161745b2f8ab04c8456a572d6b1547acb4d`; its evidence is recorded below.
 That local proof is not production proof. PUB-01 remains pending and remote
-publication authority stays with the parent.
+publication authority stays with the parent. The parent has atomically pushed
+the feature branch and `dev` to
+`278baef2968f0873c78f101dbcdb50e98171645f`; fresh remote evidence still places
+`main` at `477dc7af55161c3c351641849f507a139aafd8fe`. Main promotion is stopped on
+a newly observed dependency-audit gate pending explicit remediation consent.
 
 ## Why this exists
 
@@ -37,13 +41,15 @@ histories and reconcile behavior deliberately.
 | Source lineage | `feat/portfolio-modernization-20261004` ending at `5ce09c867b9abaa6b51ee98c1d4bed16eadd2132` |
 | Read-only original checkout | `/Volumes/Develop/Astro/portfolio`; do not modify or treat its unrelated dirt as candidate content |
 | Remote | `origin` = `git@github.com:SergioGMR/portfolio.git` |
-| Later remote operation | Normal SSH freshness check and push through `main`, only after the exact integrated SHA passes every required gate |
+| Parent remote evidence | Normal SSH push confirmed both `fix/portfolio-main-integration-20261004` and `dev` at `278baef2968f0873c78f101dbcdb50e98171645f`; freshly verified `main` remains `477dc7af55161c3c351641849f507a139aafd8fe` |
+| Remaining remote operation | Main promotion only after explicit dependency-remediation approval, a clean audit disposition, and all functional gates on the resulting exact candidate |
 | Explicit exclusions | No force push, rebase, squash, cherry-pick replacement, history rewrite, rules bypass, GitHub API/`gh`, manual deployment, credential discovery, or unrelated cleanup |
 
-INT-01 and VAL-01 are complete in the isolated worktree. The current phase is
-ordinary SSH publication readiness, not worker remote authority; this passive
-closure authorizes only this recovery document, its Engram mirror, and the
-external screenshot-proof crop.
+INT-01 and VAL-01 are complete in the isolated worktree. The parent completed
+the authorized feature/dev SSH publication; this worker performed no remote
+operation. The current phase is a human dependency-remediation decision before
+main promotion. This passive closure authorizes only this recovery document and
+its Engram mirror; it does not authorize dependency changes.
 
 ## Design read
 
@@ -202,14 +208,48 @@ belongs to different bytes and cannot be reused.
     truthful showcase records, current design/CVs/profile/output/performance
     behavior, clean source, and both ancestries were confirmed. Hashes for the
     original checkout's six protected dirty files remained unchanged.
+  - Exact remote `dev` candidate `278baef` received a second independent full
+    validation: `bun ci`, format check, Astro check across 36 files with zero
+    diagnostics, targeted tests (60/0, 404 expectations), full tests (67/0,
+    450 expectations), four-page build with 37 optimized images, output
+    verification, diff check, and both ancestry checks passed. Five mobile
+    Lighthouse runs again scored 100 in all four categories with TBT 0 and CLS
+    0; median LCP was 1431.6771 ms against the unchanged warning-only 1200 ms
+    budget. Validation processes were cleaned up.
 - [ ] **PUB-01 — Publish the same validated SHA through the authorized SSH
   channel.**
   - Route: parent-controlled remote delivery; no worker may expand it.
   - Trigger evidence: remote freshness and branch-protection state are external
     to local implementation.
-  - Fetch only when publication begins, verify `origin/main` has not moved,
-    and push without force. If it moved, stop and reconcile/validate the new
-    candidate. Do not use `gh`, an API credential, or manual deployment.
+  - Partial outcome: the parent used the authorized normal SSH channel to push
+    both `fix/portfolio-main-integration-20261004` and `dev` atomically to
+    `278baef2968f0873c78f101dbcdb50e98171645f`. A fresh check showed `main`
+    still at `477dc7af55161c3c351641849f507a139aafd8fe`; no remote dev/reference
+    branch existed before this publication.
+  - Main promotion is not authorized while the dependency-audit gate below is
+    unresolved. Keep this task unchecked until a remediated exact candidate
+    passes audit disposition plus every functional gate and the main push is
+    confirmed. Do not use force, `gh`, an API credential, or manual deployment.
+
+## Dependency-audit gate before main
+
+The GitHub push warning triggered a focused read-only dependency check. It does
+not prove that the static website is exploitable, and static output does not
+remove build/tooling exposure. Remote GitHub reported two alert identities, but
+their identities were not available and must not be inferred from local output.
+
+| Evidence | Observed result |
+| --- | --- |
+| `bun audit` | 47 incidences: 1 critical, 25 high, 19 moderate, 2 low |
+| `bun audit --prod` | 28 incidences: 1 critical, 15 high, 11 moderate, 1 low; independently reproduced by the parent |
+| Critical package | `tar` 7.5.12; [GHSA-23hp-3jrh-7fpw](https://github.com/advisories/GHSA-23hp-3jrh-7fpw) affects versions through 7.5.18 and is patched in 7.5.19 |
+| Other observed packages | `brace-expansion` 5.0.4, `devalue` 5.8.2, `http-cache-semantics` 4.2.0, `nanoid` 3.3.16, `path-to-regexp` 6.1.0, `picomatch`, and additional transitive occurrences |
+| Dry-run only | `bun audit fix --dry-run` proposed 38 fixes and reported 9 occurrences blocked by parent dependency ranges; it installed or changed nothing |
+
+This finding does not automatically authorize a new implementation task.
+Next, the parent must obtain explicit human approval for a bounded compatible
+dependency remediation, then repeat the audit and every functional validation
+on the resulting exact candidate before considering main promotion.
 
 ## Acceptance criteria
 
@@ -330,12 +370,16 @@ omitting tests/docs remain unacceptable.
   to the validated merge commit.
 - CodeGraph was initialized independently in this worktree; no index was copied
   or linked from the original checkout.
-- No fetch, push, GitHub API call, credential discovery, remote file transfer,
-  or deployment was performed.
+- This worker performed no fetch, push, GitHub API call, credential discovery,
+  remote file transfer, or deployment. Separately, the parent confirmed the
+  authorized normal SSH feature/dev push described under PUB-01.
 - VAL-01 is complete on exact `f3099161745b2f8ab04c8456a572d6b1547acb4d`.
   The subsequent passive closure commit changes only this recovery document;
   repository source remains byte-identical to that verified candidate.
-- Parent already observed through the authorized SSH channel that remote main
-  remained `477dc7a` with no remote dev or reference branch. PUB-01 is still
-  unchecked until an actual push is confirmed; no worker remote operation was
-  performed.
+- Remote feature and `dev` now point to verified `278baef`; freshly observed
+  `main` remains `477dc7a`. PUB-01 remains unchecked because main promotion is
+  stopped on the dependency-audit gate.
+- Next: request human authorization for a bounded compatible remediation of
+  the transitive graph and blocked parent ranges. After any authorized change,
+  require a fresh audit disposition and all functional checks on the exact new
+  candidate before main publication.
