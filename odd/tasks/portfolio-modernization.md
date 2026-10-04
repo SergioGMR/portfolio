@@ -311,8 +311,9 @@ Independent verification and parent spot-check passed before commit.
 - Formatting/build/test commands were not re-executed: the audit execution
   policy prohibits target toolchain execution without the complete sandbox.
   This passive Markdown unit was structurally read back and diff-checked.
-- Recovery work-unit commit: pending local evidence commit after structural
-  readback. Rollback boundary is this SEC-01 recovery-document update only;
+- Recovery work-unit commit: `c442bdbc7d141342ee1e7cef3c3163fe36446b77`.
+  Structural readback and document-scoped diff checks passed. Rollback boundary
+  is this SEC-01 recovery-document update only;
   external local audit artifacts and prior DEP/UI work remain independent.
 - Next step: a separately scoped source pass for the deferred units and a proven
   offline sandbox before target fixtures; owner-supplied sanitized provider
