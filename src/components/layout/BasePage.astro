@@ -1,7 +1,6 @@
 ---
 import '../../styles/globals.css'
 import HeadSEO from '../HeadSEO.astro'
-import Analytics from '@vercel/analytics/astro'
 
 interface Props {
   title?: string
@@ -64,6 +63,5 @@ const {
   </head>
   <body class="bg-background text-foreground min-h-screen antialiased">
     <slot />
-    <Analytics />
   </body>
 </html>

@@ -39,9 +39,14 @@ const options = [
 </div>
 
 <script>
+  type ThemeMode = 'light' | 'dark' | 'system'
+
   const THEME_KEY = 'theme'
 
-  const applyTheme = (mode) => {
+  const isThemeMode = (value: unknown): value is ThemeMode =>
+    value === 'light' || value === 'dark' || value === 'system'
+
+  const applyTheme = (mode: ThemeMode) => {
     const root = document.documentElement
     const systemPrefersDark = window.matchMedia(
       '(prefers-color-scheme: dark)',
@@ -52,42 +57,51 @@ const options = [
     localStorage.setItem(THEME_KEY, mode)
   }
 
-  const setActive = (mode) => {
-    document.querySelectorAll('[data-theme-option]').forEach((btn) => {
-      const isActive = btn.dataset.themeOption === mode
-      btn.dataset.active = isActive ? 'true' : 'false'
-      btn.setAttribute('aria-pressed', String(isActive))
-    })
+  const setActive = (mode: ThemeMode) => {
+    document
+      .querySelectorAll<HTMLElement>('[data-theme-option]')
+      .forEach((button) => {
+        const isActive = button.dataset.themeOption === mode
+        button.dataset.active = isActive ? 'true' : 'false'
+        button.setAttribute('aria-pressed', String(isActive))
+      })
   }
 
   const init = () => {
-    const saved = localStorage.getItem(THEME_KEY) || 'light'
+    const stored = localStorage.getItem(THEME_KEY)
+    const saved = isThemeMode(stored) ? stored : 'light'
     applyTheme(saved)
-    const select = document.querySelector('select[data-theme-select]')
+    const select = document.querySelector<HTMLSelectElement>(
+      'select[data-theme-select]',
+    )
     if (select) select.value = saved
     setActive(saved)
   }
 
   document.addEventListener('change', (e) => {
-    const select = e.target as HTMLSelectElement
     if (
-      !select ||
-      select.tagName.toLowerCase() !== 'select' ||
-      !select.hasAttribute('data-theme-select')
+      !(e.target instanceof HTMLSelectElement) ||
+      !e.target.hasAttribute('data-theme-select')
     )
       return
-    const mode = select.value || 'system'
+    const mode = isThemeMode(e.target.value) ? e.target.value : 'system'
     applyTheme(mode)
     setActive(mode)
   })
 
   document.addEventListener('click', (e) => {
-    const btn = (e.target as HTMLElement)?.closest('[data-theme-option]')
-    if (!btn) return
-    const mode = btn.getAttribute('data-theme-option') || 'system'
+    if (!(e.target instanceof Element)) return
+
+    const button = e.target.closest<HTMLElement>('[data-theme-option]')
+    if (!button) return
+
+    const selected = button.dataset.themeOption
+    const mode = isThemeMode(selected) ? selected : 'system'
     applyTheme(mode)
     setActive(mode)
-    const select = document.querySelector('select[data-theme-select]')
+    const select = document.querySelector<HTMLSelectElement>(
+      'select[data-theme-select]',
+    )
     if (select) select.value = mode
   })
 
@@ -95,10 +109,13 @@ const options = [
   window
     .matchMedia('(prefers-color-scheme: dark)')
     .addEventListener('change', () => {
-      const saved = localStorage.getItem(THEME_KEY) || 'system'
+      const stored = localStorage.getItem(THEME_KEY)
+      const saved = isThemeMode(stored) ? stored : 'system'
       if (saved === 'system') {
         applyTheme(saved)
-        const select = document.querySelector('select[data-theme-select]')
+        const select = document.querySelector<HTMLSelectElement>(
+          'select[data-theme-select]',
+        )
         if (select) select.value = saved
         setActive(saved)
       }

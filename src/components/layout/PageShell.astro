@@ -77,7 +77,10 @@ import faviconImg from '../../../public/favicon.webp'
           <span data-lang-content="es">Disponible para colaborar</span>
           <span data-lang-content="en">Open to collaborate</span>
         </p>
-        <p data-animate="animate-bounce-fade-in" class="text-2xl leading-tight font-semibold">
+        <p
+          data-animate="animate-bounce-fade-in"
+          class="text-2xl leading-tight font-semibold"
+        >
           <span data-lang-content="es">Construyamos algo útil y rápido.</span>
           <span data-lang-content="en">Let’s ship something useful.</span>
         </p>
@@ -148,15 +151,19 @@ import faviconImg from '../../../public/favicon.webp'
     </div>
   </footer>
   <script is:inline>
-    (function () {
-      var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ;(function () {
+      var prefersReduced = window.matchMedia(
+        '(prefers-reduced-motion: reduce)',
+      ).matches
 
       var observer = new IntersectionObserver(
         function (entries) {
           entries.forEach(function (entry) {
             if (!entry.isIntersecting) return
             var el = entry.target
-            var animClasses = (el.dataset.animate || '').split(' ').filter(Boolean)
+            var animClasses = (el.dataset.animate || '')
+              .split(' ')
+              .filter(Boolean)
             var delay = el.dataset.animateDelay
 
             el.classList.remove('is-hidden')
@@ -170,7 +177,7 @@ import faviconImg from '../../../public/favicon.webp'
             observer.unobserve(el)
           })
         },
-        { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+        { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
       )
 
       document.querySelectorAll('[data-animate]').forEach(function (el) {
