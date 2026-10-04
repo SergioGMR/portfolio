@@ -3,13 +3,16 @@ import { Image } from 'astro:assets'
 
 import LangText from '../components/LangText.astro'
 import PageShell from '../components/layout/PageShell.astro'
-import { EXPERIENCE } from '../lib/constants'
+import { EXPERIENCE, PROJECTS } from '../lib/constants'
 import { PAGE_METADATA } from '../lib/page-metadata'
 import basuralezaImg from '../../public/experience/basuraleza.webp'
 import solutecImg from '../../public/experience/solutec.webp'
 import tcatikImg from '../../public/experience/tcatik.webp'
 import todoLuxImg from '../../public/experience/todo-lux.webp'
 import heroImg from '../../public/me_laptop.webp'
+import duellumImg from '../../public/projects/duellum.webp'
+import tvradarImg from '../../public/projects/tvradar.webp'
+import wattlyImg from '../../public/projects/wattly.webp'
 
 const experiencesEs = EXPERIENCE.es.slice(0, 4)
 const experiencesEn = EXPERIENCE.en.slice(0, 4)
@@ -22,11 +25,38 @@ const experienceImages: Record<string, typeof todoLuxImg> = {
   'https://tcatik.com/': tcatikImg,
 }
 
-const experienceCards = experiencesEs.map((exp, idx) => ({
-  es: exp,
-  en: experiencesEn[idx],
+const legacyProjectCards = experiencesEs.map((exp, idx) => ({
+  slug: `experience-${idx + 1}`,
+  name: {
+    es: exp.company,
+    en: experiencesEn[idx]?.company ?? exp.company,
+  },
+  url: exp.link,
+  category: {
+    es: exp.position,
+    en: experiencesEn[idx]?.position ?? exp.position,
+  },
+  summary: {
+    es: exp.tasks.slice(0, 2).join(' · '),
+    en: experiencesEn[idx]?.tasks.slice(0, 2).join(' · ') ?? '',
+  },
   image: experienceImages[exp.link] ?? todoLuxImg,
 }))
+
+const projectImages: Record<string, typeof todoLuxImg> = {
+  wattly: wattlyImg,
+  tvradar: tvradarImg,
+  duellum: duellumImg,
+}
+
+const projectCards = [
+  ...legacyProjectCards,
+  ...PROJECTS.map((project) => ({
+    ...project,
+    name: { es: project.name, en: project.name },
+    image: projectImages[project.slug] ?? todoLuxImg,
+  })),
+]
 
 const skillGroups = [
   {
@@ -234,14 +264,15 @@ const skillGroups = [
     </h2>
 
     <div class="mt-8 grid gap-x-8 gap-y-12 md:grid-cols-12">
-      {experienceCards.map((card, idx) => (
+      {projectCards.map((card, idx) => (
         <a
-          href={card.es.link}
+          href={card.url}
           target="_blank"
           rel="noreferrer noopener"
           data-animate="animate-slide-up-fade"
           data-animate-delay={`${idx * 100}ms`}
           data-project-priority={idx === 0 ? 'lead' : 'supporting'}
+          data-project-slug={card.slug}
           class:list={[
             'group block min-w-0',
             idx === 0 ? 'md:col-span-7 md:row-span-2' : 'md:col-span-5',
@@ -250,7 +281,7 @@ const skillGroups = [
           <div class="border-border bg-muted overflow-hidden rounded-[1.25rem] border">
             <Image
               src={card.image}
-              alt={card.es.company}
+              alt={card.name.es}
               class:list={[
                 'w-full object-cover transition duration-300 group-hover:scale-[1.02]',
                 idx === 0 ? 'h-64 sm:h-80 md:h-full md:min-h-[31rem]' : 'h-52',
@@ -270,33 +301,33 @@ const skillGroups = [
           <div data-lang-content="es" class="mt-4">
             <div class="flex items-start justify-between gap-4">
               <h3 class="text-foreground text-xl font-semibold">
-                {card.es.company}
+                {card.name.es}
               </h3>
               <span aria-hidden="true" class="accent-text text-lg">
                 ↗
               </span>
             </div>
             <p class="text-foreground/90 mt-1 text-sm font-semibold">
-              {card.es.position}
+              {card.category.es}
             </p>
             <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
-              {card.es.tasks.slice(0, 2).join(' · ')}
+              {card.summary.es}
             </p>
           </div>
           <div data-lang-content="en" class="mt-4">
             <div class="flex items-start justify-between gap-4">
               <h3 class="text-foreground text-xl font-semibold">
-                {card.en?.company}
+                {card.name.en}
               </h3>
               <span aria-hidden="true" class="accent-text text-lg">
                 ↗
               </span>
             </div>
             <p class="text-foreground/90 mt-1 text-sm font-semibold">
-              {card.en?.position}
+              {card.category.en}
             </p>
             <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
-              {card.en?.tasks?.slice(0, 2).join(' · ')}
+              {card.summary.en}
             </p>
           </div>
         </a>

@@ -22,6 +22,61 @@ export const STACK = [
   'Bootstrap',
 ]
 
+interface LocalizedProjectText {
+  es: string
+  en: string
+}
+
+export interface Project {
+  slug: string
+  name: string
+  url: string
+  category: LocalizedProjectText
+  summary: LocalizedProjectText
+}
+
+export const PROJECTS = [
+  {
+    slug: 'wattly',
+    name: 'Wattly',
+    url: 'https://wattly-alpha.vercel.app/',
+    category: {
+      es: 'Precios de la electricidad',
+      en: 'Electricity prices',
+    },
+    summary: {
+      es: 'Compara los precios horarios de la electricidad en España y encuentra las horas más económicas para usar tus electrodomésticos.',
+      en: 'Compare hourly electricity prices in Spain and find the most economical times to use your appliances.',
+    },
+  },
+  {
+    slug: 'tvradar',
+    name: 'TVRadar',
+    url: 'https://tvradar.sgmr.es/',
+    category: {
+      es: 'Seguimiento de series',
+      en: 'TV series tracking',
+    },
+    summary: {
+      es: 'Organiza tus series, estrenos, pendientes y sesiones familiares en un solo lugar.',
+      en: 'Organize your series, premieres, watchlist, and family viewing in one place.',
+    },
+  },
+  {
+    slug: 'duellum',
+    name: 'Duellum',
+    url: 'https://duellum.vercel.app/',
+    category: {
+      es: 'Cuadros de decisión',
+      en: 'Decision brackets',
+    },
+    summary: {
+      es: 'Compara opciones por parejas, gestiona pases automáticos y guarda los resultados localmente en tu dispositivo.',
+      en: 'Compare options pair by pair, manage automatic byes, and save results locally on your device.',
+    },
+  },
+] satisfies readonly Project[]
+
 export const EXPERIENCE = {
   es: [
     {

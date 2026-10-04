@@ -51,6 +51,9 @@ describe('portfolio interface', () => {
       'basuraleza.webp',
       'solutec.webp',
       'tcatik.webp',
+      'wattly.webp',
+      'tvradar.webp',
+      'duellum.webp',
     ]) {
       expect(index).toContain(asset)
     }
