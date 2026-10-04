@@ -12,9 +12,10 @@ current data and section architecture.
 
 This document is recovery state. INT-01 is complete at merge commit
 `05ff55eb2573d5a253d98bdf231d3b1748c06877`, with parents `477dc7a` and
-`5ce09c8`; its writer checks are recorded below. Those checks are not the
-independent verification required by VAL-01 and are not production proof.
-Remote operations and PUB-01 remain outside this worker phase.
+`5ce09c8`. VAL-01 independently verified exact candidate
+`f3099161745b2f8ab04c8456a572d6b1547acb4d`; its evidence is recorded below.
+That local proof is not production proof. PUB-01 remains pending and remote
+publication authority stays with the parent.
 
 ## Why this exists
 
@@ -39,8 +40,10 @@ histories and reconcile behavior deliberately.
 | Later remote operation | Normal SSH freshness check and push through `main`, only after the exact integrated SHA passes every required gate |
 | Explicit exclusions | No force push, rebase, squash, cherry-pick replacement, history rewrite, rules bypass, GitHub API/`gh`, manual deployment, credential discovery, or unrelated cleanup |
 
-The current phase authorizes INT-01 in the isolated worktree plus its recovery
-artifact and Engram mirror. Remote operations are forbidden in this phase.
+INT-01 and VAL-01 are complete in the isolated worktree. The current phase is
+ordinary SSH publication readiness, not worker remote authority; this passive
+closure authorizes only this recovery document, its Engram mirror, and the
+external screenshot-proof crop.
 
 ## Design read
 
@@ -170,15 +173,35 @@ belongs to different bytes and cannot be reused.
     performance, accessibility, best practices, and SEO; LCP produced the
     configured warning at a 1432.2615 ms median against the 1200 ms warning
     budget. `git diff --check` and both ancestry checks passed.
-- [ ] **VAL-01 — Validate the exact merge candidate and record proof.**
+- [x] **VAL-01 — Validate the exact merge candidate and record proof.**
   - Route: delegated verification (`odd-verify`) after writer self-checks.
   - Trigger evidence: build/output invariants, Lighthouse browser dependency,
     bilingual responsive UI, binary assets, and ancestry need independent
     evidence.
-  - Run every command below on the exact candidate. Inspect ES/EN, light/dark,
-    mobile/desktop, all seven project cards, reduced motion, metadata changes,
-    and current output invariants. Record failures, unavailable checks, and
-    environment limitations honestly; integration proof cannot be borrowed.
+  - Independent command evidence on exact `f309916`: `bun ci`, format check,
+    Astro check (zero diagnostics), targeted tests (60 pass, 0 fail, 404
+    expectations), full tests (67 pass, 0 fail, 450 expectations), four-page
+    build with 37 optimized images, output verification, diff check, and both
+    ancestry checks passed under Node 24.19.0 and Bun 1.4.2. The parent spot
+    check repeated `bun run test` with the same 67/0 result.
+  - Five independent mobile Lighthouse runs scored 100 for performance,
+    accessibility, best practices, and SEO in every run. All error-level
+    assertions passed. Median LCP was 1431.06915 ms against the unchanged 1200
+    ms warning budget.
+  - Browser evidence covered eight combinations: 1440/390 widths, ES/EN, and
+    light/dark. Each showed seven cards with seven loaded images, card bounds
+    inside the viewport, no horizontal overflow, inactive locale content
+    hidden, and live description/`og:locale` changes (`es_ES`/`en_US`).
+  - Actual DevTools reduced-motion emulation returned `matchMedia: true`; all
+    26 animated nodes had opacity 1, no transform, zero-second animation,
+    0.00001-second transition, and automatic scroll behavior. Emulation was
+    reset and verified false, DevTools and the owned browser tab were closed,
+    and the exact-command preview process was stopped with no owned process
+    remaining.
+  - The current case-study/showcase union, original four-project order, three
+    truthful showcase records, current design/CVs/profile/output/performance
+    behavior, clean source, and both ancestries were confirmed. Hashes for the
+    original checkout's six protected dirty files remained unchanged.
 - [ ] **PUB-01 — Publish the same validated SHA through the authorized SSH
   channel.**
   - Route: parent-controlled remote delivery; no worker may expand it.
@@ -238,6 +261,16 @@ is retained as a named gate/readback. Lighthouse is a separate performance
 gate and needs an available Chromium/Chrome runtime. Visual proof uses the
 local preview only after build, across 390px and desktop widths, ES/EN,
 light/dark, and reduced-motion states; it does not establish production proof.
+
+The external screenshot proof is
+`/Users/sergiogmr/portfolio-project-captures/portfolio-main-integration-preview.jpg`.
+It is a visually inspected 1200x1500 JPEG containing the complete Wattly,
+TVRadar, and Duellum images, titles, categories, and summaries. SHA-256 is
+`cc2a7eb0a972223043b61e600b23fc55bd054da0a4dad906f0b75bb291e1ae32`.
+It was derived without pixel synthesis from the unchanged 2880x10116 raw
+capture by extracting `{ left: 215, top: 4300, width: 1640, height: 2050 }`,
+resizing to 1200 px wide, and encoding progressive JPEG quality 90 with 4:4:4
+chroma subsampling through the existing Sharp dependency.
 
 ## Environment and dependency notes
 
@@ -299,7 +332,10 @@ omitting tests/docs remain unacceptable.
   or linked from the original checkout.
 - No fetch, push, GitHub API call, credential discovery, remote file transfer,
   or deployment was performed.
-- Next: parent runs VAL-01 against the final exact SHA, including independent
-  responsive ES/EN, light/dark, reduced-motion, seven-project, and metadata
-  inspection. PUB-01 may proceed only after that exact candidate is green and
-  remote freshness is re-established through the authorized SSH channel.
+- VAL-01 is complete on exact `f3099161745b2f8ab04c8456a572d6b1547acb4d`.
+  The subsequent passive closure commit changes only this recovery document;
+  repository source remains byte-identical to that verified candidate.
+- Parent already observed through the authorized SSH channel that remote main
+  remained `477dc7a` with no remote dev or reference branch. PUB-01 is still
+  unchecked until an actual push is confirmed; no worker remote operation was
+  performed.
