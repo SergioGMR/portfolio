@@ -70,7 +70,7 @@ direct animations. The code already uses Astro 6.0.8, which is intentional.
       Route: delegated; cross-component state and metadata behavior.
       Rollback: revert only locale synchronization and associated tests.
 
-- [ ] PF-04 — Honor reduced motion for all current animations.
+- [x] PF-04 — Honor reduced motion for all current animations.
       Extend the existing preference rule to direct animate classes and ping.
       Proposed files: src/styles/globals.css and a focused regression test.
       Route: delegated; stylesheet behavior and regression proof.
@@ -178,3 +178,27 @@ diff checks pass. Built output contains the localized payload, Spanish initial
 SEO, stable sgmr.dev canonicals and one Vercel Analytics loader per page. No
 real-browser smoke was run in this worker; parent integration readback remains
 pending. PF-03 stays unchecked until independent verification and commit.
+
+PF-03 closed after independent source, DOM and real Edge verification, then
+mechanical import normalization and all final gates; parent6-test spot passed.
+Commit: ab8d87fe633cc25003710317e3ef63f47d0a1c27.
+Risk: unassessable/high; independent verification passed; RDD disabled/unmanaged.
+Actual commit snapshot: 823 authored lines including prior closure evidence.
+Running authored commit count: 1371. Preserve meaningful behavior and tests;
+future PR publication must use verified green slices or an explicit approved
+size exception. Current proposal is not proved independently green and is not
+publication authorization. No remote actions were performed.
+Next: implement PF-04 with RED/GREEN and final local browser motion checks.
+
+PF-04 candidate implemented locally without a commit. The focused regression
+first failed 1/2 tests because the reduced-motion rule selected observer-driven
+elements but none of the six direct hero or pulse animation classes. It passed
+2/2 after one preference-scoped selector covered both mechanisms while keeping
+the existing `animation`, `opacity` and `transform` important overrides. The
+rule remains after the animation package import, so imported utilities cannot
+restore motion through ordinary cascade order. Formatting, Astro check, the
+full test suite, build and diff checks pass. Built CSS retains normal animation
+rules outside the media query and applies the reduced-motion override to direct
+hero animation classes and `animate-ping`. Real browser preference emulation is
+pending parent verification; PF-04 remains unchecked until verification and
+commit.

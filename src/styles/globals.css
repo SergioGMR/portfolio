@@ -92,7 +92,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-animate] {
+  [data-animate],
+  [class*='animate-'] {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
