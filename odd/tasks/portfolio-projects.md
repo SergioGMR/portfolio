@@ -12,7 +12,7 @@ private screenshots, new dependencies, or unrelated changes.
 
 ## Plan
 
-- [ ] PRJ-01: Capture three anonymous public pages, export 900x480 WebP assets,
+- [x] PRJ-01: Capture three anonymous public pages, export 900x480 WebP assets,
   add explicit bilingual project data and append three supporting cards, then
   verify the seven-card result and commit the cohesive work unit.
 
@@ -46,7 +46,7 @@ Baseline: `36d7b93272f3949554c285e7a92afbad6fc307d4` on
 Unrelated dirty paths and `.codegraph/` must be preserved. Authoritative baseline
 hashes are retained outside the repo in the previous audit recovery folder.
 
-Mapping and delegated implementation are complete; closure remains pending.
+Mapping, implementation, verification, and the local work unit are complete.
 Three anonymous public captures were taken with Edge Web Capture on 2026-10-04.
 Raw captures stay outside the repository. Optimized assets are genuine 900x480
 WebP crops: Wattly 12,756 bytes, TVRadar 20,320 bytes, Duellum 17,584 bytes.
@@ -84,5 +84,12 @@ The six protected dirty paths still match their baseline hashes.
 Rollback boundary: only the three new screenshot assets, project dataset,
 card integration, associated regressions, and this recovery document.
 
-Next: selective local work-unit commit and its identity record. No remote
-delivery is authorized or required for this task.
+Work-unit commit: `f67077a39e92f08cef153d9395c97b2b9b120039`
+(`feat(portfolio): add Wattly, TVRadar, and Duellum projects`).
+It includes only the eight owned paths; 302 authored changed lines including
+this recovery document, below the delivery planning threshold. Staging is
+empty after the work-unit commit, and unrelated dirt remains untouched.
+Review outcome: RDD disabled/unmanaged; no native review approval is claimed.
+
+Next: none for local PRJ-01. Push, PR, merge, and deployment remain separate
+user decisions and were not performed.
