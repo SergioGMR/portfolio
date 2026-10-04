@@ -10,11 +10,11 @@ mobile-first design and its five newer commits while adapting the verified
 Wattly, TVRadar, and Duellum project records and genuine screenshots to the
 current data and section architecture.
 
-This document is recovery state, not proof that the integration passes. The
-user has now authorized INT-01, including the normal merge, source
-reconciliation, declared dependency installation/lock generation, all listed
-local validations, and the coherent integration commit. Remote operations,
-VAL-01 independent verification, and PUB-01 remain outside this worker phase.
+This document is recovery state. INT-01 is complete at merge commit
+`05ff55eb2573d5a253d98bdf231d3b1748c06877`, with parents `477dc7a` and
+`5ce09c8`; its writer checks are recorded below. Those checks are not the
+independent verification required by VAL-01 and are not production proof.
+Remote operations and PUB-01 remain outside this worker phase.
 
 ## Why this exists
 
@@ -144,17 +144,32 @@ belongs to different bytes and cannot be reused.
     fifteen predicted textual-conflict paths, one clean overlapping path,
     current Bun/output/Lighthouse gates, and the uncontested delta were
     inventoried without starting a merge or remote operation.
-- [ ] **INT-01 — Merge the complete local lineage and reconcile one coherent
+- [x] **INT-01 — Merge the complete local lineage and reconcile one coherent
   integration candidate.**
   - Route: delegated direct (`odd-worker`).
   - Trigger evidence: a normal ancestry-preserving merge plus coordinated
     changes across package/lock/CI, SEO, localization, accessibility, content,
     images, sections, and regression tests.
-  - The delivery-size exception is approved. Use a normal merge; do not stage
-    unrelated original-checkout dirt. Establish RED first, reconcile the
-    current architecture and all predicted conflicts, normalize owned files,
-    then obtain GREEN. Close with one Conventional merge work unit that
-    preserves both parents.
+  - Observed outcome: a normal merge resolved all fifteen predicted conflicts,
+    retained the current main design/model/CVs/output/performance/deferred
+    language service, and adapted the three verified showcase projects without
+    unsupported case-study claims. The Conventional merge commit is
+    `05ff55eb2573d5a253d98bdf231d3b1748c06877`; its parents are
+    `477dc7af55161c3c351641849f507a139aafd8fe` and
+    `5ce09c867b9abaa6b51ee98c1d4bed16eadd2132`.
+  - TDD evidence: on the untouched remote baseline, the new integration suite
+    was RED with 0 passing and 2 failing tests because the expected seven
+    project IDs and showcase rendering/image contracts were absent. After
+    reconciliation it was GREEN inside the full suite. The required targeted
+    run passed 60 tests with 404 expectations; the full run passed 67 tests
+    with 450 expectations. No test failed.
+  - Writer checks: `bun ci`, `bun run format:check`, `bun run check` (36 files,
+    zero errors/warnings/hints), the targeted tests, `bun run test`, `bun run
+    build`, and `bun run verify:output` passed under Node 24.19.0 and Bun 1.4.2.
+    Five mobile Lighthouse runs passed every error-level assertion with 100 in
+    performance, accessibility, best practices, and SEO; LCP produced the
+    configured warning at a 1432.2615 ms median against the 1200 ms warning
+    budget. `git diff --check` and both ancestry checks passed.
 - [ ] **VAL-01 — Validate the exact merge candidate and record proof.**
   - Route: delegated verification (`odd-verify`) after writer self-checks.
   - Trigger evidence: build/output invariants, Lighthouse browser dependency,
@@ -226,17 +241,19 @@ light/dark, and reduced-motion states; it does not establish production proof.
 
 ## Environment and dependency notes
 
-- Observed locally during mapping: Bun `1.4.2`, Node `v26.10.0`, Git `2.50.1`.
-- Repository runtime target remains `.nvmrc` Node `24`; local Node 26 does not
-  prove the Node 24 CI/runtime path.
+- Writer validation used Bun `1.4.2`, Git `2.50.1`, and the existing fnm Node
+  `v24.19.0` executable at
+  `/Users/sergiogmr/.local/share/fnm/node-versions/v24.19.0/installation/bin/node`.
 - Current main already declares `@lhci/cli`, `sharp`, Space Grotesk, and the
   Astro/Tailwind/Vercel stack. No new UI or image dependency is planned.
 - Reconcile to one compatible Astro 7 dependency graph while retaining
   `@fontsource/space-grotesk` and `@lhci/cli`; do not force incompatible latest
   versions. The lockfile is generated output and must come only from the final
   manifest via Bun 1.4.2.
-- Lighthouse requires browser availability and may be unavailable in a local
-  sandbox. Unavailability is a reported gap, never a pass.
+- Lighthouse used the existing Microsoft Edge `154.0.4258.53` executable at
+  `/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge`. Automatic
+  browser discovery initially failed; the explicit compatible executable then
+  completed all five runs. No browser or host runtime was installed.
 
 ## Forecast and delivery decision
 
@@ -247,10 +264,15 @@ files, workflow/discovery changes, and locale/metadata helpers. Conflict
 reconciliation plus this recovery document makes the realistic final range
 approximately **1,750-2,200 authored changed lines** from current remote main.
 
-Delivery strategy is now `exception-ok`. The user explicitly approved the
+Delivery strategy is `exception-ok`. The user explicitly approved the
 maintainer `size:exception` for this one coherent ancestry-preserving
 integration after reviewing the approximately **1,750-2,200 authored-line**
-forecast. One honest slicing pass found no sub-400 merge slice that can both
+forecast. The reconciled merge contains **3,227 authored changed lines** from
+current remote main (2,519 additions and 708 deletions), excluding the
+generated lockfile and binary screenshots. The higher actual count includes
+the preserved historical ODD records, adapted regression suites, and necessary
+current-main formatting under the reconciled Prettier graph; none is generated
+padding. One honest slicing pass found no sub-400 merge slice that can both
 retain all twelve commits through one normal merge and present a coherent
 buildable candidate. Artificial file-type splits, history rewriting, or
 omitting tests/docs remain unacceptable.
@@ -267,11 +289,17 @@ omitting tests/docs remain unacceptable.
 
 ## Current evidence and next step
 
-- Mapping worktree remains on `fix/portfolio-main-integration-20261004` at
-  `477dc7af55161c3c351641849f507a139aafd8fe`.
+- Worktree `fix/portfolio-main-integration-20261004` contains the two-parent
+  merge `05ff55eb2573d5a253d98bdf231d3b1748c06877`. Both required ancestry checks
+  and the post-commit diff check passed.
+- The source candidate was validated before this passive evidence update. This
+  follow-up changes only this recovery document; source bytes remain identical
+  to the validated merge commit.
 - CodeGraph was initialized independently in this worktree; no index was copied
   or linked from the original checkout.
-- No dependency install, merge, source edit, test, build, format, staging,
-  commit, fetch, push, API call, or deployment has been performed here.
-- Next: execute INT-01 with strict Bun TDD and every listed local validation;
-  leave VAL-01 and PUB-01 for the parent after this worker returns.
+- No fetch, push, GitHub API call, credential discovery, remote file transfer,
+  or deployment was performed.
+- Next: parent runs VAL-01 against the final exact SHA, including independent
+  responsive ES/EN, light/dark, reduced-motion, seven-project, and metadata
+  inspection. PUB-01 may proceed only after that exact candidate is green and
+  remote freshness is re-established through the authorized SSH channel.
