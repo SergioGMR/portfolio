@@ -1,4 +1,4 @@
-# robots.txt for sergiogmr.vercel.app
+# robots.txt for sgmr.dev
 # Created on 2024
 
 User-agent: *
@@ -41,4 +41,4 @@ User-agent: FacebookBot
 Disallow: /
 
 # Sitemap location
-Sitemap: https://sergiogmr.vercel.app/sitemap.xml
+Sitemap: https://sgmr.dev/sitemap.xml

@@ -53,7 +53,7 @@ direct animations. The code already uses Astro 6.0.8, which is intentional.
       PageShell and Wattly TOS source files. These are necessary to make the
       newly established CI checks usable, not a redesign or scope expansion.
 
-- [ ] PF-02 — Correct production URLs, sitemap and robots.
+- [x] PF-02 — Correct production URLs, sitemap and robots.
       Use a stable sgmr.dev origin; list real routes only; omit artificial
       lastmod; retain crawler rules while correcting the sitemap location.
       Proposed files: astro.config.ts, src/pages/sitemap.xml.ts, public/robots.txt
@@ -105,7 +105,7 @@ adding frozen CI gates. `bun ci`, focused/full Vitest and `bun run build` pass.
 Runtime harness: N/A; PF-01 is configuration-only and the production build is
 its local applicability proof.
 
-PF-01 is not closed because the new full gates exposed pre-existing source
+The initial PF-01 checkpoint was not closed because full gates exposed source
 failures outside this slice. `bun run format:check` reports unchanged
 `PageShell.astro` and `wattly/tos.astro`; both fail identically from `HEAD`.
 `bun run check` reports 15 errors in unchanged files: 7 in
@@ -124,8 +124,35 @@ through the supported adapter integration; the duplicate component and direct
 dependency were removed, and the built page still contains the insights script.
 The two clean-at-base formatting failures were normalized mechanically.
 
-The full prospective PF-01 snapshot exceeds 400 authored changed lines only
-after including this complete task document. Keep review boundaries honest:
-PF-01A holds the Bun/CI/test harness plus this document; PF-01B holds the typed
-gate remediation and mechanical formatting. Both remain uncommitted pending
-the independent verifier and parent closure. PF-02 remains untouched.
+PF-01 closed after independent verification and a parent focused-test spot
+check: all frozen-install, formatting, type, test and build gates pass.
+Commit: fe680dcfce82170f961f938223a7f5e7100d93cd.
+Risk: unassessable/high; independent verifier passed, RDD disabled/unmanaged.
+Authored slice: 408 lines; generated lock: 272 lines separately. Keep this
+coherent green unit rather than split into a red intermediate toolchain-only
+commit. The eight-line advisory overage is recorded honestly; a future PR
+requires an approved size exception or a genuinely green subdivision, neither
+is authorized by this local commit. Running authored count: 408.
+Next: implement PF-02 with observed TDD; PF-03 and PF-04 remain untouched.
+
+PF-02 candidate implemented locally without a commit. The focused site test
+first failed 3/3 assertions against the CI-dependent site URL, missing shared
+site helper and stale robots host, then passed 3/3 after the production origin,
+route inventory, sitemap rendering and robots discovery URL were aligned.
+`bun run format:check`, `bun run check` (16 files, zero diagnostics), the full
+Vitest suite (2 files, 5 tests) and `bun run build` pass. With `CI` unset, the
+built sitemap contains only `/`, `/acezone/tos/` and `/wattly/tos/`, omits fake
+modification dates, and exposes no localhost, `/work` or stale Vercel domain.
+Built canonicals resolve to `https://sgmr.dev/`,
+`https://sgmr.dev/acezone/tos/` and `https://sgmr.dev/wattly/tos/`; the copied
+robots file points to `https://sgmr.dev/sitemap.xml` with crawler rules
+preserved. PF-02 remains unchecked pending independent verification and the
+parent commit. PF-03 and PF-04 remain untouched.
+
+The independent PF-02 verifier found that the sitemap's two TOS URLs omitted
+the trailing slash used by their generated canonicals. A corrected focused
+assertion first failed 1/3 tests against the mismatched route inventory, then
+passed 3/3 after both TOS sitemap paths were canonicalized with trailing
+slashes. The final built sitemap URLs now equal the three generated page
+canonicals exactly. PF-02 remains unchecked pending parent verification and
+commit.
