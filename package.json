@@ -20,23 +20,23 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@astrojs/vercel": "10.0.2",
-    "@midudev/tailwind-animations": "^1.0.1",
-    "@tailwindcss/postcss": "^4.2.2",
-    "@tailwindcss/vite": "^4.2.2",
-    "astro": "6.0.8",
-    "sharp": "^0.34.5",
-    "tailwindcss": "^4.2.2",
-    "vite": "^8.0.1"
+    "@astrojs/vercel": "11.0.11",
+    "@midudev/tailwind-animations": "^1.0.2",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "7.3.5",
+    "sharp": "^0.35.5",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.2"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
-    "@types/node": "^25.5.0",
+    "@types/node": "^24.19.1",
     "happy-dom": "20.14.5",
-    "prettier": "^3.8.1",
-    "prettier-plugin-astro": "^0.14.1",
-    "prettier-plugin-tailwindcss": "^0.7.2",
-    "typescript": "^5.9.3",
+    "prettier": "^3.9.9",
+    "prettier-plugin-astro": "^1.1.0",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "typescript": "^6.0.3",
     "vitest": "5.0.3"
   },
   "packageManager": "bun@1.4.2"

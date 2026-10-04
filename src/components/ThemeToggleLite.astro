@@ -7,34 +7,30 @@ const options = [
 ---
 
 <div class="flex items-center gap-2">
-  <label
-    class="text-muted-foreground inline-flex items-center gap-1 text-xs sm:hidden"
-  >
+  <label class="text-muted-foreground inline-flex items-center gap-1 text-xs sm:hidden">
     <span class="sr-only">Tema</span>
     <select
       class="focus:ring-primary/50 bg-background rounded-md border px-2 py-1 text-sm focus:ring-2 focus:outline-none"
       aria-label="Seleccionar tema"
       data-theme-select
     >
-      {options.map((opt) => <option value={opt.value}>{opt.label}</option>)}
+      {options.map((opt) => (
+        <option value={opt.value}>{opt.label}</option>
+      ))}
     </select>
   </label>
-  <div
-    class="hidden items-center gap-2 rounded-full border px-2 py-1 text-xs sm:inline-flex"
-  >
-    {
-      options.map((opt) => (
-        <button
-          type="button"
-          class="hover:bg-muted focus-visible:outline-primary/70 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:border-primary cursor-pointer rounded-full px-3 py-1 transition focus-visible:outline focus-visible:outline-2 data-[active=true]:border data-[active=true]:shadow-sm"
-          data-theme-option={opt.value}
-          aria-pressed="false"
-          aria-label={`Cambiar tema a ${opt.label}`}
-        >
-          {opt.label}
-        </button>
-      ))
-    }
+  <div class="hidden items-center gap-2 rounded-full border px-2 py-1 text-xs sm:inline-flex">
+    {options.map((opt) => (
+      <button
+        type="button"
+        class="hover:bg-muted focus-visible:outline-primary/70 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:border-primary cursor-pointer rounded-full px-3 py-1 transition focus-visible:outline focus-visible:outline-2 data-[active=true]:border data-[active=true]:shadow-sm"
+        data-theme-option={opt.value}
+        aria-pressed="false"
+        aria-label={`Cambiar tema a ${opt.label}`}
+      >
+        {opt.label}
+      </button>
+    ))}
   </div>
 </div>
 

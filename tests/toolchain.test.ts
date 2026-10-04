@@ -10,7 +10,13 @@ const packageJson = JSON.parse(
   engines?: { node?: string }
   packageManager?: string
   scripts?: Record<string, string>
+  dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
+}
+const tsconfig = JSON.parse(
+  readFileSync(join(root, 'tsconfig.json'), 'utf8'),
+) as {
+  compilerOptions?: { moduleResolution?: string }
 }
 const workflow = readFileSync(
   join(root, '.github/workflows/autofix.yml'),
@@ -32,6 +38,33 @@ describe('project toolchain', () => {
       'happy-dom': '20.14.5',
       vitest: '5.0.3',
     })
+  })
+
+  it('uses the supported Astro 7 dependency graph', () => {
+    expect(packageJson.dependencies).toEqual({
+      '@astrojs/vercel': '11.0.11',
+      '@midudev/tailwind-animations': '^1.0.2',
+      '@tailwindcss/postcss': '^4.3.3',
+      '@tailwindcss/vite': '^4.3.3',
+      astro: '7.3.5',
+      sharp: '^0.35.5',
+      tailwindcss: '^4.3.3',
+      vite: '^8.3.2',
+    })
+    expect(packageJson.devDependencies).toEqual({
+      '@astrojs/check': '0.9.10',
+      '@types/node': '^24.19.1',
+      'happy-dom': '20.14.5',
+      prettier: '^3.9.9',
+      'prettier-plugin-astro': '^1.1.0',
+      'prettier-plugin-tailwindcss': '^0.8.1',
+      typescript: '^6.0.3',
+      vitest: '5.0.3',
+    })
+  })
+
+  it('resolves Astro package exports with the bundler strategy', () => {
+    expect(tsconfig.compilerOptions?.moduleResolution).toBe('bundler')
   })
 
   it('runs deterministic CI gates with Bun in dependency order', () => {
