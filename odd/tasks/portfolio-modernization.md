@@ -156,8 +156,8 @@ Next task: SEC-01 against the frozen green source.
 
 ### UI-01 completed implementation and verification evidence
 
-Independent verification and parent spot-check passed; the source work-unit
-commit identity is recorded below after commit creation.
+Work-unit commit: `002f5511c0c1497445afaadc8eb1a2c151483561`.
+Independent verification and parent spot-check passed before commit.
 
 - Design read: preserve-mode developer portfolio for recruiters and clients;
   variance 6, motion 4, density 4. Three internal layout references covered the
