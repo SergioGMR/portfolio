@@ -112,6 +112,7 @@
     font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     overflow-x: clip;
+    min-height: 100dvh;
   }
 
   html {
@@ -205,8 +206,7 @@
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
+    animation: none !important;
     transition-duration: 0.01ms !important;
   }
 

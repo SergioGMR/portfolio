@@ -2,7 +2,7 @@
   "name": "profile",
   "version": "25.08.12",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12.0"
   },
   "description": "An Astro template for building peofiles.",
   "author": {
@@ -11,8 +11,10 @@
   "license": "MIT",
   "scripts": {
     "build": "astro build && bun run verify:output",
+    "check": "astro check",
     "dev": "astro dev",
     "format": "prettier -w . --cache",
+    "format:check": "prettier --check \"src/**/*.{astro,ts,css}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"package.json\" \"astro.config.ts\" \".lighthouserc.cjs\" \".github/workflows/*.yml\" --cache",
     "lighthouse:ci": "bun run build && lhci autorun",
     "preview": "astro preview",
     "start": "astro dev",
@@ -20,23 +22,25 @@
     "verify:output": "bun scripts/verify-portfolio-output.ts"
   },
   "dependencies": {
-    "@astrojs/vercel": "^11.0.3",
+    "@astrojs/vercel": "11.0.11",
     "@fontsource/space-grotesk": "^5.3.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",
-    "astro": "7.1.3",
-    "sharp": "^0.35.3",
+    "astro": "7.3.5",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3",
-    "vite": "^8.1.5"
+    "vite": "^8.3.2"
   },
   "devDependencies": {
+    "@astrojs/check": "0.9.10",
     "@lhci/cli": "0.15.1",
     "@types/bun": "^1.3.14",
-    "@types/node": "^25.9.5",
-    "prettier": "^3.9.6",
-    "prettier-plugin-astro": "^0.14.1",
-    "prettier-plugin-tailwindcss": "^0.7.4",
-    "typescript": "^5.9.3"
+    "@types/node": "^24.19.1",
+    "happy-dom": "20.14.5",
+    "prettier": "^3.9.9",
+    "prettier-plugin-astro": "^1.1.0",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "typescript": "^6.0.3"
   },
-  "packageManager": "bun@1.1.33"
+  "packageManager": "bun@1.4.2"
 }

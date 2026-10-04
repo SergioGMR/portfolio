@@ -27,9 +27,7 @@ const evidenceLabels = {
     <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
       <LangText es="Capacidades" en="Capabilities" />
     </p>
-    <h2
-      class="text-foreground text-2xl font-semibold tracking-tight sm:text-3xl"
-    >
+    <h2 class="text-foreground text-2xl font-semibold tracking-tight sm:text-3xl">
       <LangText es="Stack y enfoque" en="Stack and focus" />
     </h2>
     <p class="text-muted-foreground text-sm leading-relaxed">
@@ -39,57 +37,53 @@ const evidenceLabels = {
       />
     </p>
     <div class="flex flex-wrap gap-1.5 pt-1">
-      {
-        [
-          ...new Set(capabilities.flatMap(({ technologies }) => technologies)),
-        ].map((technology) => (
-          <span class="tech-tag rounded-full px-2.5 py-1 text-xs">
-            {technology}
-          </span>
-        ))
-      }
+      {[
+        ...new Set(capabilities.flatMap(({ technologies }) => technologies)),
+      ].map((technology) => (
+        <span class="tech-tag rounded-full px-2.5 py-1 text-xs">
+          {technology}
+        </span>
+      ))}
     </div>
   </div>
 
   <div class="grid min-w-0 gap-3">
-    {
-      capabilities.map((capability, index) => (
-        <article
-          data-animate="reveal-up"
-          data-animate-delay={`${index * 70}ms`}
-          class="bento-card min-w-0 rounded-2xl p-4"
-        >
-          <p class="text-primary font-mono text-[10px] tracking-widest uppercase">
-            <span data-lang-content="es">{capability.label.es}</span>
-            <span data-lang-content="en">{capability.label.en}</span>
-          </p>
-          <p class="text-foreground mt-2 text-sm font-semibold tracking-tight">
-            {capability.technologies.join(' · ')}
-          </p>
-          <p class="text-muted-foreground mt-2 text-xs leading-relaxed">
-            <span data-lang-content="es">{capability.summary.es}</span>
-            <span data-lang-content="en">{capability.summary.en}</span>
-          </p>
-          <p class="text-muted-foreground border-border mt-3 border-t pt-2.5 font-mono text-[10px]">
-            <span data-lang-content="es">
-              <span class="text-foreground/70 tracking-wider uppercase">
-                Evidencia:
-              </span>{' '}
-              {capability.evidenceIds
-                .map((id) => evidenceLabels.es.get(id) ?? id)
-                .join(' · ')}
-            </span>
-            <span data-lang-content="en">
-              <span class="text-foreground/70 tracking-wider uppercase">
-                Evidence:
-              </span>{' '}
-              {capability.evidenceIds
-                .map((id) => evidenceLabels.en.get(id) ?? id)
-                .join(' · ')}
-            </span>
-          </p>
-        </article>
-      ))
-    }
+    {capabilities.map((capability, index) => (
+      <article
+        data-animate="reveal-up"
+        data-animate-delay={`${index * 70}ms`}
+        class="bento-card min-w-0 rounded-2xl p-4"
+      >
+        <p class="text-primary font-mono text-[10px] tracking-widest uppercase">
+          <span data-lang-content="es">{capability.label.es}</span>
+          <span data-lang-content="en">{capability.label.en}</span>
+        </p>
+        <p class="text-foreground mt-2 text-sm font-semibold tracking-tight">
+          {capability.technologies.join(' · ')}
+        </p>
+        <p class="text-muted-foreground mt-2 text-xs leading-relaxed">
+          <span data-lang-content="es">{capability.summary.es}</span>
+          <span data-lang-content="en">{capability.summary.en}</span>
+        </p>
+        <p class="text-muted-foreground border-border mt-3 border-t pt-2.5 font-mono text-[10px]">
+          <span data-lang-content="es">
+            <span class="text-foreground/70 tracking-wider uppercase">
+              Evidencia:
+            </span>{' '}
+            {capability.evidenceIds
+              .map((id) => evidenceLabels.es.get(id) ?? id)
+              .join(' · ')}
+          </span>
+          <span data-lang-content="en">
+            <span class="text-foreground/70 tracking-wider uppercase">
+              Evidence:
+            </span>{' '}
+            {capability.evidenceIds
+              .map((id) => evidenceLabels.en.get(id) ?? id)
+              .join(' · ')}
+          </span>
+        </p>
+      </article>
+    ))}
   </div>
 </section>

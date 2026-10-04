@@ -1,10 +1,11 @@
 import { defineConfig } from 'astro/config'
 import vercel from '@astrojs/vercel'
 import tailwindcss from '@tailwindcss/vite'
+import { SITE_URL } from './src/lib/site'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://sgmr.dev/',
+  site: SITE_URL,
 
   output: 'static',
   build: {},

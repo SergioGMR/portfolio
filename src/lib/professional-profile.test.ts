@@ -69,7 +69,7 @@ describe('professional profile', () => {
     expect(new Set(ids).size).toBe(ids.length)
     expect(new Set(projectIds).size).toBe(projectIds.length)
     expect(PROFESSIONAL_PROFILE.experiences).toHaveLength(3)
-    expect(PROFESSIONAL_PROFILE.projects).toHaveLength(4)
+    expect(PROFESSIONAL_PROFILE.projects).toHaveLength(7)
 
     for (const experience of PROFESSIONAL_PROFILE.experiences) {
       expect(experience.title.es).toBeTruthy()
@@ -93,14 +93,25 @@ describe('professional profile', () => {
       'todo-lux',
       'basuraleza',
       'solutec',
+      'wattly',
+      'tvradar',
+      'duellum',
     ])
     for (const project of projects) {
       expect(project.evidenceUrl).toMatch(/^https:\/\//)
-      expect(project.problem.es).toBeTruthy()
-      expect(project.responsibility.es).toBeTruthy()
-      expect(project.solution.es).toBeTruthy()
-      expect(project.result.es).toBeTruthy()
-      expect(project.technologies.length).toBeGreaterThan(0)
+      if (project.kind === 'case-study') {
+        expect(project.problem.es).toBeTruthy()
+        expect(project.responsibility.es).toBeTruthy()
+        expect(project.solution.es).toBeTruthy()
+        expect(project.result.es).toBeTruthy()
+        expect(project.technologies.length).toBeGreaterThan(0)
+      } else {
+        expect(project.category.es).toBeTruthy()
+        expect(project.category.en).toBeTruthy()
+        expect(project.summary.es).toBeTruthy()
+        expect(project.summary.en).toBeTruthy()
+        expect('technologies' in project).toBe(false)
+      }
       if (project.experienceIds.length > 0) {
         expect(
           project.experienceIds.every((experienceId) =>

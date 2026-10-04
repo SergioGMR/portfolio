@@ -1,4 +1,4 @@
-name: autofix.ci
+name: CI
 
 on:
   pull_request:
@@ -8,25 +8,35 @@ permissions:
   contents: read
 
 jobs:
-  autofix:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      - name: Format with Prettier
-        run: pnpm exec prettier -w . "!.github"
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
 
-      - name: Run autofix.ci
-        uses: autofix-ci/action@v1.3
+      - name: Install dependencies from lockfile
+        run: bun ci
+
+      - name: Check formatting
+        run: bun run format:check
+
+      - name: Check Astro and TypeScript
+        run: bun run check
+
+      - name: Run tests
+        run: bun run test
+
+      - name: Build production site
+        run: bun run build
+
+      - name: Enforce mobile Lighthouse budgets
+        run: bun run lighthouse:ci

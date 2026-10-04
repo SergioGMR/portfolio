@@ -1,4 +1,5 @@
 ---
+import type { LanguageMetadata } from '@/lib/language-client'
 import '@/styles/globals.css'
 import HeadSEO from '@/components/HeadSEO.astro'
 import spaceGrotesk400 from '@fontsource/space-grotesk/files/space-grotesk-latin-400-normal.woff2?url'
@@ -7,34 +8,46 @@ import spaceGrotesk600 from '@fontsource/space-grotesk/files/space-grotesk-latin
 interface Props {
   title?: string
   description?: string
-  schema?: object
+  localizedMetadata?: LanguageMetadata
+  schema?: Record<string, unknown>
   locale?: 'es' | 'en'
   ogImage?: URL | string
   ogType?: string
   noindex?: boolean
   nofollow?: boolean
-  alternateLocales?: string[]
   canonicalOverride?: URL | string
 }
 
 const {
   title,
   description,
+  localizedMetadata,
   schema,
   locale = 'es',
   ogImage,
   ogType,
   noindex,
   nofollow,
-  alternateLocales,
   canonicalOverride,
 } = Astro.props
 ---
 
 <html lang={locale}>
   <head>
-    <link rel="preload" href={spaceGrotesk400} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={spaceGrotesk600} as="font" type="font/woff2" crossorigin />
+    <link
+      rel="preload"
+      href={spaceGrotesk400}
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href={spaceGrotesk600}
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <script is:inline>
       try {
         const storedTheme = localStorage.getItem('theme')
@@ -63,21 +76,20 @@ const {
         }
       } catch (_error) {}
     </script>
-
     <HeadSEO
       title={title}
       description={description}
+      localizedMetadata={localizedMetadata}
       schema={schema}
       ogImage={ogImage}
       ogType={ogType}
       locale={locale}
-      alternateLocales={alternateLocales}
       noindex={noindex}
       nofollow={nofollow}
       canonicalOverride={canonicalOverride}
     />
   </head>
-  <body class="bg-background text-foreground min-h-screen antialiased">
+  <body class="bg-background text-foreground min-h-[100dvh] antialiased">
     <slot />
   </body>
 </html>

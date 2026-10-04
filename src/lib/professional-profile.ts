@@ -21,18 +21,30 @@ export interface Experience {
   readonly evidenceUrl?: string
 }
 
-export interface Project {
+interface ProjectBase {
   readonly id: string
   readonly title: Localized<string>
+  readonly evidenceUrl: string
+  readonly imageKey: string
+  readonly experienceIds: readonly string[]
+}
+
+export interface CaseStudyProject extends ProjectBase {
+  readonly kind: 'case-study'
   readonly problem: Localized<string>
   readonly responsibility: Localized<string>
   readonly solution: Localized<string>
   readonly result: Localized<string>
   readonly technologies: readonly string[]
-  readonly evidenceUrl: string
-  readonly imageKey: string
-  readonly experienceIds: readonly string[]
 }
+
+export interface ShowcaseProject extends ProjectBase {
+  readonly kind: 'showcase'
+  readonly category: Localized<string>
+  readonly summary: Localized<string>
+}
+
+export type Project = CaseStudyProject | ShowcaseProject
 
 export interface Education {
   readonly id: string
@@ -221,6 +233,7 @@ const experiences: readonly Experience[] = [
 const projects: readonly Project[] = [
   {
     id: 'jauntjar',
+    kind: 'case-study',
     title: { es: 'JauntJar', en: 'JauntJar' },
     problem: {
       es: 'Queríamos un espacio privado para planificar viajes, guardar destinos visitados y convertir experiencias en un ranking personal.',
@@ -252,6 +265,7 @@ const projects: readonly Project[] = [
   },
   {
     id: 'todo-lux',
+    kind: 'case-study',
     title: { es: 'Todo-Lux', en: 'Todo-Lux' },
     problem: {
       es: 'El sistema necesitaba análisis de requisitos, operación interna y flujos de importación y respaldo.',
@@ -276,6 +290,7 @@ const projects: readonly Project[] = [
   },
   {
     id: 'basuraleza',
+    kind: 'case-study',
     title: { es: 'Basuraleza', en: 'Basuraleza' },
     problem: {
       es: 'El proyecto necesitaba una aplicación con backend, web y móvil para la caracterización de residuos.',
@@ -301,6 +316,7 @@ const projects: readonly Project[] = [
   },
   {
     id: 'solutec',
+    kind: 'case-study',
     title: { es: 'Solutec', en: 'Solutec' },
     problem: {
       es: 'El producto necesitaba actualizar tecnologías y transferir datos sin perder información ni funcionalidades.',
@@ -322,6 +338,54 @@ const projects: readonly Project[] = [
     evidenceUrl: 'https://solutec.pccom.ai/',
     imageKey: 'solutec',
     experienceIds: ['tecandu'],
+  },
+  {
+    id: 'wattly',
+    kind: 'showcase',
+    title: { es: 'Wattly', en: 'Wattly' },
+    category: {
+      es: 'Precios de la electricidad',
+      en: 'Electricity prices',
+    },
+    summary: {
+      es: 'Compara los precios horarios de la electricidad en España y encuentra las horas más económicas para usar tus electrodomésticos.',
+      en: 'Compare hourly electricity prices in Spain and find the most economical times to use your appliances.',
+    },
+    evidenceUrl: 'https://wattly-alpha.vercel.app/',
+    imageKey: 'wattly',
+    experienceIds: [],
+  },
+  {
+    id: 'tvradar',
+    kind: 'showcase',
+    title: { es: 'TVRadar', en: 'TVRadar' },
+    category: {
+      es: 'Seguimiento de series',
+      en: 'TV series tracking',
+    },
+    summary: {
+      es: 'Organiza tus series, estrenos, pendientes y sesiones familiares en un solo lugar.',
+      en: 'Organize your series, premieres, watchlist, and family viewing in one place.',
+    },
+    evidenceUrl: 'https://tvradar.sgmr.es/',
+    imageKey: 'tvradar',
+    experienceIds: [],
+  },
+  {
+    id: 'duellum',
+    kind: 'showcase',
+    title: { es: 'Duellum', en: 'Duellum' },
+    category: {
+      es: 'Cuadros de decisión',
+      en: 'Decision brackets',
+    },
+    summary: {
+      es: 'Compara opciones por parejas, gestiona pases automáticos y guarda los resultados localmente en tu dispositivo.',
+      en: 'Compare options pair by pair, manage automatic byes, and save results locally on your device.',
+    },
+    evidenceUrl: 'https://duellum.vercel.app/',
+    imageKey: 'duellum',
+    experienceIds: [],
   },
 ]
 

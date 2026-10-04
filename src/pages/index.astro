@@ -7,36 +7,10 @@ import CodeSnippetBento from '@/components/sections/CodeSnippetBento.astro'
 import ExperienceSection from '@/components/sections/ExperienceSection.astro'
 import EducationLanguagesSection from '@/components/sections/EducationLanguagesSection.astro'
 import AboutContactSection from '@/components/sections/AboutContactSection.astro'
-import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
+import { PAGE_METADATA } from '@/lib/page-metadata'
 ---
 
-<PageShell
-  title="Sergio Morales Rodríguez — Tech Lead Full Stack"
-  description="Portfolio de Sergio Morales Rodríguez, Tech Lead Full Stack especializado en liderazgo técnico, arquitectura, APIs y entrega de producto."
-  schema={{
-    '@context': 'https://schema.org',
-    '@type': 'Person',
-    name: 'Sergio Morales Rodríguez',
-    jobTitle: 'Tech Lead Full Stack',
-    description:
-      'Tech Lead Full Stack especializado en liderazgo técnico, arquitectura, APIs y entrega de producto.',
-    url: 'https://sgmr.dev/',
-    sameAs: [
-      PROFESSIONAL_PROFILE.links.github,
-      PROFESSIONAL_PROFILE.links.linkedin,
-      PROFESSIONAL_PROFILE.links.twitter,
-    ],
-    knowsAbout: [
-      'Laravel',
-      'Livewire',
-      'FilamentPHP',
-      'Laravel Sanctum',
-      'CI/CD',
-      'Technical leadership',
-    ],
-    inLanguage: 'es-ES',
-  }}
->
+<PageShell localizedMetadata={PAGE_METADATA.home}>
   <HeroSection />
 
   <div class="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
@@ -44,9 +18,7 @@ import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
       <ProjectsSection />
     </div>
 
-    <div
-      class="order-4 flex min-w-0 flex-col gap-6 lg:order-none lg:col-span-4 lg:col-start-9 lg:row-start-1"
-    >
+    <div class="order-4 flex min-w-0 flex-col gap-6 lg:order-none lg:col-span-4 lg:col-start-9 lg:row-start-1">
       <CodeSnippetBento />
       <EducationLanguagesSection />
     </div>

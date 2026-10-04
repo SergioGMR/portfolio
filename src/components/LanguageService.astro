@@ -1,10 +1,5 @@
----
-import { translations, languageServiceScript } from '@/lib/language'
----
+<script>
+  import { initializeBrowserLanguage } from '@/lib/language-client'
 
-<script is:inline define:vars={{ translations }}>
-  // Make translations available globally
-  window.portfolioTranslations = translations
+  initializeBrowserLanguage()
 </script>
-
-<script is:inline set:html={languageServiceScript} />

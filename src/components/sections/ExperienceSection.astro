@@ -43,9 +43,7 @@ const dateRange = (experience: (typeof experiences)[number], locale: Locale) =>
       <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
         <LangText es="Trayectoria" en="Background" />
       </p>
-      <h2
-        class="text-foreground mt-1 text-2xl font-semibold tracking-tight sm:text-3xl"
-      >
+      <h2 class="text-foreground mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
         <LangText es="Experiencia profesional" en="Professional experience" />
       </h2>
     </div>
@@ -60,92 +58,90 @@ const dateRange = (experience: (typeof experiences)[number], locale: Locale) =>
   </div>
 
   <div class="grid min-w-0 gap-4">
-    {
-      experiences.map((experience, index) => (
-        <article
-          data-animate="reveal-up"
-          data-animate-delay={`${index * 70}ms`}
-          class="bento-card min-w-0 rounded-2xl p-4 sm:p-5"
-        >
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <p class="text-muted-foreground font-mono text-[10px] tracking-wider uppercase sm:text-[11px]">
-              <span data-lang-content="es">{dateRange(experience, 'es')}</span>
-              <span data-lang-content="en">{dateRange(experience, 'en')}</span>
-            </p>
-            <span class="border-primary/30 bg-primary/10 text-primary inline-flex w-fit rounded-full border px-2.5 py-1 font-mono text-[10px]">
-              <span data-lang-content="es">
-                {statusLabels.es[experience.status]} ·{' '}
-                {employmentLabels.es[experience.employmentType]}
-              </span>
-              <span data-lang-content="en">
-                {statusLabels.en[experience.status]} ·{' '}
-                {employmentLabels.en[experience.employmentType]}
-              </span>
+    {experiences.map((experience, index) => (
+      <article
+        data-animate="reveal-up"
+        data-animate-delay={`${index * 70}ms`}
+        class="bento-card min-w-0 rounded-2xl p-4 sm:p-5"
+      >
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <p class="text-muted-foreground font-mono text-[10px] tracking-wider uppercase sm:text-[11px]">
+            <span data-lang-content="es">{dateRange(experience, 'es')}</span>
+            <span data-lang-content="en">{dateRange(experience, 'en')}</span>
+          </p>
+          <span class="border-primary/30 bg-primary/10 text-primary inline-flex w-fit rounded-full border px-2.5 py-1 font-mono text-[10px]">
+            <span data-lang-content="es">
+              {statusLabels.es[experience.status]} ·{' '}
+              {employmentLabels.es[experience.employmentType]}
             </span>
+            <span data-lang-content="en">
+              {statusLabels.en[experience.status]} ·{' '}
+              {employmentLabels.en[experience.employmentType]}
+            </span>
+          </span>
+        </div>
+
+        <h3 class="text-foreground mt-3 text-lg font-semibold tracking-tight sm:text-xl">
+          <span data-lang-content="es">{experience.title.es}</span>
+          <span data-lang-content="en">{experience.title.en}</span>
+        </h3>
+
+        {experience.evidenceUrl ? (
+          <a
+            href={experience.evidenceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-primary mt-1 inline-flex text-sm font-medium hover:underline"
+          >
+            <span data-lang-content="es">
+              {experience.company.es} · {experience.location.es} ↗
+            </span>
+            <span data-lang-content="en">
+              {experience.company.en} · {experience.location.en} ↗
+            </span>
+          </a>
+        ) : (
+          <p class="text-primary mt-1 text-sm font-medium">
+            <span data-lang-content="es">
+              {experience.company.es} · {experience.location.es}
+            </span>
+            <span data-lang-content="en">
+              {experience.company.en} · {experience.location.en}
+            </span>
+          </p>
+        )}
+
+        <div class="text-muted-foreground mt-4 text-xs leading-relaxed">
+          <div data-lang-content="es">
+            <ul class="list-disc space-y-1.5 pl-4">
+              {experience.responsibilities.es.slice(0, 3).map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
           </div>
-
-          <h3 class="text-foreground mt-3 text-lg font-semibold tracking-tight sm:text-xl">
-            <span data-lang-content="es">{experience.title.es}</span>
-            <span data-lang-content="en">{experience.title.en}</span>
-          </h3>
-
-          {experience.evidenceUrl ? (
-            <a
-              href={experience.evidenceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary mt-1 inline-flex text-sm font-medium hover:underline"
-            >
-              <span data-lang-content="es">
-                {experience.company.es} · {experience.location.es} ↗
-              </span>
-              <span data-lang-content="en">
-                {experience.company.en} · {experience.location.en} ↗
-              </span>
-            </a>
-          ) : (
-            <p class="text-primary mt-1 text-sm font-medium">
-              <span data-lang-content="es">
-                {experience.company.es} · {experience.location.es}
-              </span>
-              <span data-lang-content="en">
-                {experience.company.en} · {experience.location.en}
-              </span>
-            </p>
-          )}
-
-          <div class="text-muted-foreground mt-4 text-xs leading-relaxed">
-            <div data-lang-content="es">
-              <ul class="list-disc space-y-1.5 pl-4">
-                {experience.responsibilities.es.slice(0, 3).map((item) => (
-                  <li>{item}</li>
-                ))}
-              </ul>
-            </div>
-            <div data-lang-content="en">
-              <ul class="list-disc space-y-1.5 pl-4">
-                {experience.responsibilities.en.slice(0, 3).map((item) => (
-                  <li>{item}</li>
-                ))}
-              </ul>
-            </div>
+          <div data-lang-content="en">
+            <ul class="list-disc space-y-1.5 pl-4">
+              {experience.responsibilities.en.slice(0, 3).map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
           </div>
+        </div>
 
-          <div class="border-border mt-4 border-t pt-3 text-xs font-medium">
-            <strong class="text-success">
-              <LangText es="Resultado:" en="Outcome:" />
-            </strong>{' '}
-            <span data-lang-content="es">{experience.outcomes.es[0]}</span>
-            <span data-lang-content="en">{experience.outcomes.en[0]}</span>
-          </div>
+        <div class="border-border mt-4 border-t pt-3 text-xs font-medium">
+          <strong class="text-success">
+            <LangText es="Resultado:" en="Outcome:" />
+          </strong>{' '}
+          <span data-lang-content="es">{experience.outcomes.es[0]}</span>
+          <span data-lang-content="en">{experience.outcomes.en[0]}</span>
+        </div>
 
-          <div class="mt-4 flex flex-wrap gap-1.5 font-mono text-[10px] tracking-wider uppercase">
-            {experience.technologies.map((technology) => (
-              <span class="tech-tag rounded-md px-2 py-1">{technology}</span>
-            ))}
-          </div>
-        </article>
-      ))
-    }
+        <div class="mt-4 flex flex-wrap gap-1.5 font-mono text-[10px] tracking-wider uppercase">
+          {experience.technologies.map((technology) => (
+            <span class="tech-tag rounded-md px-2 py-1">{technology}</span>
+          ))}
+        </div>
+      </article>
+    ))}
   </div>
 </section>
