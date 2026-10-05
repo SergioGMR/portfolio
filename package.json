@@ -2,7 +2,7 @@
   "name": "profile",
   "version": "25.08.12",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.19.0"
   },
   "description": "An Astro template for building peofiles.",
   "author": {
@@ -15,7 +15,7 @@
     "dev": "astro dev",
     "format": "prettier -w . --cache",
     "format:check": "prettier --check \"src/**/*.{astro,ts,css}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"package.json\" \"astro.config.ts\" \".lighthouserc.cjs\" \".github/workflows/*.yml\" --cache",
-    "lighthouse:ci": "bun run build && lhci autorun",
+    "lighthouse:ci": "bun run build && node scripts/lighthouse-ci.ts",
     "preview": "astro preview",
     "start": "astro dev",
     "test": "bun test",
@@ -33,14 +33,15 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
-    "@lhci/cli": "0.15.1",
     "@types/bun": "^1.3.14",
     "@types/node": "^24.19.1",
     "happy-dom": "20.14.5",
     "prettier": "^3.9.9",
     "prettier-plugin-astro": "^1.1.0",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "lighthouse": "13.5.0",
+    "chrome-launcher": "1.2.2"
   },
   "packageManager": "bun@1.4.2",
   "overrides": {

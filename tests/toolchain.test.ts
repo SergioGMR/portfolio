@@ -24,24 +24,26 @@ const workflow = readFileSync(
 describe('project toolchain', () => {
   test('pins one Bun-native quality toolchain', () => {
     expect(packageJson.packageManager).toBe('bun@1.4.2')
-    expect(packageJson.engines?.node).toBe('>=22.12.0')
+    expect(packageJson.engines?.node).toBe('>=22.19.0')
     expect(packageJson.scripts).toMatchObject({
       build: 'astro build && bun run verify:output',
       check: 'astro check',
       'format:check':
         'prettier --check "src/**/*.{astro,ts,css}" "scripts/**/*.ts" "tests/**/*.ts" "package.json" "astro.config.ts" ".lighthouserc.cjs" ".github/workflows/*.yml" --cache',
-      'lighthouse:ci': 'bun run build && lhci autorun',
+      'lighthouse:ci': 'bun run build && node scripts/lighthouse-ci.ts',
       test: 'bun test',
       'verify:output': 'bun scripts/verify-portfolio-output.ts',
     })
     expect(packageJson.devDependencies).toMatchObject({
       '@astrojs/check': '0.9.10',
-      '@lhci/cli': '0.15.1',
+      lighthouse: '13.5.0',
+      'chrome-launcher': '1.2.2',
       '@types/bun': '^1.3.14',
       'happy-dom': '20.14.5',
       typescript: '^6.0.3',
     })
     expect(packageJson.devDependencies).not.toHaveProperty('vitest')
+    expect(packageJson.devDependencies).not.toHaveProperty('@lhci/cli')
   })
 
   test('uses the compatible Astro 7 graph without losing current-main dependencies', () => {
@@ -70,6 +72,8 @@ describe('project toolchain', () => {
 
     const commands = [
       'run: bun ci',
+      'run: bun audit',
+      'run: bun audit --prod',
       'run: bun run format:check',
       'run: bun run check',
       'run: bun run test',
@@ -95,7 +99,6 @@ describe('compatible dependency advisory fixes', () => {
     ['brace-expansion', '^1.1.21 || ^5.0.12'],
     ['devalue', '^5.9.3'],
     ['http-cache-semantics', '^4.3.0'],
-    ['ip-address', '^10.7.1'],
     ['js-yaml', '^3.15.2 || ^4.3.0'],
     ['nanoid', '^3.3.18 || ^5.1.0'],
     ['picomatch', '^2.3.2 || ^4.0.4'],
@@ -121,12 +124,13 @@ describe('compatible dependency advisory fixes', () => {
 describe('parent-scoped Vercel routing patch', () => {
   const require = createRequire(import.meta.url)
   const routingRequire = createRequire(require.resolve('@vercel/routing-utils'))
-  const expressRequire = createRequire(require.resolve('express'))
   const routing = require('@vercel/routing-utils')
 
-  test("patches the Vercel parser without changing Express's 0.1 API", () => {
+  test('patches only the exact Vercel parent parser', () => {
     expect(routingRequire('path-to-regexp/package.json').version).toBe('6.3.0')
-    expect(expressRequire('path-to-regexp/package.json').version).toBe('0.1.13')
+    expect(
+      JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).overrides,
+    ).toEqual({ '@vercel/routing-utils@6.6.0': { 'path-to-regexp': '6.3.0' } })
   })
 
   test.each([
@@ -153,27 +157,29 @@ describe('parent-scoped Vercel routing patch', () => {
   })
 })
 
-describe('compatible query-parser parent refresh', () => {
-  const require = createRequire(import.meta.url)
-
-  for (const parent of ['express', 'body-parser']) {
-    const parentRequire = createRequire(require.resolve(parent))
-    const qs = parentRequire('qs')
-
-    test(`${parent} resolves the patched 6.x query parser`, () => {
-      expect(parentRequire('qs/package.json').version).toBe('6.16.0')
-    })
-
-    test(`${parent} preserves normal nested, array, and encoded parsing`, () => {
+describe('removed vulnerable Lighthouse tooling graph', () => {
+  test('does not retain unused LHCI parents or their blocked packages', () => {
+    const lock = Bun.JSONC.parse(
+      readFileSync(join(root, 'bun.lock'), 'utf8'),
+    ) as { packages: Record<string, [string, ...unknown[]]> }
+    for (const name of [
+      '@lhci/cli',
+      '@lhci/utils',
+      'express',
+      'body-parser',
+      'qs',
+      'basic-ftp',
+      'extract-zip',
+      'tmp',
+      'uuid',
+      'ip-address',
+    ]) {
       expect(
-        qs.parse(
-          'language=en&projects[]=wattly&projects[]=tvradar&profile[name]=Sergio%20GMR',
+        Object.values(lock.packages).some(([resolved]) =>
+          resolved.startsWith(`${name}@`),
         ),
-      ).toEqual({
-        language: 'en',
-        projects: ['wattly', 'tvradar'],
-        profile: { name: 'Sergio GMR' },
-      })
-    })
-  }
+      ).toBe(false)
+      expect(packageJson.devDependencies).not.toHaveProperty(name)
+    }
+  })
 })

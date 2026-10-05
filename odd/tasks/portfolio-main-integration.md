@@ -18,10 +18,9 @@ That local proof is not production proof. PUB-01 remains pending and remote
 publication authority stays with the parent. The parent has atomically pushed
 the feature branch and `dev` to
 `278baef2968f0873c78f101dbcdb50e98171645f`; fresh remote evidence still places
-`main` at `477dc7af55161c3c351641849f507a139aafd8fe`. Main promotion is stopped on
-the dependency-audit gate. Authorized SEC-01 has removed every production
-advisory but remains partial on six tooling incidences; VAL-02 and PUB-01 stay
-pending.
+`main` at `477dc7af55161c3c351641849f507a139aafd8fe`. Main promotion awaits fresh independent proof. Authorized SEC-01 has
+removed all production and tooling advisories, with full writer verification
+recorded below; VAL-02 and PUB-01 stay pending.
 
 ## Why this exists
 
@@ -141,7 +140,7 @@ Expected reconciled scripts:
 | `format:check` | `prettier --check "src/**/*.{astro,ts,css}" "scripts/**/*.ts" "tests/**/*.ts" "package.json" "astro.config.ts" ".lighthouserc.cjs" ".github/workflows/*.yml" --cache` |
 | `build` | `astro build && bun run verify:output` |
 | `verify:output` | `bun scripts/verify-portfolio-output.ts` |
-| `lighthouse:ci` | `bun run build && lhci autorun` |
+| `lighthouse:ci` | `bun run build && node scripts/lighthouse-ci.ts` |
 
 For implementation, record an observed RED from new/adapted integration tests
 before resolving the behavior, then GREEN and REFACTOR. Earlier green evidence
@@ -221,24 +220,32 @@ belongs to different bytes and cannot be reused.
     Lighthouse runs again scored 100 in all four categories with TBT 0 and CLS
     0; median LCP was 1431.6771 ms against the unchanged warning-only 1200 ms
     budget. Validation processes were cleaned up.
-- [ ] **SEC-01 — Remediate known dependency advisories compatibly.**
+- [x] **SEC-01 — Remediate known dependency advisories compatibly.**
   - Route: delegated direct (`odd-worker`, user-authorized `gpt-6.1-sol/high`).
   - Trigger evidence: manifest/lock, blocked parent ranges, regression tests,
     and CI audit contract require coordinated non-trivial changes.
   - Scope: prefer published compatible patch/minor refreshes; only proven
     compatible narrow overrides; no audit ignores or incompatible major force.
+    User approval 22324 additionally authorizes replacing the blocked LHCI
+    tooling with a supported published Lighthouse runner, retaining all five
+    mobile runs, four category scores of 100, metric budgets/severities,
+    filesystem reports, and fail-closed measurement/assertion behavior.
+  - Replacement route: delegated direct; package/lock, runner, CI, and tests
+    are coordinated non-trivial paths. Strict Bun TDD remains enabled.
+    Existing configuration is the authoritative unchanged budget declaration.
   - Checks: Bun-native regression RED before behavior change, then GREEN;
     frozen install, zero-incidence full/production audits, all functional gates.
-  - Partial outcome: 41 of 47 baseline incidences resolved, including all 28
+  - Earlier partial outcome at `2cf726e`: 41 of 47 baseline incidences resolved, including all 28
     production incidences and the critical `tar` issue. Full audit remains red
-    on six LHCI incidences; this task is intentionally unchecked.
+    on six LHCI incidences; the replacement closure below supersedes only
+    that gate disposition, not its historical evidence.
   - TDD: compatible floors RED 4 pass/8 fail -> GREEN 12/0; actual Vercel
     resolution/matching/rewrite/compile RED 17/1 -> GREEN 18/0; actual Express
     and body-parser query resolution/parsing RED 20/2 -> GREEN 22/0.
-  - No direct dependency version changed. One exact parent/version-scoped
+  - Earlier compatible-refresh unit: no direct dependency version changed. One exact parent/version-scoped
     override patches only `@vercel/routing-utils@6.6.0`'s `path-to-regexp`;
     Express's separate 0.1 parser remains 0.1.13.
-  - Writer checks on the normalized final source: `bun ci`, `format:check`,
+  - Earlier compatible-refresh writer checks on its normalized source: `bun ci`, `format:check`,
     Astro check (36 files, zero diagnostics), targeted tests (78/0, 444
     expectations), full tests (85/0, 490 expectations), four-page build with
     37 optimized images, and explicit output verification all exited 0.
@@ -287,7 +294,7 @@ VAL-02 requires fresh independent proof. The old counts above are baseline
 evidence, not a disposition of the changed graph.
 
 
-### Authorized remediation disposition (2026-10-05)
+### Earlier compatible-refresh disposition at `2cf726e` (2026-10-05)
 
 Source changes are limited to `package.json`, generated `bun.lock`, and
 `tests/toolchain.test.ts`; this document is the only additional authored path.
@@ -358,6 +365,92 @@ Source mutating normalization was limited to `package.json` and
 `tests/toolchain.test.ts` before the final full command sequence. No byte changes
 to these paths or the generated lock occurred after that verification.
 
+### Lighthouse replacement closure (2026-10-05)
+
+Approval 22324 authorized a maintained published Lighthouse replacement rather
+than forcing unsupported majors under LHCI. `lighthouse` 13.5.0 and
+`chrome-launcher` 1.2.2 replace `@lhci/cli` 0.15.1. The supported parent graph now
+resolves `puppeteer-core` 25.12.0 and `@puppeteer/browsers` 3.2.3 without overrides
+on that chain. LHCI, Express/body-parser/qs, basic-ftp, extract-zip, tmp, uuid,
+and ip-address are absent from the generated lock. Old query-parser tests now
+assert removal instead of retaining unused tooling just to test it. Remaining
+patched-floor and actual Vercel routing API regressions stay intact; the exact
+Vercel-only override is unchanged.
+
+The [published Lighthouse release](https://github.com/GoogleChrome/lighthouse/releases/tag/v13.5.0)
+and [versioned Node API](https://github.com/GoogleChrome/lighthouse/blob/v13.5.0/docs/readme.md)
+support direct measurement with explicit owned Chrome and returned JSON/HTML.
+[Published metadata](https://registry.npmjs.org/lighthouse/13.5.0) declares
+Node >=22.19 and puppeteer-core ^25.9.0; the manifest now reflects >=22.19.0.
+CI remains Node 24 and Bun 1.4.2. No host/browser runtime was installed.
+
+Quick path: `bun run lighthouse:ci` builds and verifies output, measures five
+real mobile runs through `scripts/lighthouse-ci.ts`, evaluates the unchanged
+`.lighthouserc.cjs`, and writes all five JSON/HTML reports plus assertion
+aggregation into a unique directory beneath `.lighthouse`. Error failures,
+invalid/missing data, interrupted measurement, incomplete reports, and cleanup
+failures exit nonzero. Warnings remain visible without failing. No browser
+install, upload service, audit ignore, suppression, or budget relaxation is used.
+The server binds an owned ephemeral 127.0.0.1 port, confines real paths to dist,
+and rejects escaping symlinks/traversal and non-GET/HEAD methods. Browser/profile
+ownership is retained even across failed launch; finally/SIGINT/SIGTERM cleanup
+closes server and browser. Category scores are enforced in every run, stronger
+than LHCI's implicit optimistic (best-run) default; all explicit numeric median
+aggregations, thresholds, and severities remain unchanged.
+
+The first real five-run gate failed correctly at performance **99 in all five
+runs**; the other three required categories scored 100. Median LCP was
+2103.5532 ms and FCP 1353.5532 ms, both warnings; server response 1 ms, TBT 0,
+and CLS 0 passed. Evidence is retained in `.lighthouse/run-1791186499054`.
+Diagnosis found a candidate-caused transport omission, not a UI regression:
+identical 69,889-byte HTML transferred 70,055 bytes without compression vs
+13,453 in the old report; identical CSS transferred 35,942 vs 8,167 bytes.
+The [official LHCI fallback server](https://github.com/GoogleChrome/lighthouse-ci/blob/v0.15.1/packages/cli/src/collect/fallback-server.js)
+uses compression. Native negotiated gzip restores that transport without any
+source content or budget change; its default compressed HTML is 13,247 bytes
+before response headers. The corrected run demonstrates the causal fix, not a
+blind retry or score adjustment.
+
+TDD evidence: initial runner RED 0 pass/1 fail (module absent), then explicit
+toolchain RED 20 pass/2 fail (old command and absent audit gates), before runner
+or dependency behavior changed. The transport regression was RED 34 pass/1
+fail before gzip and GREEN afterward. Incomplete HTML report RED 0/1 was also
+observed before its fail-closed guard. Final runner suite is **36 pass, 0 fail,
+76 expectations**. No new test framework was added.
+
+| Final normalized writer gate | Observed result |
+| --- | --- |
+| `bun ci` | Exit 0; frozen graph, no lock change |
+| `bun audit` | Exit 0; **0 vulnerabilities**, 524 packages |
+| `bun audit --prod` | Exit 0; **0 vulnerabilities**, 372 packages |
+| `bun run format:check` | Exit 0; every matched path formatted |
+| `bun run check` | Exit 0; 38 files, zero errors/warnings/hints |
+| New runner tests | Exit 0; 36/0, 76 expectations |
+| Required targeted existing suites | Exit 0; 74/0, 456 expectations |
+| `bun run test` | Exit 0; 117/0, 578 expectations across 10 files |
+| `bun run build` | Exit 0; four pages, 37 optimized images; output verifier passes |
+| `bun run verify:output` | Exit 0; HTML/locales/links/sitemap/PDF aliases pass |
+| Actual `CHROME_PATH=<existing Edge> bun run lighthouse:ci` | Exit 0; Lighthouse 13.5.0, five real mobile runs, four required categories 100 in every run |
+| Corrected medians | LCP **1429.9134 ms** warning vs 1200; FCP **904.9134 ms** vs 1000; server **1 ms** vs 300; TBT **0** vs 50; CLS **0** vs 0.02 |
+| CI contract | Frozen install, full and production audits, format/check/test/build/Lighthouse in order; CI execution itself pending |
+
+Corrected real reports are `.lighthouse/run-1791186763126`, with five raw JSON,
+five HTML, and `assertions.json`. Only the existing LCP warning remains. Node's
+MODULE_TYPELESS_PACKAGE_JSON warning also appeared because the isolated TS
+runner is inferred as ESM; this is a startup advisory, not a failing check.
+Node 24.19.0/Bun 1.4.2 were explicitly selected for all writer gates; the host's
+default Node version was not used. Both owned static ports (60097 failed,
+60465 corrected) have no listener after completion. UI/source assets/public
+content and `.lighthouserc.cjs` remain unchanged. Protected original-checkout
+hashes are unchanged. No worker remote operation or native RDD review occurred.
+
+Rollback is one normal revert of this coherent tooling work unit: manifest,
+generated lock, runner/test, toolchain regressions, CI audit steps, and recovery
+record only. The larger authored count reflects explicit lifecycle and failure
+contracts plus tests, not artificial file-type slices; existing integration
+`exception-ok`/`size:exception` remains. VAL-02 and PUB-01 remain unchecked:
+writer proof is not independent, CI, provider, or production proof.
+
 ## Acceptance criteria
 
 - `git merge-base --is-ancestor 5ce09c867b9abaa6b51ee98c1d4bed16eadd2132 HEAD`
@@ -375,6 +468,10 @@ to these paths or the generated lock occurred after that verification.
 - Canonical, Open Graph, sitemap, robots, and live ES/EN document metadata all
   resolve consistently to the current production origin.
 - Reduced-motion behavior disables direct/reveal motion without hiding content.
+- Full and production dependency audits contain zero incidences without ignores.
+- Lighthouse retains all five mobile runs, all four score-100 category error
+  checks, exact median metric budgets/severities, filesystem reports, and
+  fail-closed execution.
 - CI uses Bun 1.4.2 with `bun ci` and runs check-only formatting, Astro checks,
   Bun tests, and the production build/output verifier in dependency order.
 - Historical audit/task documents are retained as prior source evidence only;
@@ -392,6 +489,7 @@ bun audit
 bun audit --prod
 bun run format:check
 bun run check
+bun test scripts/lighthouse-ci.test.ts
 bun test src/lib/professional-profile.test.ts \
   scripts/verify-portfolio-output.test.ts tests/projects.test.ts \
   tests/language-client.test.ts tests/reduced-motion.test.ts \
@@ -426,11 +524,11 @@ chroma subsampling through the existing Sharp dependency.
 - Writer validation used Bun `1.4.2`, Git `2.50.1`, and the existing fnm Node
   `v24.19.0` executable at
   `/Users/sergiogmr/.local/share/fnm/node-versions/v24.19.0/installation/bin/node`.
-- Current main already declares `@lhci/cli`, `sharp`, Space Grotesk, and the
+- Before SEC-01 replacement, current main declared `@lhci/cli`, `sharp`, Space Grotesk, and the
   Astro/Tailwind/Vercel stack. No new UI or image dependency is planned.
-- Reconcile to one compatible Astro 7 dependency graph while retaining
-  `@fontsource/space-grotesk` and `@lhci/cli`; do not force incompatible latest
-  versions. The lockfile is generated output and must come only from the final
+- The original integration retained `@fontsource/space-grotesk` and LHCI on
+  Astro 7. Approval 22324 replaces only LHCI with the supported published
+  Lighthouse graph; Space Grotesk and application dependencies remain unchanged. The lockfile is generated output and must come only from the final
   manifest via Bun 1.4.2.
 - Lighthouse used the existing Microsoft Edge `154.0.4258.53` executable at
   `/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge`. Automatic
@@ -488,14 +586,13 @@ omitting tests/docs remain unacceptable.
 - Remote feature and `dev` now point to verified `278baef`; freshly observed
   `main` remains `477dc7a`. PUB-01 remains unchecked because main promotion is
   stopped on the dependency-audit gate.
-- Next: parent decides the bounded maintenance path for six unresolved LHCI
-  incidences, with unpatched extract-zip the hard blocker. The production graph
-  is clean, but main must remain stopped while full audit is red. Preserve the
-  partial work unit, independently verify only as the parent routes it, and
-  retain VAL-02/PUB-01 unchecked until their actual outcomes are observed.
+- SEC-01 is complete with zero full/production audit incidences and fresh writer
+  functional/Lighthouse proof. Initial transport failure and corrected evidence
+  are preserved above. Next: parent independently verifies the exact committed
+  replacement candidate (VAL-02), then owns any publication decision (PUB-01).
 - RDD is globally OFF per the parent's fresh read-only status. Do not invoke
   native review or change the user-owned mode during this remediation.
-- Remediation forecast: approximately 100-200 additional authored lines plus
+- Earlier compatible-refresh forecast: approximately 100-200 additional authored lines plus
   generated lock changes; existing coherent-integration `exception-ok` remains.
   Rollback of this unit covers only its manifest/lock/test/CI and recovery edits,
   through a normal revert; unrelated integration history remains intact.

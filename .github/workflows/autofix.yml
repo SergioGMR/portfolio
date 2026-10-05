@@ -26,6 +26,12 @@ jobs:
       - name: Install dependencies from lockfile
         run: bun ci
 
+      - name: Audit all dependencies
+        run: bun audit
+
+      - name: Audit production dependencies
+        run: bun audit --prod
+
       - name: Check formatting
         run: bun run format:check
 
