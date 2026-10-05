@@ -18,9 +18,10 @@ That local proof is not production proof. PUB-01 remains pending and remote
 publication authority stays with the parent. The parent has atomically pushed
 the feature branch and `dev` to
 `278baef2968f0873c78f101dbcdb50e98171645f`; fresh remote evidence still places
-`main` at `477dc7af55161c3c351641849f507a139aafd8fe`. Main promotion awaits fresh independent proof. Authorized SEC-01 has
-removed all production and tooling advisories, with full writer verification
-recorded below; VAL-02 and PUB-01 stay pending.
+`main` at `477dc7af55161c3c351641849f507a139aafd8fe`. Authorized SEC-01 has removed all production and tooling advisories.
+Fresh independent VAL-02 verification passed on exact `65efcb2`; its evidence
+and the parent spot check are recorded below. Only PUB-01 remains pending;
+publication stays parent-controlled and is not claimed here.
 
 ## Why this exists
 
@@ -253,12 +254,39 @@ belongs to different bytes and cannot be reused.
     Production audit exited 0 across 372 packages; full audit exited 1 with
     4 high, 1 moderate, and 1 low incidence. Final Lighthouse/commit evidence
     is recorded in the remediation disposition below.
-- [ ] **VAL-02 — Independently verify the exact remediated candidate.**
+- [x] **VAL-02 — Independently verify the exact remediated candidate.**
   - Route: delegated verification (`odd-verify`), launched by the parent after
     SEC-01 self-verification.
   - Trigger evidence: changed toolchain requires fresh install/audit/build,
     output/performance, preserved UI, and ancestry proof on exact new bytes.
-  - Progress: pending; earlier VAL-01 does not certify the changed graph.
+  - Observed outcome: a fresh independent verifier completed all requested
+    commands on clean exact `65efcb2e8e3d5b4b58dae3c65b425c739de27251`,
+    using Node 24.19.0, Bun 1.4.2, and existing Edge 154. Evidence: Engram
+    22350; source work-unit `6f75dcf41cd658fc4c1b0b8e25edcdaf197c2d6e`.
+  - All command exits were 0: frozen install; full audit (zero vulnerabilities,
+    524 packages); production audit (zero, 372); format check; Astro check
+    (38 files, zero diagnostics); runner tests (36/0, 76 expectations);
+    required targeted suites (74/0, 456); full tests (117/0, 578 across ten
+    files); four-page build with 37 images; output verification; actual
+    five-run Lighthouse; baseline diff check; both required ancestries.
+  - Every real Lighthouse 13.5.0 run scored 100 for all four required
+    categories. Independent raw-report recomputation matched all nine
+    assertions in `.lighthouse/run-1791189989595`. Medians: LCP 1428.80745 ms
+    (unchanged warning-only 1200 ms budget), FCP 903.80745 ms, server response
+    1 ms, TBT 0, CLS 0. The visible Node ESM-inference warning was nonfatal.
+  - The parent spot check repeated `bun run test` on exact `65efcb2`:
+    exit 0, 117/0, 578 expectations. Earlier VAL-01/writer proof was not
+    substituted for this independent run.
+  - Source/config/public retention and six protected original dirt hashes
+    matched. Normal owned browser/profile cleanup and static/debug ports
+    64491/64492 closure were confirmed. Failure and signal paths were
+    inspected and unit-tested, not separately exercised with a real browser
+    signal. No new eight-state visual proof or CI/provider/production proof
+    is claimed. RDD stayed globally OFF; no remote operation occurred.
+  - Closure is passive recovery-document-only: structural readback and
+    source-identity/diff checks apply; another runtime run is N/A because
+    this closure introduces no source/config/lock/runtime change. Rollback
+    is a normal revert limited to this recovery document.
 - [ ] **PUB-01 — Publish the same validated SHA through the authorized SSH
   channel.**
   - Route: parent-controlled remote delivery; no worker may expand it.
@@ -269,10 +297,11 @@ belongs to different bytes and cannot be reused.
     `278baef2968f0873c78f101dbcdb50e98171645f`. A fresh check showed `main`
     still at `477dc7af55161c3c351641849f507a139aafd8fe`; no remote dev/reference
     branch existed before this publication.
-  - Main promotion is not authorized while the dependency-audit gate below is
-    unresolved. Keep this task unchecked until a remediated exact candidate
-    passes audit disposition plus every functional gate and the main push is
-    confirmed. Do not use force, `gh`, an API credential, or manual deployment.
+  - Local audit disposition and independent functional proof are complete.
+    Keep this task unchecked until the parent confirms the authorized remote
+    publication of the source-identical candidate under ordinary repository
+    policy. No publication has occurred for this remediated candidate in this
+    worker. Do not use force, `gh`, an API credential, or manual deployment.
 
 ## Dependency-audit gate before main
 
@@ -291,7 +320,7 @@ their identities were not available and must not be inferred from local output.
 
 The user subsequently authorized bounded compatible remediation (22293) and
 the available writer/verifier model (22305). SEC-01 now owns the local correction;
-VAL-02 requires fresh independent proof. The old counts above are baseline
+VAL-02 now has fresh independent proof below. The old counts above are baseline
 evidence, not a disposition of the changed graph.
 
 
@@ -456,8 +485,9 @@ generated lock, runner/test, toolchain regressions, CI audit steps, and recovery
 record only. The work unit has 1,076 authored changed lines (additions plus deletions),
 excluding 647 generated lock changes. That count reflects explicit lifecycle
 and failure contracts plus tests, not artificial file-type slices; existing integration
-`exception-ok`/`size:exception` remains. VAL-02 and PUB-01 remain unchecked:
-writer proof is not independent, CI, provider, or production proof.
+`exception-ok`/`size:exception` remains. The later independent VAL-02 run is
+recorded above; PUB-01 remains unchecked. Writer proof alone is not independent,
+CI, provider, or production proof.
 
 ## Acceptance criteria
 
@@ -580,9 +610,10 @@ omitting tests/docs remain unacceptable.
 - Worktree `fix/portfolio-main-integration-20261004` contains the two-parent
   merge `05ff55eb2573d5a253d98bdf231d3b1748c06877`. Both required ancestry checks
   and the post-commit diff check passed.
-- Earlier VAL-01 evidence belongs to pre-remediation bytes. SEC-01 now changes
-  the manifest/lock/regression suite and has its own fresh writer proof; VAL-02
-  remains pending and must not reuse earlier source validation.
+- Earlier VAL-01 evidence belongs to pre-remediation bytes. SEC-01 has fresh
+  writer proof, and VAL-02 independently verified exact `65efcb2` rather than
+  reusing earlier source validation. This closure changes only recovery text;
+  source/config/lock remain identical to that independently verified candidate.
 - CodeGraph was initialized independently in this worktree; no index was copied
   or linked from the original checkout.
 - This worker performed no fetch, push, GitHub API call, credential discovery,
@@ -590,14 +621,16 @@ omitting tests/docs remain unacceptable.
   authorized normal SSH feature/dev push described under PUB-01.
 - VAL-01 is complete on exact `f3099161745b2f8ab04c8456a572d6b1547acb4d`.
   At its earlier passive closure, repository source remained byte-identical
-  to that verified candidate. SEC-01 now requires its own exact-source proof.
-- Remote feature and `dev` now point to verified `278baef`; freshly observed
-  `main` remains `477dc7a`. PUB-01 remains unchecked because main promotion is
-  stopped on the dependency-audit gate.
+  to that verified candidate. SEC-01 and VAL-02 now have their own exact-source
+  proof; the historical VAL-01 result remains scoped to its earlier bytes.
+- Last parent-provided remote evidence places feature/`dev` at verified
+  `278baef` and `main` at `477dc7a`. This passive closure performs no remote
+  probe or publication; PUB-01 remains unchecked until parent confirmation.
 - SEC-01 is complete with zero full/production audit incidences and fresh writer
   functional/Lighthouse proof. Initial transport failure and corrected evidence
-  are preserved above. Next: parent independently verifies the exact committed
-  replacement candidate (VAL-02), then owns any publication decision (PUB-01).
+  are preserved above. VAL-02 is complete on exact `65efcb2`, including the
+  parent test spot check. Next: parent owns remote freshness, ordinary delivery
+  policy, and any authorized publication (PUB-01); no production claim yet.
 - RDD is globally OFF per the parent's fresh read-only status. Do not invoke
   native review or change the user-owned mode during this remediation.
 - Earlier compatible-refresh forecast: approximately 100-200 additional authored lines plus
