@@ -233,6 +233,7 @@ belongs to different bytes and cannot be reused.
   - Replacement route: delegated direct; package/lock, runner, CI, and tests
     are coordinated non-trivial paths. Strict Bun TDD remains enabled.
     Existing configuration is the authoritative unchanged budget declaration.
+  - Closure commit: `6f75dcf41cd658fc4c1b0b8e25edcdaf197c2d6e`.
   - Checks: Bun-native regression RED before behavior change, then GREEN;
     frozen install, zero-incidence full/production audits, all functional gates.
   - Earlier partial outcome at `2cf726e`: 41 of 47 baseline incidences resolved, including all 28
@@ -384,6 +385,11 @@ support direct measurement with explicit owned Chrome and returned JSON/HTML.
 Node >=22.19 and puppeteer-core ^25.9.0; the manifest now reflects >=22.19.0.
 CI remains Node 24 and Bun 1.4.2. No host/browser runtime was installed.
 
+Verified source work-unit commit: `6f75dcf41cd658fc4c1b0b8e25edcdaf197c2d6e`.
+All required final gates above/below were run against the normalized bytes
+committed there; post-commit source hashes remain identical. The later identity
+closure changes only this recovery document, not verified source/config/lock.
+
 Quick path: `bun run lighthouse:ci` builds and verifies output, measures five
 real mobile runs through `scripts/lighthouse-ci.ts`, evaluates the unchanged
 `.lighthouserc.cjs`, and writes all five JSON/HTML reports plus assertion
@@ -435,7 +441,8 @@ observed before its fail-closed guard. Final runner suite is **36 pass, 0 fail,
 | CI contract | Frozen install, full and production audits, format/check/test/build/Lighthouse in order; CI execution itself pending |
 
 Corrected real reports are `.lighthouse/run-1791186763126`, with five raw JSON,
-five HTML, and `assertions.json`. Only the existing LCP warning remains. Node's
+five HTML, and `assertions.json`. Only the existing LCP warning remains. Post-commit baseline diff check and
+both required ancestry commands exited 0. Node's
 MODULE_TYPELESS_PACKAGE_JSON warning also appeared because the isolated TS
 runner is inferred as ESM; this is a startup advisory, not a failing check.
 Node 24.19.0/Bun 1.4.2 were explicitly selected for all writer gates; the host's
@@ -446,8 +453,9 @@ hashes are unchanged. No worker remote operation or native RDD review occurred.
 
 Rollback is one normal revert of this coherent tooling work unit: manifest,
 generated lock, runner/test, toolchain regressions, CI audit steps, and recovery
-record only. The larger authored count reflects explicit lifecycle and failure
-contracts plus tests, not artificial file-type slices; existing integration
+record only. The work unit has 1,076 authored changed lines (additions plus deletions),
+excluding 647 generated lock changes. That count reflects explicit lifecycle
+and failure contracts plus tests, not artificial file-type slices; existing integration
 `exception-ok`/`size:exception` remains. VAL-02 and PUB-01 remain unchecked:
 writer proof is not independent, CI, provider, or production proof.
 
