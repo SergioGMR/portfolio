@@ -19,7 +19,9 @@ publication authority stays with the parent. The parent has atomically pushed
 the feature branch and `dev` to
 `278baef2968f0873c78f101dbcdb50e98171645f`; fresh remote evidence still places
 `main` at `477dc7af55161c3c351641849f507a139aafd8fe`. Main promotion is stopped on
-a newly observed dependency-audit gate pending explicit remediation consent.
+the dependency-audit gate. Authorized SEC-01 has removed every production
+advisory but remains partial on six tooling incidences; VAL-02 and PUB-01 stay
+pending.
 
 ## Why this exists
 
@@ -47,9 +49,12 @@ histories and reconcile behavior deliberately.
 
 INT-01 and VAL-01 are complete in the isolated worktree. The parent completed
 the authorized feature/dev SSH publication; this worker performed no remote
-operation. The current phase is a human dependency-remediation decision before
-main promotion. This passive closure authorizes only this recovery document and
-its Engram mirror; it does not authorize dependency changes.
+operation. User consent recorded in Engram observations 22293 and 22305
+authorizes compatible local dependency remediation, necessary local install/lock
+regeneration, regression tests, and all functional checks before main. The
+configured 5.6 worker never executed because of capacity; the user authorized
+`gpt-6.1-sol` for the writer and independent verifier. No worker remote operation
+is authorized; UI/assets/CVs/routes/locale redesign remains excluded.
 
 ## Design read
 
@@ -216,6 +221,36 @@ belongs to different bytes and cannot be reused.
     Lighthouse runs again scored 100 in all four categories with TBT 0 and CLS
     0; median LCP was 1431.6771 ms against the unchanged warning-only 1200 ms
     budget. Validation processes were cleaned up.
+- [ ] **SEC-01 — Remediate known dependency advisories compatibly.**
+  - Route: delegated direct (`odd-worker`, user-authorized `gpt-6.1-sol/high`).
+  - Trigger evidence: manifest/lock, blocked parent ranges, regression tests,
+    and CI audit contract require coordinated non-trivial changes.
+  - Scope: prefer published compatible patch/minor refreshes; only proven
+    compatible narrow overrides; no audit ignores or incompatible major force.
+  - Checks: Bun-native regression RED before behavior change, then GREEN;
+    frozen install, zero-incidence full/production audits, all functional gates.
+  - Partial outcome: 41 of 47 baseline incidences resolved, including all 28
+    production incidences and the critical `tar` issue. Full audit remains red
+    on six LHCI incidences; this task is intentionally unchecked.
+  - TDD: compatible floors RED 4 pass/8 fail -> GREEN 12/0; actual Vercel
+    resolution/matching/rewrite/compile RED 17/1 -> GREEN 18/0; actual Express
+    and body-parser query resolution/parsing RED 20/2 -> GREEN 22/0.
+  - No direct dependency version changed. One exact parent/version-scoped
+    override patches only `@vercel/routing-utils@6.6.0`'s `path-to-regexp`;
+    Express's separate 0.1 parser remains 0.1.13.
+  - Writer checks on the normalized final source: `bun ci`, `format:check`,
+    Astro check (36 files, zero diagnostics), targeted tests (78/0, 444
+    expectations), full tests (85/0, 490 expectations), four-page build with
+    37 optimized images, and explicit output verification all exited 0.
+    Production audit exited 0 across 372 packages; full audit exited 1 with
+    4 high, 1 moderate, and 1 low incidence. Final Lighthouse/commit evidence
+    is recorded in the remediation disposition below.
+- [ ] **VAL-02 — Independently verify the exact remediated candidate.**
+  - Route: delegated verification (`odd-verify`), launched by the parent after
+    SEC-01 self-verification.
+  - Trigger evidence: changed toolchain requires fresh install/audit/build,
+    output/performance, preserved UI, and ancestry proof on exact new bytes.
+  - Progress: pending; earlier VAL-01 does not certify the changed graph.
 - [ ] **PUB-01 — Publish the same validated SHA through the authorized SSH
   channel.**
   - Route: parent-controlled remote delivery; no worker may expand it.
@@ -246,10 +281,82 @@ their identities were not available and must not be inferred from local output.
 | Other observed packages | `brace-expansion` 5.0.4, `devalue` 5.8.2, `http-cache-semantics` 4.2.0, `nanoid` 3.3.16, `path-to-regexp` 6.1.0, `picomatch`, and additional transitive occurrences |
 | Dry-run only | `bun audit fix --dry-run` proposed 38 fixes and reported 9 occurrences blocked by parent dependency ranges; it installed or changed nothing |
 
-This finding does not automatically authorize a new implementation task.
-Next, the parent must obtain explicit human approval for a bounded compatible
-dependency remediation, then repeat the audit and every functional validation
-on the resulting exact candidate before considering main promotion.
+The user subsequently authorized bounded compatible remediation (22293) and
+the available writer/verifier model (22305). SEC-01 now owns the local correction;
+VAL-02 requires fresh independent proof. The old counts above are baseline
+evidence, not a disposition of the changed graph.
+
+
+### Authorized remediation disposition (2026-10-05)
+
+Source changes are limited to `package.json`, generated `bun.lock`, and
+`tests/toolchain.test.ts`; this document is the only additional authored path.
+No UI, assets, CVs, route configuration, locale behavior, or direct dependency
+version was changed. No worker remote operation occurred.
+
+| Transitive package | Baseline -> corrected |
+| --- | --- |
+| `brace-expansion` | 1.1.16 -> 1.1.21; 5.0.4 -> 5.0.12 |
+| `devalue` | 5.8.2 -> 5.9.3 |
+| `http-cache-semantics` | 4.2.0 -> 4.3.0 |
+| `ip-address` | 10.3.1 -> 10.7.1 |
+| `js-yaml` | 3.15.0 -> 3.15.2 |
+| `nanoid` | 3.3.16 -> 3.3.18 |
+| `picomatch` | 2.3.1 -> 2.3.2; 4.0.3 -> 4.0.4 |
+| `tar` | 7.5.12 -> 7.5.21, beyond the later high advisory as well as the critical |
+| `path-to-regexp` under Vercel only | 6.1.0 -> 6.3.0 |
+| `express`, `body-parser`, `qs` | 4.22.2 -> 4.22.3; 1.20.6 -> 1.20.8; 6.15.3 -> 6.16.0 |
+
+The first ten range-respecting refreshes came from
+`bun audit fix --ignore-scripts --json` (38 resolved incidences). The published
+compatible Express/body-parser patches admit `qs` ~6.16.0; targeted
+`bun update express body-parser qs --ignore-scripts` fixed two more incidences
+without adding a direct dependency or override. [Bun update documentation](https://bun.sh/docs/pm/cli/update)
+confirms named transitive updates; [qs 6.16.0 changelog](https://raw.githubusercontent.com/ljharb/qs/v6.16.0/CHANGELOG.md)
+records the relevant parser fixes. Real ordinary nested/array/encoded parsing
+passed before and after the parent refresh.
+
+The one override is scoped to `@vercel/routing-utils@6.6.0`'s direct
+`path-to-regexp` dependency at 6.3.0, never to Express or all package instances.
+The latest published Vercel parent still pins 6.1.0 and contains a parallel
+6.3.0 comparison alias. The [6.3.0 release](https://github.com/pillarjs/path-to-regexp/releases/tag/v6.3.0)
+is the maintained 6.x backtracking fix; its [versioned API](https://raw.githubusercontent.com/pillarjs/path-to-regexp/v6.3.0/Readme.md)
+retains the `pathToRegexp` and `compile` signatures used by the
+[Vercel implementation](https://raw.githubusercontent.com/vercel/vercel/main/packages/routing-utils/src/superstatic.ts).
+Actual parent-scoped resolution, existing root/legal/assets matching, named
+rewrite captures, and destination compilation pass after correction. The
+[Bun override contract](https://bun.sh/docs/pm/overrides) supports this narrow
+scope and produces `lockfileVersion: 3`; Bun 1.4.2 is pinned locally and in CI.
+Older Bun versions cannot read this lock; provider/runtime proof remains a
+separate parent-controlled delivery concern.
+
+| Remaining tooling package | Boundary preventing ordinary compatible closure |
+| --- | --- |
+| `basic-ftp` 5.3.1 | Latest published 5.x remains 5.3.1; get-uri 6.0.5 requests ^5.0.2. Advisory requires 6.2.1; no forced major. |
+| `extract-zip` 2.0.1 | Latest published release remains 2.0.1 and both advisories report no patch. LHCI -> lighthouse 12.6.1 -> puppeteer-core 24.43.1 -> browsers 2.13.2 requires it. Latest browsers 3.2.3 removes it, but crossing that exact major/API binding was not attempted. |
+| `tmp` 0.1.0 / 0.0.33 | Latest releases on the requested branches remain unchanged; LHCI ^0.1.0 and external-editor ^0.0.33 do not admit patched 0.2.6. No unproven 0.x API override. |
+| `uuid` 8.3.2 | Latest 8.x remains 8.3.2; LHCI ^8.3.1 does not admit patched 11.1.1. No forced major. |
+
+The unpatched archive issues are [GHSA-7pqw-9j4j-h8q3](https://github.com/advisories/GHSA-7pqw-9j4j-h8q3)
+and [GHSA-jmr9-qjv8-65gv](https://github.com/advisories/GHSA-jmr9-qjv8-65gv).
+No exploit reproduction, fork, source patch, audit ignore, threshold reduction,
+or tool removal was used. A zero-incidence full audit requires a new bounded
+maintenance decision for this LHCI graph; green production audit alone does not
+satisfy the required full gate. CI audit expansion is deferred rather than
+adding a known-red full gate or silently substituting a weaker production-only
+budget. Existing CI is unchanged.
+
+Final writer Lighthouse ran five times with the unchanged configuration and
+explicit existing Edge executable. Every run scored 100 for performance,
+accessibility, best practices, and SEO, with TBT 0 and CLS 0. All error-level
+assertions passed (exit 0). Median LCP 1431.75375 ms exceeded only the unchanged
+1200 ms warning budget. The owned port 56067 had no listener after completion;
+no browser/runtime was installed. This is local writer proof, not independent
+VAL-02 or production/provider proof.
+
+Source mutating normalization was limited to `package.json` and
+`tests/toolchain.test.ts` before the final full command sequence. No byte changes
+to these paths or the generated lock occurred after that verification.
 
 ## Acceptance criteria
 
@@ -281,6 +388,8 @@ Run on the reconciled candidate, in this order, and record exact outcomes:
 
 ```bash
 bun ci
+bun audit
+bun audit --prod
 bun run format:check
 bun run check
 bun test src/lib/professional-profile.test.ts \
@@ -365,21 +474,28 @@ omitting tests/docs remain unacceptable.
 - Worktree `fix/portfolio-main-integration-20261004` contains the two-parent
   merge `05ff55eb2573d5a253d98bdf231d3b1748c06877`. Both required ancestry checks
   and the post-commit diff check passed.
-- The source candidate was validated before this passive evidence update. This
-  follow-up changes only this recovery document; source bytes remain identical
-  to the validated merge commit.
+- Earlier VAL-01 evidence belongs to pre-remediation bytes. SEC-01 now changes
+  the manifest/lock/regression suite and has its own fresh writer proof; VAL-02
+  remains pending and must not reuse earlier source validation.
 - CodeGraph was initialized independently in this worktree; no index was copied
   or linked from the original checkout.
 - This worker performed no fetch, push, GitHub API call, credential discovery,
   remote file transfer, or deployment. Separately, the parent confirmed the
   authorized normal SSH feature/dev push described under PUB-01.
 - VAL-01 is complete on exact `f3099161745b2f8ab04c8456a572d6b1547acb4d`.
-  The subsequent passive closure commit changes only this recovery document;
-  repository source remains byte-identical to that verified candidate.
+  At its earlier passive closure, repository source remained byte-identical
+  to that verified candidate. SEC-01 now requires its own exact-source proof.
 - Remote feature and `dev` now point to verified `278baef`; freshly observed
   `main` remains `477dc7a`. PUB-01 remains unchecked because main promotion is
   stopped on the dependency-audit gate.
-- Next: request human authorization for a bounded compatible remediation of
-  the transitive graph and blocked parent ranges. After any authorized change,
-  require a fresh audit disposition and all functional checks on the exact new
-  candidate before main publication.
+- Next: parent decides the bounded maintenance path for six unresolved LHCI
+  incidences, with unpatched extract-zip the hard blocker. The production graph
+  is clean, but main must remain stopped while full audit is red. Preserve the
+  partial work unit, independently verify only as the parent routes it, and
+  retain VAL-02/PUB-01 unchecked until their actual outcomes are observed.
+- RDD is globally OFF per the parent's fresh read-only status. Do not invoke
+  native review or change the user-owned mode during this remediation.
+- Remediation forecast: approximately 100-200 additional authored lines plus
+  generated lock changes; existing coherent-integration `exception-ok` remains.
+  Rollback of this unit covers only its manifest/lock/test/CI and recovery edits,
+  through a normal revert; unrelated integration history remains intact.
