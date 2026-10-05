@@ -14,14 +14,14 @@ This document is recovery state. INT-01 is complete at merge commit
 `05ff55eb2573d5a253d98bdf231d3b1748c06877`, with parents `477dc7a` and
 `5ce09c8`. VAL-01 independently verified exact candidate
 `f3099161745b2f8ab04c8456a572d6b1547acb4d`; its evidence is recorded below.
-That local proof is not production proof. PUB-01 remains pending and remote
-publication authority stays with the parent. The parent has atomically pushed
-the feature branch and `dev` to
-`278baef2968f0873c78f101dbcdb50e98171645f`; fresh remote evidence still places
-`main` at `477dc7af55161c3c351641849f507a139aafd8fe`. Authorized SEC-01 has removed all production and tooling advisories.
-Fresh independent VAL-02 verification passed on exact `65efcb2`; its evidence
-and the parent spot check are recorded below. Only PUB-01 remains pending;
-publication stays parent-controlled and is not claimed here.
+Local proof is not production proof. SEC-01 removed all production and
+tooling advisories, and fresh independent VAL-02 verification passed on exact
+`65efcb2`. On **2026-10-05**, the parent atomically published the source-identical
+`8a146d51e2255a5b7406051add56493a7379e5d8` to feature/`dev`, verified that exact
+`dev` candidate, then normally fast-forwarded `main`. Fresh parent SSH evidence
+confirmed all three refs at that same SHA. PUB-01 is complete for that observed
+publication; this later passive recovery-document closure is not yet claimed
+published. CI and production behavior remain unverified.
 
 ## Why this exists
 
@@ -43,13 +43,13 @@ histories and reconcile behavior deliberately.
 | Source lineage | `feat/portfolio-modernization-20261004` ending at `5ce09c867b9abaa6b51ee98c1d4bed16eadd2132` |
 | Read-only original checkout | `/Volumes/Develop/Astro/portfolio`; do not modify or treat its unrelated dirt as candidate content |
 | Remote | `origin` = `git@github.com:SergioGMR/portfolio.git` |
-| Parent remote evidence | Normal SSH push confirmed both `fix/portfolio-main-integration-20261004` and `dev` at `278baef2968f0873c78f101dbcdb50e98171645f`; freshly verified `main` remains `477dc7af55161c3c351641849f507a139aafd8fe` |
-| Remaining remote operation | Main promotion only after explicit dependency-remediation approval, a clean audit disposition, and all functional gates on the resulting exact candidate |
+| Parent remote evidence | On 2026-10-05, authorized normal SSH atomic feature/dev publication, exact-dev verification, and normal main fast-forward completed; fresh SSH evidence confirmed feature/dev/main at `8a146d51e2255a5b7406051add56493a7379e5d8` |
+| Remaining remote operation | Parent may promote the later passive document-only closure after source-identity and structural checks; no future publication SHA or CI/production result is inferred |
 | Explicit exclusions | No force push, rebase, squash, cherry-pick replacement, history rewrite, rules bypass, GitHub API/`gh`, manual deployment, credential discovery, or unrelated cleanup |
 
-INT-01 and VAL-01 are complete in the isolated worktree. The parent completed
-the authorized feature/dev SSH publication; this worker performed no remote
-operation. User consent recorded in Engram observations 22293 and 22305
+INT-01, VAL-01, SEC-01, VAL-02, and observed PUB-01 are complete.
+The parent completed the authorized normal SSH publication; this worker
+performed no remote operation. User consent recorded in Engram observations 22293 and 22305
 authorizes compatible local dependency remediation, necessary local install/lock
 regeneration, regression tests, and all functional checks before main. The
 configured 5.6 worker never executed because of capacity; the user authorized
@@ -287,21 +287,36 @@ belongs to different bytes and cannot be reused.
     source-identity/diff checks apply; another runtime run is N/A because
     this closure introduces no source/config/lock/runtime change. Rollback
     is a normal revert limited to this recovery document.
-- [ ] **PUB-01 — Publish the same validated SHA through the authorized SSH
+- [x] **PUB-01 — Publish the same validated SHA through the authorized SSH
   channel.**
   - Route: parent-controlled remote delivery; no worker may expand it.
   - Trigger evidence: remote freshness and branch-protection state are external
     to local implementation.
-  - Partial outcome: the parent used the authorized normal SSH channel to push
+  - Earlier partial outcome: the parent used the authorized normal SSH channel to push
     both `fix/portfolio-main-integration-20261004` and `dev` atomically to
     `278baef2968f0873c78f101dbcdb50e98171645f`. A fresh check showed `main`
     still at `477dc7af55161c3c351641849f507a139aafd8fe`; no remote dev/reference
     branch existed before this publication.
-  - Local audit disposition and independent functional proof are complete.
-    Keep this task unchecked until the parent confirms the authorized remote
-    publication of the source-identical candidate under ordinary repository
-    policy. No publication has occurred for this remediated candidate in this
-    worker. Do not use force, `gh`, an API credential, or manual deployment.
+  - Completed publication on 2026-10-05: the parent used normal SSH to
+    atomically push feature/`dev` to
+    `8a146d51e2255a5b7406051add56493a7379e5d8`, verified that exact `dev`
+    candidate, then normally fast-forwarded `main` (exit 0). Fresh parent
+    SSH evidence confirmed all three refs at that identical SHA.
+  - Exact-dev checks passed: full audit zero vulnerabilities across 524
+    packages, production audit zero across 372, full tests 117/0 with 578
+    expectations, clean HEAD, source-identical `65efcb2` excluding the
+    recovery document, and both required ancestries. The independently
+    verified runtime/tooling source was promoted, not replaced.
+  - No force/history rewrite/rules bypass, GitHub API/`gh`, manual deployment,
+    worker remote operation, or RDD mode change occurred. CI and production
+    behavior were not checked and are not claimed.
+  - The push banner still reported two default-branch alert notices (critical
+    and moderate). Their identities and update state are unknown; zero local
+    audits do not establish that remote alerts have resolved.
+  - This later passive closure records the actual published `8a146d5`.
+    Its own future publication identity is not invented. The parent owns
+    any later document-only promotion after source-identity and structural
+    checks; rollback of this closure is limited to this recovery document.
 
 ## Dependency-audit gate before main
 
@@ -486,8 +501,8 @@ record only. The work unit has 1,076 authored changed lines (additions plus dele
 excluding 647 generated lock changes. That count reflects explicit lifecycle
 and failure contracts plus tests, not artificial file-type slices; existing integration
 `exception-ok`/`size:exception` remains. The later independent VAL-02 run is
-recorded above; PUB-01 remains unchecked. Writer proof alone is not independent,
-CI, provider, or production proof.
+recorded above; observed PUB-01 publication is complete on `8a146d5`.
+Writer proof alone is not independent, CI, provider, or production proof.
 
 ## Acceptance criteria
 
@@ -618,19 +633,22 @@ omitting tests/docs remain unacceptable.
   or linked from the original checkout.
 - This worker performed no fetch, push, GitHub API call, credential discovery,
   remote file transfer, or deployment. Separately, the parent confirmed the
-  authorized normal SSH feature/dev push described under PUB-01.
+  authorized normal SSH publication described under PUB-01.
 - VAL-01 is complete on exact `f3099161745b2f8ab04c8456a572d6b1547acb4d`.
   At its earlier passive closure, repository source remained byte-identical
   to that verified candidate. SEC-01 and VAL-02 now have their own exact-source
   proof; the historical VAL-01 result remains scoped to its earlier bytes.
-- Last parent-provided remote evidence places feature/`dev` at verified
-  `278baef` and `main` at `477dc7a`. This passive closure performs no remote
-  probe or publication; PUB-01 remains unchecked until parent confirmation.
+- Fresh parent-provided SSH evidence confirms feature/`dev`/`main` at
+  `8a146d51e2255a5b7406051add56493a7379e5d8` after exact-dev verification
+  and normal fast-forward main publication on 2026-10-05. PUB-01 is complete
+  for that observed SHA. This passive closure performs no remote operation.
 - SEC-01 is complete with zero full/production audit incidences and fresh writer
   functional/Lighthouse proof. Initial transport failure and corrected evidence
   are preserved above. VAL-02 is complete on exact `65efcb2`, including the
-  parent test spot check. Next: parent owns remote freshness, ordinary delivery
-  policy, and any authorized publication (PUB-01); no production claim yet.
+  parent test spot check. PUB-01 is complete for the actual published
+  `8a146d5`. Next: parent may promote this later document-only closure after
+  source-identity/structural checks. CI and production results, plus the
+  identities/update state of the two remote alert notices, remain unknown.
 - RDD is globally OFF per the parent's fresh read-only status. Do not invoke
   native review or change the user-owned mode during this remediation.
 - Earlier compatible-refresh forecast: approximately 100-200 additional authored lines plus
