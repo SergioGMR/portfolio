@@ -62,10 +62,23 @@ const expectedShowcases: readonly ShowcaseProject[] = [
     imageKey: 'duellum',
     experienceIds: [],
   },
+  {
+    id: 'uploadimg',
+    kind: 'showcase',
+    title: { es: 'Uploadimg', en: 'Uploadimg' },
+    category: { es: 'Imágenes temporales', en: 'Temporary images' },
+    summary: {
+      es: 'Selecciona o pega una imagen, revisa la vista previa y súbela para compartir un enlace temporal de 24 horas.',
+      en: 'Select or paste an image, review the preview, and upload it to share a temporary 24-hour link.',
+    },
+    evidenceUrl: 'https://uploadimg.vercel.app/',
+    imageKey: 'uploadimg',
+    experienceIds: [],
+  },
 ]
 
 describe('main integration project showcase', () => {
-  test('appends three truthful showcase records after current main projects', () => {
+  test('appends four truthful showcase records after current main projects', () => {
     expect(PROFESSIONAL_PROFILE.projects.map(({ id }) => id)).toEqual([
       'jauntjar',
       'todo-lux',
@@ -74,6 +87,7 @@ describe('main integration project showcase', () => {
       'wattly',
       'tvradar',
       'duellum',
+      'uploadimg',
     ])
 
     const showcases = PROFESSIONAL_PROFILE.projects.slice(4)
@@ -98,7 +112,12 @@ describe('main integration project showcase', () => {
 
     expect(source).toContain("project.kind === 'showcase'")
 
-    for (const asset of ['wattly.webp', 'tvradar.webp', 'duellum.webp']) {
+    for (const asset of [
+      'wattly.webp',
+      'tvradar.webp',
+      'duellum.webp',
+      'uploadimg.webp',
+    ]) {
       expect(source).toContain(asset)
     }
   })

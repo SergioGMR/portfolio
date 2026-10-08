@@ -387,6 +387,22 @@ const projects: readonly Project[] = [
     imageKey: 'duellum',
     experienceIds: [],
   },
+  {
+    id: 'uploadimg',
+    kind: 'showcase',
+    title: { es: 'Uploadimg', en: 'Uploadimg' },
+    category: {
+      es: 'Imágenes temporales',
+      en: 'Temporary images',
+    },
+    summary: {
+      es: 'Selecciona o pega una imagen, revisa la vista previa y súbela para compartir un enlace temporal de 24 horas.',
+      en: 'Select or paste an image, review the preview, and upload it to share a temporary 24-hour link.',
+    },
+    evidenceUrl: 'https://uploadimg.vercel.app/',
+    imageKey: 'uploadimg',
+    experienceIds: [],
+  },
 ]
 
 export const PROFILE_LINKS = {

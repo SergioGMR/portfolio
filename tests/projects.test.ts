@@ -13,7 +13,7 @@ const projectsSource = await readFile(
 )
 
 describe('portfolio projects', () => {
-  test('keeps current projects first and appends three bilingual showcases', () => {
+  test('keeps current projects first and appends four bilingual showcases', () => {
     expect(PROFESSIONAL_PROFILE.projects.map(({ id }) => id)).toEqual([
       'jauntjar',
       'todo-lux',
@@ -22,6 +22,7 @@ describe('portfolio projects', () => {
       'wattly',
       'tvradar',
       'duellum',
+      'uploadimg',
     ])
 
     const showcases = PROFESSIONAL_PROFILE.projects.slice(4)
@@ -52,6 +53,7 @@ describe('portfolio projects', () => {
       'https://wattly-alpha.vercel.app/',
       'https://tvradar.sgmr.es/',
       'https://duellum.vercel.app/',
+      'https://uploadimg.vercel.app/',
     ])
   })
 
@@ -70,13 +72,19 @@ describe('portfolio projects', () => {
       'wattly.webp',
       'tvradar.webp',
       'duellum.webp',
+      'uploadimg.webp',
     ]) {
       expect(projectsSource).toContain(asset)
     }
   })
 
   test('stores each genuine screenshot at the card aspect ratio', async () => {
-    for (const asset of ['wattly.webp', 'tvradar.webp', 'duellum.webp']) {
+    for (const asset of [
+      'wattly.webp',
+      'tvradar.webp',
+      'duellum.webp',
+      'uploadimg.webp',
+    ]) {
       const path = join(root, 'src/assets/projects', asset)
       const metadata = await sharp(path).metadata()
 
