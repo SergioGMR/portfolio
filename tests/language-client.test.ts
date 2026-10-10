@@ -123,6 +123,34 @@ describe('language client', () => {
     expect(document.documentElement.lang).toBe('es')
   })
 
+  test('updates shared fragments on equivalent pages and removes its listener on cleanup', () => {
+    browser.location.hash = '#main-content'
+    document.body.innerHTML =
+      '<main id="main-content"></main><a data-language-link href="/en/acezone/tos#main-content">English</a>'
+    const storage = createStorage('en')
+    cleanup = initializeLanguage(document, storage)
+    expect(document.querySelector('a')?.getAttribute('href')).toBe(
+      '/en/acezone/tos#main-content',
+    )
+    browser.location.hash = ''
+    browser.dispatchEvent(new browser.HashChangeEvent('hashchange'))
+    expect(document.querySelector('a')?.getAttribute('href')).toBe(
+      '/en/acezone/tos',
+    )
+    browser.location.hash = '#main-content'
+    browser.dispatchEvent(new browser.HashChangeEvent('hashchange'))
+    expect(document.querySelector('a')?.getAttribute('href')).toBe(
+      '/en/acezone/tos#main-content',
+    )
+    cleanup()
+    browser.location.hash = ''
+    browser.dispatchEvent(new browser.HashChangeEvent('hashchange'))
+    expect(document.querySelector('a')?.getAttribute('href')).toBe(
+      '/en/acezone/tos#main-content',
+    )
+    expect(storage.writes).toEqual([])
+  })
+
   test('escapes closing script text without changing metadata values', () => {
     const unsafe = structuredClone(metadata)
     unsafe.en.description = '</script><script>alert(1)</script>'

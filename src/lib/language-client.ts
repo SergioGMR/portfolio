@@ -25,8 +25,7 @@ export function initializeLanguage(
       .querySelectorAll<HTMLAnchorElement>('[data-language-link]')
       .forEach((link) => {
         const path = link.getAttribute('href')?.split('#')[0]
-        if (path === '/' || path === '/en')
-          link.setAttribute('href', `${path}${hash}`)
+        if (path) link.setAttribute('href', `${path}${hash}`)
       })
   }
   updateHashes()

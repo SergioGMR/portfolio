@@ -164,20 +164,49 @@ describe('compiled page language enhancement', () => {
       expect(browser.localStorage.getItem('language')).toBe(opposite)
     })
   }
-  for (const [path, spanish, english] of [
-    [
-      '/en/projects/solutec#main-content',
-      '/proyectos/solutec',
-      '/en/projects/solutec',
-    ],
-    ['/en/acezone/tos#main-content', '/acezone/tos', '/en/acezone/tos'],
-  ]) {
-    test(`keeps equivalent page context for ${path}`, () => {
-      const { browser } = openBuiltPage(path!, 'es')
-      expect(languageHref(browser, 'es')).toBe(spanish)
-      expect(languageHref(browser, 'en')).toBe(english)
-      expect(browser.document.documentElement.lang).toBe('en')
-    })
+  const equivalentPages = [
+    ['/acezone/tos', '/en/acezone/tos'],
+    ['/wattly/tos', '/en/wattly/tos'],
+    ...['jauntjar', 'todo-lux', 'basuraleza', 'solutec'].map((id) => [
+      `/proyectos/${id}`,
+      `/en/projects/${id}`,
+    ]),
+  ]
+  for (const [spanish, english] of equivalentPages) {
+    for (const [path, locale, opposite] of [
+      [spanish!, 'es', 'en'],
+      [english!, 'en', 'es'],
+    ] as const) {
+      test(`keeps the shared main-content fragment and equivalent page from ${path}`, () => {
+        const { browser, title, description, schema } = openBuiltPage(
+          `${path}#main-content`,
+          opposite,
+        )
+        expect(browser.document.getElementById('main-content')).not.toBeNull()
+        expect(languageHref(browser, 'es')).toBe(`${spanish}#main-content`)
+        expect(languageHref(browser, 'en')).toBe(`${english}#main-content`)
+        browser.location.hash = ''
+        browser.dispatchEvent(new browser.HashChangeEvent('hashchange'))
+        expect(languageHref(browser, 'es')).toBe(spanish)
+        expect(languageHref(browser, 'en')).toBe(english)
+        browser.location.hash = '#main-content'
+        browser.dispatchEvent(new browser.HashChangeEvent('hashchange'))
+        expect(languageHref(browser, 'es')).toBe(`${spanish}#main-content`)
+        expect(languageHref(browser, 'en')).toBe(`${english}#main-content`)
+        expect(browser.document.documentElement.lang).toBe(locale)
+        expect(browser.document.title).toBe(title)
+        expect(
+          browser.document
+            .querySelector('meta[name="description"]')
+            ?.getAttribute('content'),
+        ).toBe(description)
+        expect(
+          browser.document.querySelector('script[type="application/ld+json"]')
+            ?.textContent,
+        ).toBe(schema)
+        expect(browser.localStorage.getItem('language')).toBe(opposite)
+      })
+    }
   }
 })
 
