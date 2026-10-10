@@ -45,4 +45,93 @@ jobs:
         run: bun run build
 
       - name: Enforce mobile Lighthouse budgets
+        id: lighthouse
         run: bun run lighthouse:ci
+
+      - name: Summarize failed Lighthouse measurements
+        if: ${{ failure() && steps.lighthouse.outcome == 'failure' }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs')
+          const path = require('node:path')
+          let remaining = 30000
+          function emit(value) {
+            const line = JSON.stringify(value)
+            if (line.length + 1 > remaining - 80) {
+              if (remaining > 0) console.log('Lighthouse diagnostic output limit reached (30000 characters).')
+              remaining = 0
+              return
+            }
+            console.log(line)
+            remaining -= line.length + 1
+          }
+          function read(file) {
+            try {
+              return JSON.parse(fs.readFileSync(file, 'utf8'))
+            } catch (error) {
+              emit({ file: path.basename(file), diagnosticError: error.code || error.name })
+            }
+          }
+          function resource(value) {
+            try {
+              const url = new URL(value)
+              return `${url.origin}${url.pathname}`.slice(0, 160)
+            } catch {
+              return String(value).split(/[?#]/)[0].slice(0, 160)
+            }
+          }
+          const text = (value) => typeof value === 'string' ? value.slice(0, 160) : null
+          const directories = fs.existsSync('.lighthouse')
+            ? fs.readdirSync('.lighthouse', { withFileTypes: true })
+              .filter((entry) => entry.isDirectory() && /^run-\d+$/.test(entry.name))
+              .sort((a, b) => Number(b.name.slice(4)) - Number(a.name.slice(4)))
+            : []
+          if (!directories.length) {
+            emit({ diagnostic: 'No Lighthouse report directory; inspect the failed step log.' })
+          } else {
+            const directory = path.join('.lighthouse', directories[0].name)
+            const result = read(path.join(directory, 'assertions.json'))
+            const files = fs.readdirSync(directory)
+              .filter((file) => /^run-\d+\.report\.json$/.test(file))
+              .sort((a, b) => Number(a.split('-')[1].split('.')[0]) - Number(b.split('-')[1].split('.')[0]))
+            emit({ directory, reportsFound: files.length, reportsLimit: 5, rowsPerAuditLimit: 5 })
+            const metrics = ['first-contentful-paint', 'largest-contentful-paint', 'total-blocking-time', 'cumulative-layout-shift', 'speed-index', 'server-response-time']
+            const fields = ['url', 'group', 'groupLabel', 'startTime', 'duration', 'total', 'scripting', 'scriptParseCompile', 'wastedMs', 'totalBytes', 'wastedBytes', 'blockingTime']
+            for (const file of files.slice(0, 5)) {
+              const report = read(path.join(directory, file))
+              if (!report) continue
+              const run = Number(file.split('-')[1].split('.')[0])
+              const breaches = (result?.assertions || []).filter((assertion) => {
+                const value = assertion.values?.[run - 1]
+                return assertion.level === 'error' && !assertion.passed && typeof value === 'number' &&
+                  (assertion.id.startsWith('categories:') ? value < assertion.expected : value > assertion.expected)
+              }).map((assertion) => assertion.id)
+              emit({ file, lighthouseVersion: report.lighthouseVersion, userAgent: text(report.userAgent), fetchTime: text(report.fetchTime), environment: {
+                hostUserAgent: text(report.environment?.hostUserAgent), networkUserAgent: text(report.environment?.networkUserAgent),
+                benchmarkIndex: Number.isFinite(report.environment?.benchmarkIndex) ? report.environment.benchmarkIndex : null,
+              }, scores: Object.fromEntries(
+                Object.entries(report.categories || {}).map(([id, category]) => [id, category.score])
+              ), metrics: Object.fromEntries(metrics.map((id) => [id, report.audits?.[id]?.numericValue ?? null])), breaches })
+              if (!breaches.length && result && !report.runtimeError) continue
+              emit({ run, detailReason: breaches.length ? 'error-budget breach' : 'runtime error or unavailable assertions' })
+              const ids = [...new Set(['long-tasks', 'bootup-time', 'mainthread-work-breakdown',
+                ...(report.categories?.performance?.auditRefs || []).filter(({ id }) => {
+                  const score = report.audits?.[id]?.score
+                  return typeof score === 'number' && score < 1
+                }).map(({ id }) => id)
+              ])].slice(0, 11)
+              for (const id of ids) {
+                const audit = report.audits?.[id]
+                const items = audit?.details?.items || []
+                const rows = [...items].sort((a, b) => (b.duration ?? b.total ?? b.wastedMs ?? 0) - (a.duration ?? a.total ?? a.wastedMs ?? 0))
+                  .slice(0, 5).map((item) => Object.fromEntries(fields.flatMap((key) => {
+                    const value = item[key]
+                    if (typeof value === 'number' && Number.isFinite(value)) return [[key, Math.round(value * 100) / 100]]
+                    if (typeof value === 'string') return [[key, key === 'url' ? resource(value) : value.slice(0, 160)]]
+                    return []
+                  })))
+                emit({ run, audit: id, present: !!audit, score: audit?.score, numericValue: audit?.numericValue, numericUnit: audit?.numericUnit, rowCount: items.length, rows })
+              }
+            }
+          }
+          NODE

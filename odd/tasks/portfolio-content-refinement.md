@@ -12,8 +12,8 @@ Work only in `/Users/sergiogmr/portfolio-worktrees/seo-geo-20261010`, branch `fe
 - [x] I2-A — Executor: remove the Solutec project, routes, public project links and unused project assets; retain Tecandu chronology and responsibilities. Include meaningful regression coverage and report any CV link implications before editing PDF assets.
 - [x] I2-B — Executor, after I2-A: improve bilingual hero/contact copy, concise project summaries, substantive case detail from existing factual sources, case metadata, linked capability evidence and the ambiguous practice badge. Do not invent outcomes or architectural decisions.
 - [x] I2-C — Executor/parent: update measurement guidance for the resulting route inventory and current official generative AI reporting, with explicit limits for Hobby analytics.
-- [/] I3 — Executor/parent/reviewer: RED/GREEN for changed behavior, existing test/check/format/build gates, browser verification of changed pages, applicable Lighthouse gate and separate read-only review.
-- [ ] I4 — Parent: commit coherent behavior units, verify final clean source and resolve publication against the authorized destination and repository workflow. Provider reception, indexing and rankings require separate observed evidence.
+- [x] I3 — Executor/parent/reviewer: RED/GREEN for changed behavior, existing test/check/format/build gates, browser verification of changed pages, applicable Lighthouse gate and separate read-only review.
+- [/] I4 — Parent: commit coherent behavior units, verify final clean source and resolve publication against the authorized destination and repository workflow. Provider reception, indexing and rankings require separate observed evidence.
 
 ## Acceptance
 
@@ -76,3 +76,38 @@ The codebase-memory refresh failed with `Transport closed`; focused local search
 - The implementation unit is 13 files, **383 additions / 132 deletions = 515 authored lines**, excluding the parent's task record. Data, rendering and compiled-output coverage form one coherent contract; it was not artificially split to hide the size.
 - CV sources/PDFs, dependencies, lockfile, legal content, analytics behavior and Lighthouse budgets remain unchanged. Browser, Lighthouse and final independent review are pending below.
 - Read-only Vercel CLI metadata confirms project `prj_KCGw8ftCB1MADnNGZIMjmnEu6Oif` is linked to `SergioGMR/portfolio`, production branch `main`; current production SHA remains `1b499ed5452d615f39f78c4981c411af9d745b0b`. Web Analytics is enabled and reports existing data, which does not establish reception of the new implementation.
+
+
+## I3 final local verification
+
+- Content implementation committed as `2292a289f79ed62cbbe4f58323e56ebff486d7a6` (`feat(portfolio): clarify bilingual positioning and project evidence`). Independent reviewer completed **APPROVED** for `6b1e625..2292a28`, with the reviewed source clean. No unresolved code/content/regression findings remained.
+- Reviewer independently inspected generated HTML and protected bytes: 12 apex canonicals, 36 language alternates, no duplicate IDs, matching `dist`/Vercel static pages, absent Solutec routes, final 404 fallback and noindex 404. Four PDFs, two CV HTML sources, package/lock, Astro configuration, Lighthouse budgets and legal content were unchanged within this refinement.
+- Parent native Edge checks used the compiled output at 390 x 844 and 1440 x 900. Both locales showed seven cards, equal contact options with correct localized subjects, and no horizontal overflow. Project navigation landed below the mobile sticky header (79.625px vs header bottom 72px); the English Tecandu evidence link landed at 77.875px vs 72px and retained its fragment in the Spanish language link. Todo-Lux opened from capabilities at the correct English route, exposed seven concrete tasks, and switched to its Spanish equivalent. Desktop contact buttons measured 48px high and approximately 237.1px wide each. Screenshots were inspected in dark and light themes. The temporary server was stopped, tab closed and viewport override reset.
+- Final Lighthouse on unchanged source `2292a28`: **exit 0; all five mobile-home runs score 100 performance / 100 accessibility / 100 best practices / 100 SEO**. FCP median 903.9789ms, TBT 0, CLS 0, server response 1ms. Existing WARN LCP remains **1428.9789ms vs 1200ms**, effectively unchanged from the prior 1428.78915ms measurement. Budgets were not relaxed. Receipts: `.lighthouse/i3-lighthouse.log` and `.lighthouse/run-1791659904542/`.
+- Parent reread both official Google sources on 2026-10-10. The report documentation explicitly confirms worldwide rollout on August 31, 2026, impressions in AI Overviews/AI Mode and the need for sufficient impressions. This verifies the measurement guidance, not access to this property's actual report.
+- All ten baseline hashes of the original checkout's dirty files still match. No source edits were made during review.
+
+## I4 publication scope and progress
+
+The immediately preceding audit recommended publishing the prepared improvements first; the user's subsequent instruction to apply everything except Solutec authorizes that proposed publication. This supersedes the historical pre-approval publication status in the earlier task record. Destination is the existing `git@github.com:SergioGMR/portfolio.git` repository, `main`, linked to the existing Vercel portfolio project and `https://sgmr.dev`. Use the configured Git/CLI sessions without inspecting credential files, changing provider settings or bypassing checks.
+
+The remote `main` was fetched and remained at `1b499ed5452d615f39f78c4981c411af9d745b0b`. The clean dedicated main worktree was fast-forwarded to reviewed source `2292a28`; remote push, CI and deployment evidence are recorded next only after completion. The original dirty checkout remains untouched.
+
+
+Publication checkpoint: remote main push to `2292a28` succeeded. GitHub run `38079437189` passed dependency installation/audits, formatting, type checking, tests and build, but failed the first Lighthouse performance measurement: 92, followed by four 100 scores. First-run TBT was 358.5857ms; the other four were 0. Budgets remain unchanged. One rerun of the same failed job was requested to establish reproducibility; no successful CI claim or provider deployment is made yet. Receipt: `.lighthouse/i4-ci-2292a28-failed.log`.
+
+Vercel has not listed a deployment for that SHA. A read-only CLI dry run from the main worktree showed that ignored local caches would be included (91,163,261 bytes). That upload input was rejected before transmission; an exact tracked-source input or Git-backed deployment is required. No application deployment was created by the dry run.
+
+
+- [/] I4-D — Executor/parent/reviewer: expose bounded diagnostics for the reproducible first-run CI performance failure, diagnose from reports, and preserve all existing thresholds and measured runs. No blind third rerun.
+
+Second CI attempt on unchanged `2292a28` also failed the first performance score (96; four subsequent 100 scores), with first-run TBT 210.2838ms and four zeros. This confirms the symptom is repeatable; it does not identify the cause. Receipt: `.lighthouse/i4-ci-2292a28-attempt2.log`. Independent review supports one diagnostic rerun and explicitly requires investigation if it repeats. The CI result remains FAIL until new evidence resolves it.
+
+Vercel's normal Git integration subsequently completed production deployment `dpl_4vnRiHtjP6QgrGaPk9ADnzTMymz5`, READY, `gitSource.sha` and `meta.githubCommitSha` both exactly `2292a289f79ed62cbbe4f58323e56ebff486d7a6`, with `sgmr.dev` assigned and no alias error. No manual source upload or deployment API mutation was needed.
+
+Public runtime receipt `.lighthouse/i4-public-runtime-2292a28.json` is PASS: all 12 indexable routes return 200 at the expected canonical apex URL, match local language/alternate contracts and omit Solutec; both removed case URLs return 404/noindex. Four www redirects and three trailing-slash redirects return 308 and preserve queries. `/sitemap.xml` contains exactly the 12 URLs. Public robots.txt, JPEG social image and both canonical PDFs match repository bytes. The official analytics script returns 200. Native Edge additionally confirmed the production hero, seven project cards, retained Tecandu, absent Solutec and actual injected `/_vercel/insights/script.js` DOM node; this does not prove dashboard reception.
+
+Two earlier ad hoc runtime probes stopped on verification-harness assumptions, not application defects: the adapter injects analytics dynamically instead of a static script src, and this repository serves `/sitemap.xml`, not `/sitemap-index.xml`. The final receipt above uses the actual contracts. No application change was made to satisfy those incorrect assumptions.
+
+
+I4-D diagnostic configuration was independently APPROVED after executor completion. The workflow adds an ID to the existing Lighthouse step and a failure-only bounded report summary: latest report directory, at most five runs, at most eleven audits and five rows each, 160-character text fields and a 30,000-character total cap. Existing commands, actions, permissions, five measured runs and budgets are unchanged. YAML parsing, Node syntax, prior-workflow equivalence, seven fixture scenarios, formatting and diff checks passed; maximum fixture output was 29,707 characters. Receipts: `.lighthouse/i4d-{verification,format-check,diff-check}.log`. The new CI execution will provide the missing diagnostic evidence; this change makes no claim to fix the performance cause.
