@@ -12,6 +12,14 @@
         "@danielsogl/lighthouse-mcp@latest"
       ],
       "env": {}
+    },
+    "stitch": {
+      "command": "bunx",
+      "args": ["-y", "stitch-mcp"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "sermapp-06032020",
+        "GOOGLE_APPLICATION_CREDENTIALS": "./service-account.json"
+      }
     }
   }
 }
