@@ -8,6 +8,7 @@ export default defineConfig({
   site: SITE_URL,
 
   output: 'static',
+  trailingSlash: 'never',
   build: {},
 
   integrations: [],

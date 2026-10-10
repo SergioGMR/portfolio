@@ -1,0 +1,131 @@
+---
+import type { CaseStudyProject } from '@/lib/professional-profile'
+import PageShell from '@/components/layout/PageShell.astro'
+import LangText from '@/components/LangText.astro'
+import { Image } from 'astro:assets'
+import { createCaseStudyMetadata } from '@/lib/page-metadata'
+import { getLanguage } from '@/lib/site'
+import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
+import jauntjarImg from '@/assets/experience/jauntjar.avif'
+import todoLuxImg from '@/assets/experience/todo-lux.avif'
+import basuralezaImg from '@/assets/experience/basuraleza.avif'
+import solutecImg from '@/assets/experience/solutec.avif'
+
+interface Props {
+  project: CaseStudyProject
+}
+const { project } = Astro.props
+const locale = getLanguage(Astro.url.pathname)
+const home = locale === 'es' ? '/' : '/en'
+const images = {
+  jauntjar: jauntjarImg,
+  'todo-lux': todoLuxImg,
+  basuraleza: basuralezaImg,
+  solutec: solutecImg,
+}
+const image = images[project.imageKey as keyof typeof images]
+const sections = [
+  { es: 'Problema', en: 'Problem', text: project.problem },
+  {
+    es: 'Mi responsabilidad',
+    en: 'My responsibility',
+    text: project.responsibility,
+  },
+  { es: 'Solución', en: 'Solution', text: project.solution },
+  { es: 'Resultado', en: 'Result', text: project.result },
+]
+---
+
+<PageShell localizedMetadata={createCaseStudyMetadata(project)}>
+  <article class="surface-panel mx-auto w-full max-w-4xl rounded-3xl p-5 sm:p-8 lg:p-10">
+    <nav
+      aria-label={locale === 'es' ? 'Ruta de navegación' : 'Breadcrumb'}
+      class="text-muted-foreground text-sm"
+    >
+      <a
+        href={`${home}#proyectos`}
+        class="hover:text-primary underline underline-offset-4"
+      >
+        <LangText es="Proyectos" en="Projects" />
+      </a>
+      <span aria-hidden="true"> / </span>
+      <span aria-current="page">{project.title[locale]}</span>
+    </nav>
+    <p class="text-primary mt-8 text-xs tracking-[0.2em] uppercase">
+      <LangText es="Caso de estudio" en="Case study" />
+    </p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
+      {project.title[locale]}
+    </h1>
+    <p class="text-muted-foreground mt-4">
+      <LangText
+        es="Por Sergio Morales Rodríguez"
+        en="By Sergio Morales Rodríguez"
+      />
+    </p>
+    <Image
+      src={image}
+      alt={
+        locale === 'es'
+          ? `Captura de la interfaz de ${project.title.es}`
+          : `${project.title.en} interface screenshot`
+      }
+      width={1200}
+      height={640}
+      widths={[480, 800, 1200]}
+      sizes="(min-width: 1024px) 800px, calc(100vw - 4rem)"
+      format="avif"
+      quality={80}
+      loading="eager"
+      decoding="async"
+      class="media-frame mt-8 h-auto w-full rounded-2xl"
+    />
+    <div class="mt-8 grid gap-8">
+      {sections.map((section) => (
+        <section>
+          <h2 class="text-xl font-semibold">{section[locale]}</h2>
+          <p class="text-muted-foreground mt-3 leading-relaxed">
+            {section.text[locale]}
+          </p>
+        </section>
+      ))}
+      <section>
+        <h2 class="text-xl font-semibold">
+          <LangText es="Tecnologías" en="Technologies" />
+        </h2>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {project.technologies.map((technology) => (
+            <li class="tech-tag rounded-md px-3 py-1 font-mono text-xs">
+              {technology}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+    <div class="border-border mt-10 flex flex-wrap gap-3 border-t pt-6">
+      <a
+        href={project.evidenceUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex min-h-11 items-center rounded-full px-5 py-2 text-sm font-semibold"
+      >
+        <LangText es="Visitar sitio del proyecto" en="Visit project website" />{' '}
+        <span class="ml-2" aria-hidden="true">
+          ↗
+        </span>
+      </a>
+      <a
+        href={PROFESSIONAL_PROFILE.links.mail}
+        class="border-border hover:border-primary inline-flex min-h-11 items-center rounded-full border px-5 py-2 text-sm font-medium"
+      >
+        <LangText es="Contactar con Sergio" en="Contact Sergio" />
+      </a>
+      <a
+        href={`${home}#proyectos`}
+        class="text-primary inline-flex min-h-11 items-center px-2 text-sm underline underline-offset-4"
+      >
+        <LangText es="Ver todos los proyectos" en="View all projects" />
+      </a>
+    </div>
+  </article>
+</PageShell>

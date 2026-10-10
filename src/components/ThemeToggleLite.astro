@@ -1,17 +1,23 @@
 ---
-const options = [
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'system', label: 'System' },
-]
+import { getLanguage } from '@/lib/site'
+
+const locale = getLanguage(Astro.url.pathname)
+const labels = {
+  es: { light: 'Claro', dark: 'Oscuro', system: 'Sistema' },
+  en: { light: 'Light', dark: 'Dark', system: 'System' },
+}
+const options = (['light', 'dark', 'system'] as const).map((value) => ({
+  value,
+  label: labels[locale][value],
+}))
 ---
 
 <div class="flex items-center">
   <label class="inline-flex items-center text-xs sm:hidden">
-    <span class="sr-only">Tema</span>
+    <span class="sr-only">{locale === 'es' ? 'Tema' : 'Theme'}</span>
     <select
       class="border-border bg-background text-foreground focus:ring-primary/50 min-h-10 max-w-[5.25rem] rounded-lg border px-2 text-xs focus:ring-2 focus:outline-none"
-      aria-label="Seleccionar tema / Select theme"
+      aria-label={locale === 'es' ? 'Seleccionar tema' : 'Select theme'}
       data-theme-select
     >
       {options.map((opt) => (
@@ -27,7 +33,11 @@ const options = [
         class="hover:bg-muted focus-visible:outline-primary/70 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:border-primary min-h-8 cursor-pointer rounded-full px-2.5 py-1 transition focus-visible:outline focus-visible:outline-2 data-[active=true]:border data-[active=true]:shadow-sm"
         data-theme-option={opt.value}
         aria-pressed="false"
-        aria-label={`Cambiar tema a ${opt.label}`}
+        aria-label={
+          locale === 'es'
+            ? `Cambiar tema a ${opt.label}`
+            : `Switch theme to ${opt.label}`
+        }
       >
         {opt.label}
       </button>

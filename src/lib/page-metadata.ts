@@ -1,93 +1,143 @@
-import type {
-  Language,
-  LanguageMetadata,
-  LanguageMetadataEntry,
-} from './language-client'
-import { LINKS } from './constants'
-import { SITE_URL } from './site'
+import type { Language, LanguageMetadata } from './language-client'
+import type { CaseStudyProject } from './professional-profile'
+import { PROFESSIONAL_PROFILE } from './professional-profile'
+import { getAlternatePaths, SITE_URL } from './site'
 
 const PORTFOLIO_URL = new URL('/', SITE_URL).toString()
+export const PERSON_ID = `${PORTFOLIO_URL}#person`
 
-const createAuthor = (url: string) => ({
+const person = {
   '@type': 'Person',
-  name: 'Sergio Morales Rodríguez',
-  url,
+  '@id': PERSON_ID,
+  name: PROFESSIONAL_PROFILE.person.name,
+  url: PORTFOLIO_URL,
   jobTitle: 'Tech Lead Full Stack',
-  sameAs: [LINKS.github, LINKS.linkedin],
-})
+  sameAs: [
+    PROFESSIONAL_PROFILE.links.github,
+    PROFESSIONAL_PROFILE.links.linkedin,
+    PROFESSIONAL_PROFILE.links.twitter,
+  ],
+}
 
-const createTermsMetadata = (app: string, path: string): LanguageMetadata => {
-  const canonical = new URL(path, SITE_URL).toString()
-  const entry = (
-    language: Language,
-    title: string,
-    description: string,
-    imageAlt: string,
-  ): LanguageMetadataEntry => ({
-    title,
-    description,
-    imageAlt,
-    schema: {
-      '@context': 'https://schema.org',
-      '@type': 'WebSite',
-      name: 'Sergio Morales Rodríguez - Portfolio',
-      url: PORTFOLIO_URL,
-      description,
-      inLanguage: language,
-      author: createAuthor(canonical),
-    },
-  })
-
+function pageSchema(
+  type: string,
+  path: string,
+  language: Language,
+  title: string,
+  description: string,
+) {
   return {
-    es: entry(
-      'es',
-      `Términos de Servicio — ${app}`,
-      `Términos de Servicio de la aplicación ${app}.`,
-      `Términos de Servicio de ${app}`,
-    ),
-    en: entry(
-      'en',
-      `Terms of Service — ${app}`,
-      `Terms of Service for the ${app} application.`,
-      `${app} Terms of Service`,
-    ),
+    '@context': 'https://schema.org',
+    '@type': type,
+    '@id': `${new URL(getAlternatePaths(path)[language], SITE_URL)}#page`,
+    url: new URL(getAlternatePaths(path)[language], SITE_URL).toString(),
+    name: title,
+    description,
+    inLanguage: language,
+    author: { '@id': PERSON_ID },
   }
 }
 
-const personIdentity = {
-  '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: 'Sergio Morales Rodríguez',
-  sameAs: [LINKS.github, LINKS.linkedin, LINKS.twitter],
+function createTermsMetadata(app: string, path: string): LanguageMetadata {
+  const entry = (language: Language) => {
+    const title =
+      language === 'es'
+        ? `Términos de Servicio — ${app}`
+        : `Terms of Service — ${app}`
+    const description =
+      language === 'es'
+        ? `Términos de Servicio de la aplicación ${app}.`
+        : `Terms of Service for the ${app} application.`
+    return {
+      title,
+      description,
+      imageAlt: title,
+      schema: pageSchema('WebPage', path, language, title, description),
+    }
+  }
+  return { es: entry('es'), en: entry('en') }
+}
+
+const homeEntry = (language: Language) => {
+  const title = 'Sergio Morales Rodríguez — Tech Lead Full Stack'
+  const description =
+    language === 'es'
+      ? 'Portfolio de Sergio Morales Rodríguez, Tech Lead Full Stack especializado en liderazgo técnico, arquitectura, APIs y entrega de producto.'
+      : 'Portfolio of Sergio Morales Rodríguez, a Tech Lead Full Stack focused on technical leadership, architecture, APIs, and product delivery.'
+  return {
+    title,
+    description,
+    imageAlt:
+      language === 'es'
+        ? 'Presentación del portfolio de Sergio Morales Rodríguez'
+        : 'Sergio Morales Rodríguez portfolio preview',
+    schema: {
+      ...pageSchema('ProfilePage', '/', language, title, description),
+      mainEntity: person,
+    },
+  }
 }
 
 export const PAGE_METADATA = {
-  home: {
-    es: {
-      title: 'Sergio Morales Rodríguez — Tech Lead Full Stack',
-      description:
-        'Portfolio de Sergio Morales Rodríguez, Tech Lead Full Stack especializado en liderazgo técnico, arquitectura, APIs y entrega de producto.',
-      imageAlt: 'Presentación del portfolio de Sergio Morales Rodríguez',
-      schema: {
-        ...personIdentity,
-        jobTitle: 'Tech Lead Full Stack',
-        description:
-          'Tech Lead Full Stack especializado en liderazgo técnico, arquitectura, APIs y entrega de producto.',
-      },
-    },
-    en: {
-      title: 'Sergio Morales Rodríguez — Tech Lead Full Stack',
-      description:
-        'Portfolio of Sergio Morales Rodríguez, a Tech Lead Full Stack focused on technical leadership, architecture, APIs, and product delivery.',
-      imageAlt: 'Sergio Morales Rodríguez portfolio preview',
-      schema: {
-        ...personIdentity,
-        jobTitle: 'Tech Lead Full Stack',
-        description:
-          'Tech Lead Full Stack focused on technical leadership, architecture, APIs, and product delivery.',
-      },
-    },
-  },
+  home: { es: homeEntry('es'), en: homeEntry('en') },
   acezone: createTermsMetadata('AceZone', '/acezone/tos'),
   wattly: createTermsMetadata('Wattly', '/wattly/tos'),
 } satisfies Record<string, LanguageMetadata>
+
+export function createCaseStudyMetadata(
+  project: CaseStudyProject,
+): LanguageMetadata {
+  const entry = (language: Language) => {
+    const title = `${project.title[language]} — ${language === 'es' ? 'Caso de estudio' : 'Case study'} | Sergio Morales Rodríguez`
+    const description = project.problem[language]
+    return {
+      title,
+      description,
+      imageAlt:
+        language === 'es'
+          ? 'Presentación del portfolio de Sergio Morales Rodríguez'
+          : 'Sergio Morales Rodríguez portfolio preview',
+      schema: {
+        ...pageSchema(
+          'WebPage',
+          `/proyectos/${project.id}`,
+          language,
+          title,
+          description,
+        ),
+        breadcrumb: {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: language === 'es' ? 'Proyectos' : 'Projects',
+              item: `${SITE_URL}${language === 'es' ? '/' : '/en'}#proyectos`,
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: project.title[language],
+              item: new URL(
+                getAlternatePaths(`/proyectos/${project.id}`)[language],
+                SITE_URL,
+              ).toString(),
+            },
+          ],
+        },
+        mainEntity: {
+          '@type': 'CreativeWork',
+          name: project.title[language],
+          description: project.solution[language],
+          inLanguage: language,
+          creator: { '@id': PERSON_ID },
+          url: new URL(
+            getAlternatePaths(`/proyectos/${project.id}`)[language],
+            SITE_URL,
+          ).toString(),
+        },
+      },
+    }
+  }
+  return { es: entry('es'), en: entry('en') }
+}

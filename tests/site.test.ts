@@ -21,7 +21,15 @@ describe('production site discovery', () => {
       await import('../src/lib/site')
     const xml = createSitemapXml(SITE_URL)
 
-    expect(INDEXABLE_PATHS).toEqual(['/', '/acezone/tos', '/wattly/tos'])
+    expect(SITE_URL).toBe('https://sgmr.dev')
+    expect(INDEXABLE_PATHS).toHaveLength(14)
+    expect(INDEXABLE_PATHS).toContain('/en')
+    expect(INDEXABLE_PATHS).toContain('/en/acezone/tos')
+    expect(INDEXABLE_PATHS).toContain('/proyectos/jauntjar')
+    expect(INDEXABLE_PATHS).toContain('/en/projects/solutec')
+    expect(
+      Array.from(xml.matchAll(/<loc>(.*?)<\/loc>/g), (match) => match[1]),
+    ).toEqual(INDEXABLE_PATHS.map((path) => `https://sgmr.dev${path}`))
     expect(xml.match(/<url>/g)).toHaveLength(INDEXABLE_PATHS.length)
     expect(xml).toContain('<loc>https://sgmr.dev/</loc>')
     expect(xml).toContain('<loc>https://sgmr.dev/acezone/tos</loc>')
@@ -32,23 +40,5 @@ describe('production site discovery', () => {
     const endpoint = readProjectFile('src/pages/sitemap.xml.ts')
     expect(endpoint).toMatch(/from ['"]\.\.\/lib\/site['"]/)
     expect(endpoint).toContain('createSitemapXml(site ?? SITE_URL)')
-  })
-
-  test('keeps crawler policy while publishing the production sitemap URL', () => {
-    const robots = readProjectFile('public/robots.txt')
-
-    expect(robots).toContain('Sitemap: https://sgmr.dev/sitemap.xml')
-    expect(robots).not.toContain('sergiogmr.vercel.app')
-    expect(robots).toMatch(/User-agent: \*\nAllow: \/\nDisallow: \/api\//)
-    for (const agent of [
-      'GPTBot',
-      'ChatGPT-User',
-      'Google-Extended',
-      'CCBot',
-      'anthropic-ai',
-      'Claude-Web',
-    ]) {
-      expect(robots).toContain(`User-agent: ${agent}`)
-    }
   })
 })

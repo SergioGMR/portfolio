@@ -1,0 +1,19 @@
+---
+import type { CaseStudyProject } from '@/lib/professional-profile'
+import CaseStudyPage from '@/components/pages/CaseStudyPage.astro'
+import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
+
+export function getStaticPaths() {
+  return PROFESSIONAL_PROFILE.projects
+    .filter(
+      (project): project is CaseStudyProject => project.kind === 'case-study',
+    )
+    .map((project) => ({ params: { slug: project.id }, props: { project } }))
+}
+interface Props {
+  project: CaseStudyProject
+}
+const { project } = Astro.props
+---
+
+<CaseStudyPage project={project} />

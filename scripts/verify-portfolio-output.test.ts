@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import {
   copyFile,
+  cp,
   mkdir,
   mkdtemp,
   readFile,
@@ -10,6 +11,18 @@ import {
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
+import {
+  INDEXABLE_PATHS,
+  SITE_URL,
+  getAlternatePaths,
+  getLanguage,
+} from '../src/lib/site'
+import {
+  PAGE_METADATA,
+  createCaseStudyMetadata,
+} from '../src/lib/page-metadata'
+import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
+
 const projectRoot = new URL('../', import.meta.url)
 const fixtureRoots: string[] = []
 
@@ -18,8 +31,7 @@ const expectedTitle =
   '<title>Sergio Morales Rodríguez — Tech Lead Full Stack</title>'
 const spanishCvHref = 'href="/sergio-morales-es.pdf"'
 const englishCvHref = 'href="/sergio-morales-en.pdf"'
-const personStructuredData =
-  '<script type="application/ld+json">{"@type":"Person","jobTitle":"Tech Lead Full Stack"}</script>'
+const personStructuredData = `<script type="application/ld+json">${JSON.stringify(PAGE_METADATA.home.es.schema)}</script>`
 const expectedDescription =
   'Portfolio de Sergio Morales Rodríguez, Tech Lead Full Stack especializado en liderazgo técnico, arquitectura, APIs y entrega de producto.'
 const descriptionMeta = `<meta name="description" content="${expectedDescription}">`
@@ -30,8 +42,41 @@ const openGraphMetadata = [
   openGraphUrl,
   '<meta property="og:title" content="Sergio Morales Rodríguez — Tech Lead Full Stack">',
   `<meta property="og:description" content="${expectedDescription}">`,
-  '<meta property="og:image" content="https://sgmr.dev/og.avif">',
+  '<meta property="og:image" content="https://sgmr.dev/og.jpg">',
 ].join('\n    ')
+const extraHead = (path: string) => {
+  const language = getLanguage(path)
+  const paths = getAlternatePaths(path)
+  return (
+    `<meta name="robots" content="index, follow"><meta property="og:locale" content="${language === 'es' ? 'es_ES' : 'en_US'}"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">` +
+    ['es', 'en', 'x-default']
+      .map(
+        (lang) =>
+          `<link rel="alternate" hreflang="${lang}" href="${new URL(paths[lang === 'en' ? 'en' : 'es'], SITE_URL)}">`,
+      )
+      .join('')
+  )
+}
+const navigation = (path: string) => {
+  const paths = getAlternatePaths(path)
+  const language = getLanguage(path)
+  return (
+    (['es', 'en'] as const)
+      .map(
+        (lang) =>
+          `<a data-language-link hreflang="${lang}" href="${paths[lang]}" ${lang === language ? 'aria-current="page"' : ''}>${lang}</a>`,
+      )
+      .join('') + `<a href="${PROFESSIONAL_PROFILE.links.mail}">Contact</a>`
+  )
+}
+const projectLinks = (language: 'es' | 'en') =>
+  PROFESSIONAL_PROFILE.projects
+    .map(
+      (project) =>
+        `<a href="${project.kind === 'case-study' ? getAlternatePaths(`/proyectos/${project.id}`)[language] : project.evidenceUrl}">${project.title[language]}</a>`,
+    )
+    .join('')
+
 const seoMetadata = [
   expectedTitle,
   descriptionMeta,
@@ -44,28 +89,25 @@ const validHtml = `<!doctype html>
   <head>
     ${seoMetadata}
     ${personStructuredData}
+    ${extraHead('/')}
   </head>
   <body>
+    <h1>Sergio Morales Rodríguez</h1>
+    <p>Las Palmas, España</p>
+    ${navigation('/')}${projectLinks('es')}
     <section data-lang-content="es">
       <p>${educationLine}</p>
       <p>Evidencia:</p>
       <a ${spanishCvHref}>CV</a>
-    </section>
-    <section data-lang-content="en">
-      <p>${educationLine}</p>
-      <p>Evidence:</p>
-      <a ${englishCvHref}>CV</a>
     </section>
     <a href="https://www.linkedin.com/in/sergiogmr/">LinkedIn</a>
     <a href="https://github.com/sergiogmr">GitHub</a>
   </body>
 </html>`
 
-const expectedSitemapLocations = [
-  'https://sgmr.dev/',
-  'https://sgmr.dev/acezone/tos',
-  'https://sgmr.dev/wattly/tos',
-]
+const expectedSitemapLocations = INDEXABLE_PATHS.map((path) =>
+  new URL(path, SITE_URL).toString(),
+)
 
 const validSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -73,6 +115,35 @@ ${expectedSitemapLocations
   .map((location) => `  <url><loc>${location}</loc></url>`)
   .join('\n')}
 </urlset>`
+
+function routeFixture(path: string): string {
+  const language = getLanguage(path)
+  const isHome = path === '/' || path === '/en'
+  const app = path.includes('/acezone/')
+    ? 'acezone'
+    : path.includes('/wattly/')
+      ? 'wattly'
+      : null
+  const project = PROFESSIONAL_PROFILE.projects.find(
+    (project) =>
+      project.kind === 'case-study' && path.endsWith(`/${project.id}`),
+  )
+  const entry = isHome
+    ? PAGE_METADATA.home[language]
+    : app
+      ? PAGE_METADATA[app][language]
+      : project?.kind === 'case-study'
+        ? createCaseStudyMetadata(project)[language]
+        : null
+  if (!entry) throw new Error(`Unknown fixture ${path}`)
+  const body = isHome
+    ? `<h1>Sergio Morales Rodríguez</h1><p>${PROFESSIONAL_PROFILE.person.location[language]}</p><section data-lang-content="${language}"><p>${educationLine}</p><p>${language === 'es' ? 'Evidencia:' : 'Evidence:'}</p><a href="/sergio-morales-${language}.pdf">CV</a></section><a href="https://www.linkedin.com/in/sergiogmr/">LinkedIn</a><a href="https://github.com/sergiogmr">GitHub</a>${projectLinks(language)}`
+    : project?.kind === 'case-study'
+      ? `<h1>${project.title[language]}</h1>${['problem', 'responsibility', 'solution', 'result'].map((field) => `<p>${project[field as 'problem'][language]}</p>`).join('')}${project.technologies.join(' ')}<a href="${project.evidenceUrl}">Project</a>`
+      : `<h1>${app} terms</h1>`
+  const url = new URL(path, SITE_URL).toString()
+  return `<!doctype html><html lang="${language}"><head><title>${entry.title}</title><meta name="description" content="${entry.description}"><link rel="canonical" href="${url}"><meta property="og:type" content="website"><meta property="og:url" content="${url}"><meta property="og:title" content="${entry.title}"><meta property="og:description" content="${entry.description}"><meta property="og:image" content="${SITE_URL}/og.jpg">${extraHead(path)}<script type="application/ld+json">${JSON.stringify(entry.schema)}</script></head><body>${navigation(path)}${body}</body></html>`
+}
 
 function moveMarkupToBody(html: string, markup: string): string {
   return html.replace(markup, '').replace('</body>', `${markup}</body>`)
@@ -144,6 +215,41 @@ async function runVerifier(
     ]),
   ])
 
+  await cp(
+    new URL('../src/lib', import.meta.url),
+    join(fixtureRoot, 'src', 'lib'),
+    { recursive: true },
+  )
+  for (const path of INDEXABLE_PATHS.filter((path) => path !== '/')) {
+    const directory = join(fixtureRoot, 'dist', path)
+    await mkdir(directory, { recursive: true })
+    await writeFile(join(directory, 'index.html'), routeFixture(path))
+  }
+  await mkdir(join(fixtureRoot, '.vercel', 'output'), { recursive: true })
+  await writeFile(
+    join(fixtureRoot, '.vercel', 'output', 'config.json'),
+    JSON.stringify({
+      version: 3,
+      routes: [
+        { src: '^/(.*)/$', headers: { Location: '/$1' }, status: 308 },
+        { handle: 'filesystem' },
+        { src: '^/.*$', dest: '/404.html', status: 404 },
+      ],
+    }),
+  )
+  await writeFile(
+    join(fixtureRoot, 'dist', '404.html'),
+    '<!doctype html><html lang="en"><head><title>Not Found</title><meta name="robots" content="noindex, follow"></head><body><h1>Not Found</h1></body></html>',
+  )
+  await copyFile(
+    new URL('../public/og.jpg', import.meta.url),
+    join(fixtureRoot, 'dist', 'og.jpg'),
+  )
+  await cp(
+    join(fixtureRoot, 'dist'),
+    join(fixtureRoot, '.vercel', 'output', 'static'),
+    { recursive: true },
+  )
   await mutateFixture?.(fixtureRoot)
 
   const process = Bun.spawn(
@@ -163,6 +269,134 @@ async function runVerifier(
 }
 
 describe('portfolio output verifier', () => {
+  test('accepts a complete independently retrievable bilingual portfolio', async () => {
+    const result = await runVerifier(validHtml)
+    expect(result.exitCode).toBe(0)
+  })
+
+  test('rejects www canonical even when the fixture site config also uses www', async () => {
+    const result = await runVerifier(
+      validHtml.replaceAll('https://sgmr.dev', 'https://www.sgmr.dev'),
+      validSitemap,
+      async (fixtureRoot) => {
+        const sitePath = join(fixtureRoot, 'src', 'lib', 'site.ts')
+        const site = await readFile(sitePath, 'utf8')
+        await writeFile(
+          sitePath,
+          site.replaceAll('https://sgmr.dev', 'https://www.sgmr.dev'),
+        )
+      },
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('canonical link')
+  })
+
+  test('rejects alternates that point both languages to the same page', async () => {
+    const html = validHtml.replace(
+      'hreflang="en" href="https://sgmr.dev/en"',
+      'hreflang="en" href="https://sgmr.dev/"',
+    )
+    const result = await runVerifier(html)
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('language alternates')
+  })
+
+  test('rejects duplicate H1 headings', async () => {
+    const result = await runVerifier(
+      validHtml.replace('</body>', '<h1>First</h1><h1>Second</h1></body>'),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('H1')
+  })
+
+  test('rejects an internal link to a page that was not emitted', async () => {
+    const result = await runVerifier(
+      validHtml.replace(
+        '</body>',
+        '<a href="/missing-page">Missing</a></body>',
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('internal navigation')
+  })
+
+  test('rejects an internal link to an absent section', async () => {
+    const result = await runVerifier(
+      validHtml.replace(
+        '</body>',
+        '<a href="/en#missing-section">Missing</a></body>',
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('internal navigation')
+  })
+
+  test('rejects mixed-language initial HTML on a language URL', async () => {
+    const result = await runVerifier(
+      validHtml.replace(
+        '</body>',
+        '<p data-lang-content="en">English-only content</p></body>',
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('URL locale')
+  })
+
+  test('rejects a case study missing its factual responsibility', async () => {
+    const project = PROFESSIONAL_PROFILE.projects[0]
+    if (project?.kind !== 'case-study')
+      throw new Error('Missing case study fixture')
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      async (fixtureRoot) => {
+        await writeFile(
+          join(fixtureRoot, 'dist', 'proyectos', 'jauntjar', 'index.html'),
+          routeFixture('/proyectos/jauntjar').replace(
+            `<p>${project.responsibility.es}</p>`,
+            '<p>Unsupported replacement</p>',
+          ),
+        )
+      },
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('case-study responsibility')
+  })
+
+  test('rejects a 404 with an indexable canonical', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      async (fixtureRoot) => {
+        await writeFile(
+          join(fixtureRoot, 'dist', '404.html'),
+          '<!doctype html><html><head><meta name="robots" content="noindex, follow"><link rel="canonical" href="https://sgmr.dev/404"></head><body><h1>Not found</h1></body></html>',
+        )
+      },
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('404 discovery metadata')
+  })
+
+  test('rejects a hosting fallback that turns missing pages into HTTP 200', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      async (fixtureRoot) => {
+        const configPath = join(fixtureRoot, '.vercel', 'output', 'config.json')
+        await writeFile(
+          configPath,
+          (await readFile(configPath, 'utf8')).replace(
+            '"status":404',
+            '"status":200',
+          ),
+        )
+      },
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('Vercel 404 route')
+  })
+
   test('keeps the output verification gate in the Vercel build command', async () => {
     const vercelConfig = JSON.parse(
       await readFile(new URL('../vercel.json', import.meta.url), 'utf8'),
@@ -253,14 +487,9 @@ describe('portfolio output verifier', () => {
     expect(result.output).toContain('Spanish CV link')
   })
 
-  test('rejects stable CV links swapped between language scopes', async () => {
-    const html = validHtml
-      .replace(spanishCvHref, 'href="/temporary-cv.pdf"')
-      .replace(englishCvHref, spanishCvHref)
-      .replace('href="/temporary-cv.pdf"', englishCvHref)
-
+  test('rejects an English CV served on the Spanish URL', async () => {
+    const html = validHtml.replace(spanishCvHref, englishCvHref)
     const result = await runVerifier(html)
-
     expect(result.exitCode).not.toBe(0)
     expect(result.output).toContain('Spanish CV link')
   })
@@ -277,14 +506,20 @@ describe('portfolio output verifier', () => {
     expect(result.output).toContain('Spanish CV link')
   })
 
-  test('rejects a Spanish stable CV link added to the English scope', async () => {
-    const html = validHtml.replace(
-      `<a ${englishCvHref}>CV</a>`,
-      `<a ${englishCvHref}>CV</a><a ${spanishCvHref}>Wrong CV</a>`,
+  test('rejects a Spanish stable CV link added to the English page', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      async (fixtureRoot) => {
+        await writeFile(
+          join(fixtureRoot, 'dist', 'en', 'index.html'),
+          routeFixture('/en').replace(
+            `<a ${englishCvHref}>CV</a>`,
+            `<a ${englishCvHref}>CV</a><a ${spanishCvHref}>Wrong CV</a>`,
+          ),
+        )
+      },
     )
-
-    const result = await runVerifier(html)
-
     expect(result.exitCode).not.toBe(0)
     expect(result.output).toContain('English CV link')
   })

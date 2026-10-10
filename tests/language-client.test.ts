@@ -36,53 +36,8 @@ const createStorage = (initial: string | null): RecordingStorage => {
 const metaContent = (selector: string) =>
   document.querySelector<HTMLMetaElement>(selector)?.content
 
-const expectLanguage = (
-  language: 'es' | 'en',
-  pageMetadata: LanguageMetadata = metadata,
-) => {
-  const entry = pageMetadata[language]
-  const other = language === 'es' ? 'en' : 'es'
-
-  expect(document.documentElement.lang).toBe(language)
-  expect(document.title).toBe(entry.title)
-  expect(metaContent('meta[name="description"]')).toBe(entry.description)
-  expect(metaContent('meta[property="og:title"]')).toBe(entry.title)
-  expect(metaContent('meta[property="og:description"]')).toBe(entry.description)
-  expect(metaContent('meta[property="og:locale"]')).toBe(
-    language === 'es' ? 'es_ES' : 'en_US',
-  )
-  expect(metaContent('meta[property="og:image:alt"]')).toBe(entry.imageAlt)
-  expect(metaContent('meta[property="twitter:title"]')).toBe(entry.title)
-  expect(metaContent('meta[property="twitter:description"]')).toBe(
-    entry.description,
-  )
-  expect(metaContent('meta[property="twitter:image:alt"]')).toBe(entry.imageAlt)
-  expect(
-    document
-      .querySelector(`[data-lang-content="${language}"]`)
-      ?.classList.contains('hidden'),
-  ).toBe(false)
-  expect(
-    document
-      .querySelector(`[data-lang-content="${other}"]`)
-      ?.classList.contains('hidden'),
-  ).toBe(true)
-  expect(
-    document.querySelector<HTMLSelectElement>('[data-lang-select]')?.value,
-  ).toBe(language)
-  expect(
-    document
-      .querySelector(`[data-lang-option="${language}"]`)
-      ?.getAttribute('aria-pressed'),
-  ).toBe('true')
-  expect(
-    JSON.parse(
-      document.querySelector('[data-language-schema]')?.textContent ?? '{}',
-    ),
-  ).toEqual(entry.schema)
-}
-
 const renderFixture = (pageMetadata: LanguageMetadata) => {
+  document.documentElement.lang = 'es'
   document.documentElement.innerHTML = `
     <head>
       <title>${pageMetadata.es.title}</title>
@@ -121,67 +76,51 @@ afterEach(() => {
 })
 
 describe('language client', () => {
-  for (const [name, pageMetadata] of [
-    ['homepage', PAGE_METADATA.home],
-    ['AceZone terms', PAGE_METADATA.acezone],
-    ['Wattly terms', PAGE_METADATA.wattly],
-  ] as const) {
-    test(`restores saved English metadata for the ${name} page`, () => {
-      renderFixture(pageMetadata)
-      cleanup = initializeLanguage(document, createStorage('en'))
-
-      expectLanguage('en', pageMetadata)
-    })
-  }
-
-  test('round trips ES to EN to ES through both controls', () => {
-    const storage = createStorage('es')
+  test('keeps Spanish URL metadata when storage prefers English', () => {
+    const storage = createStorage('en')
+    document.documentElement.lang = 'es'
     cleanup = initializeLanguage(document, storage)
-
-    document
-      .querySelector('[data-lang-option="en"]')
-      ?.dispatchEvent(
-        new browser.MouseEvent('click', { bubbles: true }) as unknown as Event,
-      )
-    expectLanguage('en')
-
-    const select =
-      document.querySelector<HTMLSelectElement>('[data-lang-select]')
-    if (!select) throw new Error('Language select missing from fixture')
-    select.value = 'es'
-    select.dispatchEvent(
-      new browser.Event('change', { bubbles: true }) as unknown as Event,
+    expect(document.documentElement.lang).toBe('es')
+    expect(document.title).toBe(metadata.es.title)
+    expect(metaContent('meta[name="description"]')).toBe(
+      metadata.es.description,
     )
-
-    expectLanguage('es')
-    expect(storage.writes.at(-1)).toEqual(['language', 'es'])
+    expect(storage.writes).toEqual([])
   })
 
-  test('falls back to Spanish when storage is invalid or blocked', () => {
-    cleanup = initializeLanguage(document, createStorage('fr'))
-    expectLanguage('es')
-    cleanup()
-
-    const blocked: LanguageStorage = {
-      getItem: () => {
-        throw new browser.DOMException('Blocked', 'SecurityError')
-      },
-      setItem: () => {
-        throw new browser.DOMException('Blocked', 'SecurityError')
-      },
-    }
-
-    expect(() => {
-      cleanup = initializeLanguage(document, blocked)
-    }).not.toThrow()
-    expectLanguage('es')
-
+  test('keeps English URL metadata when storage prefers Spanish or throws', () => {
+    document.documentElement.lang = 'en'
+    document.title = metadata.en.title
     document
-      .querySelector('[data-lang-option="en"]')
-      ?.dispatchEvent(
-        new browser.MouseEvent('click', { bubbles: true }) as unknown as Event,
-      )
-    expectLanguage('en')
+      .querySelector('meta[name="description"]')
+      ?.setAttribute('content', metadata.en.description)
+    cleanup = initializeLanguage(document, createStorage('es'))
+    expect(document.documentElement.lang).toBe('en')
+    expect(metaContent('meta[name="description"]')).toBe(
+      metadata.en.description,
+    )
+    cleanup()
+    expect(() =>
+      initializeLanguage(document, {
+        getItem: () => {
+          throw new Error('blocked')
+        },
+        setItem: () => {
+          throw new Error('blocked')
+        },
+      }),
+    ).not.toThrow()
+    expect(document.documentElement.lang).toBe('en')
+  })
+
+  test('keeps real language navigation links and carries home section hash', () => {
+    browser.location.hash = '#proyectos'
+    document.body.innerHTML = '<a data-language-link href="/en">English</a>'
+    cleanup = initializeLanguage(document, createStorage('es'))
+    expect(document.querySelector('a')?.getAttribute('href')).toBe(
+      '/en#proyectos',
+    )
+    expect(document.documentElement.lang).toBe('es')
   })
 
   test('escapes closing script text without changing metadata values', () => {

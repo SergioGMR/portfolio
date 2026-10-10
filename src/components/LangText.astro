@@ -1,4 +1,5 @@
 ---
+import { getLanguage } from '@/lib/site'
 interface Props {
   en: string
   es: string
@@ -7,10 +8,10 @@ interface Props {
 }
 
 const { en, es, as = 'span', class: className = '' } = Astro.props
+const locale = getLanguage(Astro.url.pathname)
 const Tag = as as keyof HTMLElementTagNameMap
 ---
 
 <Tag class={className}>
-  <span data-lang-content="es">{es}</span>
-  <span data-lang-content="en">{en}</span>
+  <span data-lang-content={locale}>{locale === 'es' ? es : en}</span>
 </Tag>

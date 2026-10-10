@@ -1,13 +1,7 @@
 ---
-import type {
-  Language,
-  LanguageMetadata,
-  LanguageMetadataEntry,
-} from '@/lib/language-client'
-import {
-  serializeJsonForScript,
-  serializeLanguageMetadata,
-} from '@/lib/language-client'
+import type { Language, LanguageMetadata } from '@/lib/language-client'
+import { serializeJsonForScript } from '@/lib/language-client'
+import { getAlternatePaths, getLanguage, SITE_URL } from '@/lib/site'
 
 interface Props {
   title?: string
@@ -22,100 +16,35 @@ interface Props {
   ogType?: string
 }
 
-const site = Astro.site?.toString() ?? ''
-const canonicalURL = new URL(
-  Astro.props.canonicalOverride ?? Astro.url.pathname,
-  site,
-)
-const resolvedOgImage =
-  Astro.props.ogImage === undefined
-    ? new URL('/og.avif', site)
-    : typeof Astro.props.ogImage === 'string'
-      ? new URL(Astro.props.ogImage, site)
-      : Astro.props.ogImage
-
 const {
   title = '',
   description = '',
   localizedMetadata,
   noindex = false,
   nofollow = false,
-  locale = 'es',
+  locale = getLanguage(Astro.url.pathname),
   schema,
   ogType = 'website',
 } = Astro.props
-
+const site = Astro.site?.toString() ?? SITE_URL
+const canonicalURL = new URL(
+  Astro.props.canonicalOverride ?? Astro.url.pathname,
+  site,
+)
+canonicalURL.pathname = canonicalURL.pathname.replace(/\/+$/, '') || '/'
+const alternates = getAlternatePaths(canonicalURL.pathname)
+const resolvedOgImage = new URL(Astro.props.ogImage ?? '/og.jpg', site)
+const initial = localizedMetadata?.[locale] ?? {
+  title,
+  description,
+  imageAlt: title,
+  schema,
+}
+const initialOgLocale = locale === 'es' ? 'es_ES' : 'en_US'
 const robotsContent = [
   noindex ? 'noindex' : 'index',
   nofollow ? 'nofollow' : 'follow',
 ].join(', ')
-
-const keywords = [
-  'Sergio Morales Rodríguez',
-  'Tech Lead Full Stack',
-  'Tech Lead',
-  'Full Stack Developer',
-  'liderazgo técnico',
-  'technical leadership',
-  'Laravel',
-  'Livewire',
-  'FilamentPHP',
-  'Laravel Sanctum',
-  'Quasar Framework',
-  'CI/CD',
-  'GitHub Actions',
-  'Plesk',
-  'pruebas de software',
-  'software testing',
-  'arquitectura de sistemas',
-  'system architecture',
-  'Las Palmas',
-  'España',
-  'Spain',
-].join(', ')
-
-const defaultSchema = (entry: LanguageMetadataEntry, language: Language) => ({
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'Sergio Morales Rodríguez - Portfolio',
-  url: site,
-  description: entry.description,
-  inLanguage: language,
-  author: {
-    '@type': 'Person',
-    name: 'Sergio Morales Rodríguez',
-    url: canonicalURL.toString(),
-    jobTitle: 'Tech Lead Full Stack',
-    sameAs: [
-      'https://github.com/SergioGMR',
-      'https://www.linkedin.com/in/sergiogmr',
-    ],
-  },
-  keywords: keywords.split(', '),
-})
-
-const fallbackEntry: LanguageMetadataEntry = {
-  title,
-  description,
-  imageAlt: `Image for ${title}`,
-  schema,
-}
-const sourceMetadata =
-  localizedMetadata ??
-  ({ es: fallbackEntry, en: fallbackEntry } satisfies LanguageMetadata)
-const resolveEntry = (
-  entry: LanguageMetadataEntry,
-  language: Language,
-): LanguageMetadataEntry => ({
-  ...entry,
-  schema: entry.schema ?? defaultSchema(entry, language),
-})
-const metadata: LanguageMetadata = {
-  es: resolveEntry(sourceMetadata.es, 'es'),
-  en: resolveEntry(sourceMetadata.en, 'en'),
-}
-const initial = metadata[locale]
-const initialOgLocale = locale === 'es' ? 'es_ES' : 'en_US'
 ---
 
 <meta charset="utf-8" />
@@ -123,14 +52,21 @@ const initialOgLocale = locale === 'es' ? 'es_ES' : 'en_US'
 <title>{initial.title}</title>
 <meta name="robots" content={robotsContent} />
 <meta name="googlebot" content={robotsContent} />
-<link rel="canonical" href={canonicalURL} />
+{!noindex && <link rel="canonical" href={canonicalURL} />}
 <meta name="description" content={initial.description} />
 <meta name="author" content="Sergio Morales Rodríguez" />
-<meta name="keywords" content={keywords} />
 <meta property="og:locale" content={initialOgLocale} />
-<link rel="alternate" hreflang="es" href={canonicalURL} />
-<link rel="alternate" hreflang="en" href={canonicalURL} />
-<link rel="alternate" hreflang="x-default" href={canonicalURL} />
+{!noindex && (
+  <>
+    <link rel="alternate" hreflang="es" href={new URL(alternates.es, site)} />
+    <link rel="alternate" hreflang="en" href={new URL(alternates.en, site)} />
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={new URL(alternates.es, site)}
+    />
+  </>
+)}
 
 <link rel="icon" type="image/avif" href="/favicon.avif" />
 
@@ -140,7 +76,9 @@ const initialOgLocale = locale === 'es' ? 'es_ES' : 'en_US'
 <meta property="og:description" content={initial.description} />
 <meta property="og:image" content={resolvedOgImage} />
 <meta property="og:image:secure_url" content={resolvedOgImage} />
-<meta property="og:image:type" content="image/avif" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content={initial.imageAlt} />
 <meta property="og:site_name" content="Sergio Morales Rodríguez - Portfolio" />
 
@@ -165,13 +103,9 @@ const initialOgLocale = locale === 'es' ? 'es_ES' : 'en_US'
 />
 <meta name="color-scheme" content="light dark" />
 
-<script
-  type="application/json"
-  data-language-metadata
-  set:html={serializeLanguageMetadata(metadata)}
-/>
-<script
-  type="application/ld+json"
-  data-language-schema
-  set:html={serializeJsonForScript(initial.schema)}
-/>
+{!noindex && initial.schema && (
+  <script
+    type="application/ld+json"
+    set:html={serializeJsonForScript(initial.schema)}
+  />
+)}

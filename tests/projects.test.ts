@@ -60,7 +60,7 @@ describe('portfolio projects', () => {
   test('renders one safe responsive loop with the current card design', () => {
     expect(projectsSource).toContain('projects.map')
     expect(projectsSource).toContain("project.kind === 'showcase'")
-    expect(projectsSource).toContain('target="_blank"')
+    expect(projectsSource).toContain("project.kind === 'showcase' ? '_blank'")
     expect(projectsSource).toContain('rel="noreferrer noopener"')
     expect(projectsSource).toContain('sm:grid-cols-2')
 

@@ -1,4 +1,5 @@
 ---
+import { getLanguage } from '@/lib/site'
 import LangText from '@/components/LangText.astro'
 import {
   PROFESSIONAL_PROFILE,
@@ -29,6 +30,7 @@ const formatDate = (date: string, locale: Locale) =>
 
 const dateRange = (experience: (typeof experiences)[number], locale: Locale) =>
   `${formatDate(experience.startDate, locale)} — ${experience.endDate ? formatDate(experience.endDate, locale) : locale === 'es' ? 'Actualidad' : 'Current'}`
+const locale = getLanguage(Astro.url.pathname)
 ---
 
 <section
@@ -66,24 +68,36 @@ const dateRange = (experience: (typeof experiences)[number], locale: Locale) =>
       >
         <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <p class="text-muted-foreground font-mono text-[10px] tracking-wider uppercase sm:text-[11px]">
-            <span data-lang-content="es">{dateRange(experience, 'es')}</span>
-            <span data-lang-content="en">{dateRange(experience, 'en')}</span>
+            {locale === 'es' && (
+              <span data-lang-content="es">{dateRange(experience, 'es')}</span>
+            )}
+            {locale === 'en' && (
+              <span data-lang-content="en">{dateRange(experience, 'en')}</span>
+            )}
           </p>
           <span class="border-primary/30 bg-primary/10 text-primary inline-flex w-fit rounded-full border px-2.5 py-1 font-mono text-[10px]">
-            <span data-lang-content="es">
-              {statusLabels.es[experience.status]} ·{' '}
-              {employmentLabels.es[experience.employmentType]}
-            </span>
-            <span data-lang-content="en">
-              {statusLabels.en[experience.status]} ·{' '}
-              {employmentLabels.en[experience.employmentType]}
-            </span>
+            {locale === 'es' && (
+              <span data-lang-content="es">
+                {statusLabels.es[experience.status]} ·{' '}
+                {employmentLabels.es[experience.employmentType]}
+              </span>
+            )}
+            {locale === 'en' && (
+              <span data-lang-content="en">
+                {statusLabels.en[experience.status]} ·{' '}
+                {employmentLabels.en[experience.employmentType]}
+              </span>
+            )}
           </span>
         </div>
 
         <h3 class="text-foreground mt-3 text-lg font-semibold tracking-tight sm:text-xl">
-          <span data-lang-content="es">{experience.title.es}</span>
-          <span data-lang-content="en">{experience.title.en}</span>
+          {locale === 'es' && (
+            <span data-lang-content="es">{experience.title.es}</span>
+          )}
+          {locale === 'en' && (
+            <span data-lang-content="en">{experience.title.en}</span>
+          )}
         </h3>
 
         {experience.evidenceUrl ? (
@@ -93,47 +107,63 @@ const dateRange = (experience: (typeof experiences)[number], locale: Locale) =>
             rel="noopener noreferrer"
             class="text-primary mt-1 inline-flex text-sm font-medium hover:underline"
           >
-            <span data-lang-content="es">
-              {experience.company.es} · {experience.location.es} ↗
-            </span>
-            <span data-lang-content="en">
-              {experience.company.en} · {experience.location.en} ↗
-            </span>
+            {locale === 'es' && (
+              <span data-lang-content="es">
+                {experience.company.es} · {experience.location.es} ↗
+              </span>
+            )}
+            {locale === 'en' && (
+              <span data-lang-content="en">
+                {experience.company.en} · {experience.location.en} ↗
+              </span>
+            )}
           </a>
         ) : (
           <p class="text-primary mt-1 text-sm font-medium">
-            <span data-lang-content="es">
-              {experience.company.es} · {experience.location.es}
-            </span>
-            <span data-lang-content="en">
-              {experience.company.en} · {experience.location.en}
-            </span>
+            {locale === 'es' && (
+              <span data-lang-content="es">
+                {experience.company.es} · {experience.location.es}
+              </span>
+            )}
+            {locale === 'en' && (
+              <span data-lang-content="en">
+                {experience.company.en} · {experience.location.en}
+              </span>
+            )}
           </p>
         )}
 
         <div class="text-muted-foreground mt-4 text-xs leading-relaxed">
-          <div data-lang-content="es">
-            <ul class="list-disc space-y-1.5 pl-4">
-              {experience.responsibilities.es.slice(0, 3).map((item) => (
-                <li>{item}</li>
-              ))}
-            </ul>
-          </div>
-          <div data-lang-content="en">
-            <ul class="list-disc space-y-1.5 pl-4">
-              {experience.responsibilities.en.slice(0, 3).map((item) => (
-                <li>{item}</li>
-              ))}
-            </ul>
-          </div>
+          {locale === 'es' && (
+            <div data-lang-content="es">
+              <ul class="list-disc space-y-1.5 pl-4">
+                {experience.responsibilities.es.slice(0, 3).map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {locale === 'en' && (
+            <div data-lang-content="en">
+              <ul class="list-disc space-y-1.5 pl-4">
+                {experience.responsibilities.en.slice(0, 3).map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <div class="border-border mt-4 border-t pt-3 text-xs font-medium">
           <strong class="text-success">
             <LangText es="Resultado:" en="Outcome:" />
           </strong>{' '}
-          <span data-lang-content="es">{experience.outcomes.es[0]}</span>
-          <span data-lang-content="en">{experience.outcomes.en[0]}</span>
+          {locale === 'es' && (
+            <span data-lang-content="es">{experience.outcomes.es[0]}</span>
+          )}
+          {locale === 'en' && (
+            <span data-lang-content="en">{experience.outcomes.en[0]}</span>
+          )}
         </div>
 
         <div class="mt-4 flex flex-wrap gap-1.5 font-mono text-[10px] tracking-wider uppercase">

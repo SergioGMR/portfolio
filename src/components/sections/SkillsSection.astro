@@ -1,4 +1,5 @@
 ---
+import { getLanguage } from '@/lib/site'
 import LangText from '@/components/LangText.astro'
 import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
 
@@ -17,6 +18,7 @@ const evidenceLabels = {
     ]),
   ),
 }
+const locale = getLanguage(Astro.url.pathname)
 ---
 
 <section
@@ -55,33 +57,45 @@ const evidenceLabels = {
         class="bento-card min-w-0 rounded-2xl p-4"
       >
         <p class="text-primary font-mono text-[10px] tracking-widest uppercase">
-          <span data-lang-content="es">{capability.label.es}</span>
-          <span data-lang-content="en">{capability.label.en}</span>
+          {locale === 'es' && (
+            <span data-lang-content="es">{capability.label.es}</span>
+          )}
+          {locale === 'en' && (
+            <span data-lang-content="en">{capability.label.en}</span>
+          )}
         </p>
         <p class="text-foreground mt-2 text-sm font-semibold tracking-tight">
           {capability.technologies.join(' · ')}
         </p>
         <p class="text-muted-foreground mt-2 text-xs leading-relaxed">
-          <span data-lang-content="es">{capability.summary.es}</span>
-          <span data-lang-content="en">{capability.summary.en}</span>
+          {locale === 'es' && (
+            <span data-lang-content="es">{capability.summary.es}</span>
+          )}
+          {locale === 'en' && (
+            <span data-lang-content="en">{capability.summary.en}</span>
+          )}
         </p>
         <p class="text-muted-foreground border-border mt-3 border-t pt-2.5 font-mono text-[10px]">
-          <span data-lang-content="es">
-            <span class="text-foreground/70 tracking-wider uppercase">
-              Evidencia:
-            </span>{' '}
-            {capability.evidenceIds
-              .map((id) => evidenceLabels.es.get(id) ?? id)
-              .join(' · ')}
-          </span>
-          <span data-lang-content="en">
-            <span class="text-foreground/70 tracking-wider uppercase">
-              Evidence:
-            </span>{' '}
-            {capability.evidenceIds
-              .map((id) => evidenceLabels.en.get(id) ?? id)
-              .join(' · ')}
-          </span>
+          {locale === 'es' && (
+            <span data-lang-content="es">
+              <span class="text-foreground/70 tracking-wider uppercase">
+                Evidencia:
+              </span>{' '}
+              {capability.evidenceIds
+                .map((id) => evidenceLabels.es.get(id) ?? id)
+                .join(' · ')}
+            </span>
+          )}
+          {locale === 'en' && (
+            <span data-lang-content="en">
+              <span class="text-foreground/70 tracking-wider uppercase">
+                Evidence:
+              </span>{' '}
+              {capability.evidenceIds
+                .map((id) => evidenceLabels.en.get(id) ?? id)
+                .join(' · ')}
+            </span>
+          )}
         </p>
       </article>
     ))}

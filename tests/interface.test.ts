@@ -7,7 +7,7 @@ import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
 const root = join(import.meta.dirname, '..')
 const readProjectFile = (path: string) => readFileSync(join(root, path), 'utf8')
 
-const index = readProjectFile('src/pages/index.astro')
+const index = readProjectFile('src/components/pages/HomePage.astro')
 const pageShell = readProjectFile('src/components/layout/PageShell.astro')
 const basePage = readProjectFile('src/components/layout/BasePage.astro')
 const hero = readProjectFile('src/components/sections/HeroSection.astro')

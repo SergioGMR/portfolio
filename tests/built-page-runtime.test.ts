@@ -1,0 +1,264 @@
+import type { HTMLButtonElement, HTMLSelectElement } from 'happy-dom'
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
+import { readFileSync } from 'node:fs'
+import { Window } from 'happy-dom'
+
+const root = new URL('../', import.meta.url)
+const windows: Window[] = []
+
+beforeAll(async () => {
+  // Compile the composed pages: source-level function calls cannot detect an
+  // unmounted Astro client component or an omitted bundle entry point.
+  const build = Bun.spawn(['bun', 'run', 'build'], {
+    cwd: root.pathname,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  })
+  const [exitCode, stdout, stderr] = await Promise.all([
+    build.exited,
+    new Response(build.stdout).text(),
+    new Response(build.stderr).text(),
+  ])
+  if (exitCode !== 0)
+    throw new Error(`Runtime fixture build failed: ${stdout}${stderr}`)
+}, 30_000)
+
+afterEach(async () => {
+  await Promise.all(windows.splice(0).map((window) => window.close()))
+})
+
+function openBuiltPage(path: string, preferredLanguage: 'es' | 'en') {
+  const url = new URL(path, 'https://sgmr.dev')
+  const browser = new Window({
+    url: url.toString(),
+    settings: {
+      disableCSSFileLoading: true,
+      disableJavaScriptFileLoading: true,
+    },
+  })
+  windows.push(browser)
+  browser.localStorage.setItem('language', preferredLanguage)
+  const artifact =
+    url.pathname === '/' ? 'dist/index.html' : `dist${url.pathname}/index.html`
+  browser.document.write(readFileSync(new URL(artifact, root), 'utf8'))
+  const title = browser.document.title
+  const description = browser.document
+    .querySelector('meta[name="description"]')
+    ?.getAttribute('content')
+  const schema = browser.document.querySelector(
+    'script[type="application/ld+json"]',
+  )?.textContent
+  // Run the actual compiled client modules emitted on this page. This is a
+  // DOM simulation, not a claim of native-browser module or visual coverage.
+  for (const script of browser.document.querySelectorAll(
+    'script[type="module"]',
+  )) {
+    const source = script.getAttribute('src')
+    const code = source
+      ? readFileSync(new URL(`dist${source}`, root), 'utf8')
+      : script.textContent
+    if (!code) throw new Error('Built module has no code')
+    // Each module owns a lexical scope; evaluating minified modules as global
+    // scripts would wrongly make their short variable names overwrite each other.
+    browser.eval(`(() => {\n${code}\n})()`)
+  }
+  return { browser, title, description, schema }
+}
+
+function languageHref(browser: Window, language: string) {
+  return browser.document
+    .querySelector(`a[data-language-link][hreflang="${language}"]`)
+    ?.getAttribute('href')
+}
+
+describe('compiled apex origin', () => {
+  test('uses the independently confirmed apex in all 14 page identities and discovery URLs', () => {
+    const paths = [
+      '/',
+      '/en',
+      '/acezone/tos',
+      '/en/acezone/tos',
+      '/wattly/tos',
+      '/en/wattly/tos',
+      ...['jauntjar', 'todo-lux', 'basuraleza', 'solutec'].flatMap((id) => [
+        `/proyectos/${id}`,
+        `/en/projects/${id}`,
+      ]),
+    ]
+    expect(paths).toHaveLength(14)
+    for (const path of paths) {
+      const { browser, schema } = openBuiltPage(path, 'es')
+      const document = browser.document
+      expect(
+        document.querySelector('link[rel="canonical"]')?.getAttribute('href'),
+      ).toBe(`https://sgmr.dev${path}`)
+      for (const alternate of document.querySelectorAll(
+        'link[rel="alternate"][hreflang]',
+      )) {
+        expect(new URL(alternate.getAttribute('href')!).origin).toBe(
+          'https://sgmr.dev',
+        )
+      }
+      for (const property of ['og:url', 'twitter:url']) {
+        expect(
+          document
+            .querySelector(`meta[property="${property}"]`)
+            ?.getAttribute('content'),
+        ).toBe(`https://sgmr.dev${path}`)
+      }
+      for (const property of [
+        'og:image',
+        'og:image:secure_url',
+        'twitter:image',
+      ]) {
+        expect(
+          document
+            .querySelector(`meta[property="${property}"]`)
+            ?.getAttribute('content'),
+        ).toBe('https://sgmr.dev/og.jpg')
+      }
+      expect(schema).not.toContain('https://www.sgmr.dev')
+      const identity = JSON.parse(schema ?? '{}')
+      expect(identity.url).toBe(`https://sgmr.dev${path}`)
+      expect(identity.author?.['@id'] ?? identity.mainEntity?.['@id']).toBe(
+        'https://sgmr.dev/#person',
+      )
+    }
+    const sitemap = readFileSync(new URL('dist/sitemap.xml', root), 'utf8')
+    expect(
+      Array.from(sitemap.matchAll(/<loc>(.*?)<\/loc>/g), (match) => match[1]),
+    ).toEqual(paths.map((path) => `https://sgmr.dev${path}`))
+    expect(readFileSync(new URL('dist/robots.txt', root), 'utf8')).toContain(
+      'Sitemap: https://sgmr.dev/sitemap.xml',
+    )
+  })
+})
+
+describe('compiled page language enhancement', () => {
+  for (const [path, locale, opposite] of [
+    ['/#proyectos', 'es', 'en'],
+    ['/en#proyectos', 'en', 'es'],
+  ] as const) {
+    test(`keeps the section when switching language from ${path}`, () => {
+      const { browser, title, description, schema } = openBuiltPage(
+        path,
+        opposite,
+      )
+      expect(languageHref(browser, 'es')).toBe('/#proyectos')
+      expect(languageHref(browser, 'en')).toBe('/en#proyectos')
+      browser.location.hash = '#contacto'
+      browser.dispatchEvent(new browser.HashChangeEvent('hashchange'))
+      expect(languageHref(browser, 'es')).toBe('/#contacto')
+      expect(languageHref(browser, 'en')).toBe('/en#contacto')
+      expect(browser.document.documentElement.lang).toBe(locale)
+      expect(browser.document.title).toBe(title)
+      expect(
+        browser.document
+          .querySelector('meta[name="description"]')
+          ?.getAttribute('content'),
+      ).toBe(description)
+      expect(
+        browser.document.querySelector('script[type="application/ld+json"]')
+          ?.textContent,
+      ).toBe(schema)
+      expect(browser.localStorage.getItem('language')).toBe(opposite)
+    })
+  }
+  for (const [path, spanish, english] of [
+    [
+      '/en/projects/solutec#main-content',
+      '/proyectos/solutec',
+      '/en/projects/solutec',
+    ],
+    ['/en/acezone/tos#main-content', '/acezone/tos', '/en/acezone/tos'],
+  ]) {
+    test(`keeps equivalent page context for ${path}`, () => {
+      const { browser } = openBuiltPage(path!, 'es')
+      expect(languageHref(browser, 'es')).toBe(spanish)
+      expect(languageHref(browser, 'en')).toBe(english)
+      expect(browser.document.documentElement.lang).toBe('en')
+    })
+  }
+})
+
+describe('compiled visible case-study breadcrumbs', () => {
+  for (const [path, label, home] of [
+    ['/proyectos/solutec', 'Proyectos', '/#proyectos'],
+    ['/en/projects/solutec', 'Projects', '/en#proyectos'],
+  ] as const) {
+    test(`matches the visible breadcrumb with structured data at ${path}`, () => {
+      const { browser } = openBuiltPage(path, 'es')
+      const navigation = browser.document.querySelector(
+        'nav[aria-label="Breadcrumb"], nav[aria-label="Ruta de navegación"]',
+      )
+      expect(navigation?.querySelector('a')?.getAttribute('href')).toBe(home)
+      expect(navigation?.querySelector('a')?.textContent.trim()).toBe(label)
+      expect(
+        navigation?.querySelector('[aria-current="page"]')?.textContent,
+      ).toBe('Solutec')
+      const schema = JSON.parse(
+        browser.document.querySelector('script[type="application/ld+json"]')
+          ?.textContent ?? '{}',
+      )
+      expect(schema.breadcrumb.itemListElement).toEqual([
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: label,
+          item: `https://sgmr.dev${home}`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Solutec',
+          item: `https://sgmr.dev${path}`,
+        },
+      ])
+    })
+  }
+})
+
+describe('compiled localized theme controls', () => {
+  for (const [path, labels, accessible] of [
+    ['/', ['Claro', 'Oscuro', 'Sistema'], 'Seleccionar tema'],
+    ['/en', ['Light', 'Dark', 'System'], 'Select theme'],
+  ] as const) {
+    test(`uses localized accessible labels and preserves theme changes at ${path}`, () => {
+      const { browser } = openBuiltPage(path, path === '/' ? 'en' : 'es')
+      const document = browser.document
+      const select = document.querySelector<HTMLSelectElement>(
+        '[data-theme-select]',
+      )
+      expect(select?.getAttribute('aria-label')).toBe(accessible)
+      expect(
+        Array.from(select?.options ?? []).map((option) => option.textContent),
+      ).toEqual([...labels])
+      for (const [index, mode] of ['light', 'dark', 'system'].entries()) {
+        const button = document.querySelector<HTMLButtonElement>(
+          `[data-theme-option="${mode}"]`,
+        )
+        expect(button?.textContent.trim()).toBe(labels[index])
+        expect(button?.getAttribute('aria-label')).toBe(
+          path === '/'
+            ? `Cambiar tema a ${labels[index]}`
+            : `Switch theme to ${labels[index]}`,
+        )
+        button?.click()
+        expect(browser.localStorage.getItem('theme')).toBe(mode)
+        expect(select?.value).toBe(mode)
+        expect(button?.getAttribute('aria-pressed')).toBe('true')
+        const systemDark = browser.matchMedia(
+          '(prefers-color-scheme: dark)',
+        ).matches
+        expect(document.documentElement.classList.contains('dark')).toBe(
+          mode === 'dark' || (mode === 'system' && systemDark),
+        )
+      }
+      if (!select) throw new Error('Missing mobile theme selector')
+      select.value = 'light'
+      select.dispatchEvent(new browser.Event('change', { bubbles: true }))
+      expect(browser.localStorage.getItem('theme')).toBe('light')
+      expect(document.documentElement.classList.contains('dark')).toBe(false)
+    })
+  }
+})

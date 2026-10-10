@@ -1,9 +1,11 @@
 ---
+import { getLanguage } from '@/lib/site'
 import LangText from '@/components/LangText.astro'
 import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
 
 const education = PROFESSIONAL_PROFILE.education[0]
 const language = PROFESSIONAL_PROFILE.languages[0]
+const locale = getLanguage(Astro.url.pathname)
 ---
 
 <section class="surface-panel grid gap-4 rounded-3xl p-5 sm:p-7 lg:p-6">
@@ -12,32 +14,44 @@ const language = PROFESSIONAL_PROFILE.languages[0]
       <LangText es="Formación" en="Education" />
     </p>
     <h2 class="text-foreground mt-2 text-lg font-semibold tracking-tight sm:text-xl">
-      <span data-lang-content="es">{education.qualification.es}</span>
-      <span data-lang-content="en">{education.qualification.en}</span>
+      {locale === 'es' && (
+        <span data-lang-content="es">{education.qualification.es}</span>
+      )}
+      {locale === 'en' && (
+        <span data-lang-content="en">{education.qualification.en}</span>
+      )}
     </h2>
     <p class="text-muted-foreground text-sm">
-      <span data-lang-content="es">
-        {education.institution.es}
-        {' · '}
-        {education.startDate.slice(0, 4)}
-        {' — '}
-        {education.endDate.slice(0, 4)}
-        {' · '}
-        {education.level}
-      </span>
-      <span data-lang-content="en">
-        {education.institution.en}
-        {' · '}
-        {education.startDate.slice(0, 4)}
-        {' — '}
-        {education.endDate.slice(0, 4)}
-        {' · '}
-        {education.level}
-      </span>
+      {locale === 'es' && (
+        <span data-lang-content="es">
+          {education.institution.es}
+          {' · '}
+          {education.startDate.slice(0, 4)}
+          {' — '}
+          {education.endDate.slice(0, 4)}
+          {' · '}
+          {education.level}
+        </span>
+      )}
+      {locale === 'en' && (
+        <span data-lang-content="en">
+          {education.institution.en}
+          {' · '}
+          {education.startDate.slice(0, 4)}
+          {' — '}
+          {education.endDate.slice(0, 4)}
+          {' · '}
+          {education.level}
+        </span>
+      )}
     </p>
     <p class="text-muted-foreground text-sm">
-      <span data-lang-content="es">{education.location.es}</span>
-      <span data-lang-content="en">{education.location.en}</span>
+      {locale === 'es' && (
+        <span data-lang-content="es">{education.location.es}</span>
+      )}
+      {locale === 'en' && (
+        <span data-lang-content="en">{education.location.en}</span>
+      )}
     </p>
   </div>
 
@@ -46,8 +60,12 @@ const language = PROFESSIONAL_PROFILE.languages[0]
       <LangText es="Idiomas" en="Languages" />
     </p>
     <h2 class="text-foreground mt-2 text-lg font-semibold tracking-tight sm:text-xl">
-      <span data-lang-content="es">{language.name.es}</span>
-      <span data-lang-content="en">{language.name.en}</span>
+      {locale === 'es' && (
+        <span data-lang-content="es">{language.name.es}</span>
+      )}
+      {locale === 'en' && (
+        <span data-lang-content="en">{language.name.en}</span>
+      )}
     </h2>
     <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
       <div class="border-border bg-muted/30 rounded-xl border p-2.5">

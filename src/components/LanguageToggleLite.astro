@@ -1,34 +1,28 @@
 ---
-const options = [
-  { value: 'es', label: 'ES' },
-  { value: 'en', label: 'EN' },
-]
+import { getAlternatePaths, getLanguage } from '@/lib/site'
+
+const locale = getLanguage(Astro.url.pathname)
+const paths = getAlternatePaths(Astro.url.pathname)
 ---
 
-<div class="flex items-center gap-2">
-  <label class="inline-flex items-center text-xs sm:hidden">
-    <span class="sr-only">Idioma</span>
-    <select
-      class="border-border bg-background text-foreground focus:ring-primary/50 min-h-10 max-w-[4.25rem] rounded-lg border px-2 text-xs focus:ring-2 focus:outline-none"
-      aria-label="Seleccionar idioma / Select language"
-      data-lang-select
+<nav
+  aria-label={locale === 'es' ? 'Idioma' : 'Language'}
+  class="border-border bg-surface/60 inline-flex items-center gap-1 rounded-full border p-1 text-xs"
+>
+  {(['es', 'en'] as const).map((language) => (
+    <a
+      href={paths[language]}
+      hreflang={language}
+      lang={language}
+      data-language-link
+      aria-current={language === locale ? 'page' : undefined}
+      aria-label={language === 'es' ? 'Español' : 'English'}
+      class:list={[
+        'hover:bg-muted focus-visible:outline-primary/70 inline-flex min-h-9 min-w-9 items-center justify-center rounded-full px-2 py-1 transition-colors focus-visible:outline focus-visible:outline-2',
+        { 'bg-foreground text-background': language === locale },
+      ]}
     >
-      {options.map((opt) => (
-        <option value={opt.value}>{opt.label}</option>
-      ))}
-    </select>
-  </label>
-  <div class="border-border bg-surface/60 hidden items-center gap-1 rounded-full border p-1 text-xs sm:inline-flex">
-    {options.map((opt) => (
-      <button
-        type="button"
-        class="hover:bg-muted focus-visible:outline-primary/70 data-[active=true]:bg-foreground data-[active=true]:text-background data-[active=true]:border-foreground min-h-8 cursor-pointer rounded-full px-2.5 py-1 transition focus-visible:outline focus-visible:outline-2 data-[active=true]:border data-[active=true]:shadow-sm"
-        data-lang-option={opt.value}
-        aria-pressed="false"
-        aria-label={`Cambiar idioma a ${opt.label}`}
-      >
-        {opt.label}
-      </button>
-    ))}
-  </div>
-</div>
+      {language.toUpperCase()}
+    </a>
+  ))}
+</nav>

@@ -40,5 +40,19 @@
         }
       ]
     }
+  ],
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.sgmr.dev"
+        }
+      ],
+      "destination": "https://sgmr.dev/:path*",
+      "permanent": true
+    }
   ]
 }

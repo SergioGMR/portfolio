@@ -1,6 +1,8 @@
 ---
+import { getLanguage } from '@/lib/site'
 import LangText from '@/components/LangText.astro'
 import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
+const locale = getLanguage(Astro.url.pathname)
 ---
 
 <section id="inicio" class="relative overflow-hidden py-10 sm:py-16 lg:py-20">
@@ -25,7 +27,10 @@ import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
       </span>
     </div>
 
-    <h1 class="text-foreground mt-6 text-[clamp(2.35rem,10vw,4.5rem)] leading-[1.03] font-semibold tracking-[-0.055em] sm:mt-8">
+    <p class="text-primary mt-6 text-lg font-semibold sm:text-xl">
+      {PROFESSIONAL_PROFILE.person.name}
+    </p>
+    <h1 class="text-foreground mt-3 text-[clamp(2.35rem,10vw,4.5rem)] leading-[1.03] font-semibold tracking-[-0.055em] sm:mt-4">
       <LangText
         es="Liderazgo técnico para convertir necesidades en producto."
         en="Technical leadership that turns needs into product."
@@ -39,7 +44,10 @@ import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
       />
     </p>
 
-    <div class="mt-7 flex flex-col items-stretch justify-center gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center">
+    <p class="text-muted-foreground mt-3 text-sm">
+      {PROFESSIONAL_PROFILE.person.location[locale]}
+    </p>
+    <div class="mt-7 flex flex-col items-stretch justify-center gap-3 sm:mt-4 sm:flex-row sm:flex-wrap sm:items-center">
       <a
         href="#proyectos"
         class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold shadow-[0_14px_30px_-18px_hsl(var(--primary)/0.9)] transition active:scale-[0.98]"
@@ -54,27 +62,31 @@ import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
         href={PROFESSIONAL_PROFILE.links.mail}
         class="border-border bg-surface/70 text-foreground hover:border-primary/50 hover:bg-surface inline-flex min-h-11 items-center justify-center rounded-full border px-5 py-2.5 text-sm font-medium transition active:scale-[0.98]"
       >
-        <LangText es="Hablemos" en="Let's talk" />
+        <LangText es="Contactar con Sergio" en="Contact Sergio" />
       </a>
 
-      <a
-        data-lang-content="es"
-        href={PROFESSIONAL_PROFILE.cvUrls.es}
-        class="border-border bg-surface/70 text-foreground hover:border-primary/50 hover:bg-surface inline-flex min-h-11 items-center justify-center rounded-full border px-5 py-2.5 text-sm font-medium transition active:scale-[0.98]"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Ver CV (.pdf)
-      </a>
-      <a
-        data-lang-content="en"
-        href={PROFESSIONAL_PROFILE.cvUrls.en}
-        class="border-border bg-surface/70 text-foreground hover:border-primary/50 hover:bg-surface inline-flex min-h-11 items-center justify-center rounded-full border px-5 py-2.5 text-sm font-medium transition active:scale-[0.98]"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        View CV (.pdf)
-      </a>
+      {locale === 'es' && (
+        <a
+          data-lang-content="es"
+          href={PROFESSIONAL_PROFILE.cvUrls.es}
+          class="border-border bg-surface/70 text-foreground hover:border-primary/50 hover:bg-surface inline-flex min-h-11 items-center justify-center rounded-full border px-5 py-2.5 text-sm font-medium transition active:scale-[0.98]"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Ver CV (.pdf)
+        </a>
+      )}
+      {locale === 'en' && (
+        <a
+          data-lang-content="en"
+          href={PROFESSIONAL_PROFILE.cvUrls.en}
+          class="border-border bg-surface/70 text-foreground hover:border-primary/50 hover:bg-surface inline-flex min-h-11 items-center justify-center rounded-full border px-5 py-2.5 text-sm font-medium transition active:scale-[0.98]"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          View CV (.pdf)
+        </a>
+      )}
     </div>
 
     <div class="mt-6 flex justify-center gap-2 sm:mt-7">

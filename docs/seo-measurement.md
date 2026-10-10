@@ -1,0 +1,48 @@
+# SEO and GEO measurement
+
+## Baseline and comparison
+
+No ranking, traffic, contact conversion or AI citation baseline has been collected from a provider in this change. Establish the baseline before comparing outcomes; local HTML, test and Lighthouse results are implementation evidence only.
+
+After an authorized production release, record the deployed SHA and release date, and export a comparable 28-day baseline from Google Search Console and Bing Webmaster Tools. Compare subsequent 28-day windows and annotate releases. Small samples and seasonal demand can make percentage changes misleading.
+
+| Evidence                                                                 | Segmentation                                                                                   | Measure                                                           |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Google Search Console / Bing search performance                          | Brand queries (Sergio Morales Rodríguez, SergioGMR, sgmr.dev) and non-brand queries separately | Impressions, clicks, CTR and average position                     |
+| Search performance by landing page                                       | Spanish `/` and `/proyectos/*`; English `/en` and `/en/projects/*`; legal pages separately     | Search visibility and clicks per language and case study          |
+| Indexing reports and URL inspection                                      | All 14 sitemap URLs                                                                            | Selected canonical, indexing status and crawl errors              |
+| Vercel Web Analytics                                                     | Home, cases and language paths; available referrers                                            | Pageviews, visitors and acquisition sources                       |
+| Search Console Core Web Vitals / CrUX when sufficient public data exists | Mobile and desktop separately                                                                  | Field LCP, INP and CLS                                            |
+| Repeatable manual search observations                                    | Record query, date, engine, locale and cited page                                              | Observed references, without claiming comprehensive AI visibility |
+
+URL language is a landing-page segment, not proof of the visitor's preferred language. Search Console average position is an aggregate; it is not a guaranteed rank for an individual query. Referrers can be absent or suppressed, so analytics cannot fully attribute all AI or organic discovery.
+
+## Vercel Hobby
+
+The user confirmed Hobby. This implementation measures ordinary visits and available referrers only. It sends no custom events, contact addresses, free text, custom properties or synthetic pageviews for CV/contact clicks. A contact-link click is not a confirmed message or lead. CV downloads and external-project clicks remain unmeasured conversion actions.
+
+`astro.config.ts` enables the existing adapter's Web Analytics integration only when `VERCEL_ENV === 'production'`. Local development, ordinary local builds and Vercel preview builds do not inject it. The installed `@astrojs/vercel@11.0.11` directly injects the official `/_vercel/insights/script.js`; no analytics SDK dependency was added. Verify this behavior again when updating the adapter: [Astro's adapter documentation](https://docs.astro.build/en/guides/integrations-guide/vercel/#webanalytics) distinguishes the legacy configuration from newer SDK component integrations.
+
+[The Vercel plan documentation](https://vercel.com/docs/analytics/limits-and-pricing) lists the Hobby allowance, reporting window and lack of custom events. Check the current dashboard and current limits before interpreting missing data. No paid feature, plan upgrade or dashboard activation was performed here.
+
+Provider steps require explicit authorization: enable Web Analytics for the correct project if it is not already enabled, deploy the reviewed change, and verify that a production page loads the official script and that an ordinary visit appears in that project's dashboard. Script presence in a local build does not prove successful collection. Browser blockers can suppress collection.
+
+## Canonical and crawler follow-up
+
+The canonical host is `https://sgmr.dev`; paths have no trailing slash except `/`. Spanish routes remain available, with real English equivalents. The sitemap includes two homes, four legal pages and eight case-study pages. The generated adapter routing config is checked for a 308 slash redirect and a real 404 fallback. `vercel.json` separately declares a permanent www-to-apex redirect preserving the path and existing query strings, with no redirect on the apex host.
+
+The previous production audit observed an apex-to-www HTTP 307 redirect. Before publishing this opposite redirect, align the provider/domain rule with the confirmed apex host to avoid a redirect loop. No dashboard setting was changed; effective production routing remains NOT_RUN.
+
+After release, verify apex/www and slash variants for home, legal and case-study routes, preserving paths and query strings. Check the effective redirect status and final canonical response with the domain dashboard's rules in place. The local adapter output does not prove how Vercel merges project/domain rules, and no production redirect precedence was changed or verified in this work.
+
+Submit the sitemap through already authorized Search Console/Bing properties and inspect representative Spanish/English pages. Unknown paths must respond with HTTP 404, `noindex, follow`, and no canonical, alternate or page schema. Social networks may retain cached cards; JPEG generation and correct Open Graph metadata do not prove a refreshed remote preview.
+
+`robots.txt` explicitly allows Google, Bing, OpenAI search/user agents and Claude search/user agents while preserving training opt-outs, including GPTBot, Google-Extended, CCBot and ClaudeBot. [OpenAI's bot documentation](https://developers.openai.com/api/docs/bots) and [Anthropic's crawler documentation](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler) describe distinct search, user-requested retrieval and training purposes. Robots directives express preferences; they are not an access-control mechanism or an indexing/citation guarantee. OpenAI notes that user-initiated retrieval may not follow robots directives.
+
+## Local evidence and remaining checks
+
+The build verifier checks initial single-language HTML on all indexable routes, exact metadata and canonical URLs, reciprocal alternates, genuine language links, stable schema identity, factual project text, internal links/anchors, adapter HTML copies, sitemap completeness, noindex 404, social JPEG and unchanged canonical PDF bytes.
+
+The repository's existing Lighthouse gate runs five mobile measurements of the Spanish homepage with unchanged category and metric budgets. It does not cover all 14 routes, desktop behavior or field performance. Separate browser checks should cover Spanish/English desktop/mobile language navigation, keyboard focus, theme, reduced motion and case-study links using the static build.
+
+Production analytics reception, Search Console/Bing access and reports, real redirects, indexing, field performance and remote social previews remain NOT_RUN until separately authorized and observed.

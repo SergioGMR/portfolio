@@ -1,6 +1,21 @@
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 
+import {
+  INDEXABLE_PATHS,
+  getLanguage,
+  getAlternatePaths,
+} from '../src/lib/site'
+import {
+  PAGE_METADATA,
+  createCaseStudyMetadata,
+  PERSON_ID,
+} from '../src/lib/page-metadata'
+import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
+
+// Independent acceptance boundary: changing the site's config must not silently
+// redefine which origin the output verifier accepts.
+const EXPECTED_SITE_URL = 'https://sgmr.dev'
 const defaultRootUrl = new URL('../', import.meta.url)
 
 const canonicalPdfSha256 = {
@@ -8,11 +23,9 @@ const canonicalPdfSha256 = {
   en: 'a1ceeec46ad62401a2164ef3566d4fcabbe8a141577134dd7a752e1395bee7a9',
 } as const
 
-const expectedSitemapLocations = [
-  'https://sgmr.dev/',
-  'https://sgmr.dev/acezone/tos',
-  'https://sgmr.dev/wattly/tos',
-]
+const expectedSitemapLocations = INDEXABLE_PATHS.map((path) =>
+  new URL(path, EXPECTED_SITE_URL).toString(),
+)
 
 type StructuredData = Record<string, unknown>
 
@@ -36,6 +49,12 @@ interface HtmlSnapshot extends HtmlDocumentStructure {
   localizedHrefs: Record<'es' | 'en', string[]>
   hrefs: string[]
   activeText: string
+  language: string
+  h1Count: number
+  ids: string[]
+  alternates: Record<string, string[]>
+  robots: string[]
+  languageLinks: { href: string; current: string | null; language: string }[]
 }
 
 interface SitemapElement {
@@ -107,21 +126,60 @@ async function readRequiredArtifact(
 }
 
 async function verifySitemapRouteArtifacts(rootUrl: URL): Promise<void> {
+  const snapshots = new Map<string, HtmlSnapshot>()
   for (const location of expectedSitemapLocations) {
     const pathname = new URL(location).pathname
-    const artifactPath =
-      pathname === '/' ? 'dist/index.html' : `dist${pathname}/index.html`
+    const relativeArtifact =
+      pathname === '/' ? 'index.html' : `${pathname.slice(1)}/index.html`
+    const artifactPath = `dist/${relativeArtifact}`
     const artifact = await readRequiredArtifact(
       rootUrl,
       artifactPath,
       'sitemap route artifact',
     )
     const snapshot = await createHtmlSnapshot(artifact.toString('utf8'))
-
-    if (!hasValidHtmlDocumentStructure(snapshot)) {
+    if (!hasValidHtmlDocumentStructure(snapshot))
       throw new Error(
         `sitemap route artifact: expected emitted HTML at ${artifactPath}`,
       )
+    await verifyPageOutput(artifact.toString('utf8'), pathname)
+    snapshots.set(pathname, snapshot)
+    const vercelArtifact = await readRequiredArtifact(
+      rootUrl,
+      `.vercel/output/static/${relativeArtifact}`,
+      'Vercel static route artifact',
+    )
+    if (!artifact.equals(vercelArtifact))
+      throw new Error(
+        `Vercel static route artifact: differs from ${artifactPath}`,
+      )
+  }
+  for (const [pathname, snapshot] of snapshots) {
+    for (const href of snapshot.hrefs) {
+      const target = new URL(href, new URL(pathname, EXPECTED_SITE_URL))
+      if (target.origin !== EXPECTED_SITE_URL) continue
+      const page = snapshots.get(target.pathname)
+      if (page) {
+        if (
+          target.hash &&
+          !page.ids.includes(decodeURIComponent(target.hash.slice(1)))
+        )
+          throw new Error(
+            `internal navigation: ${pathname} -> ${href} missing section`,
+          )
+      } else if (
+        /\.(?:pdf|avif|jpg|png|webp|css|js|woff2)$/.test(target.pathname)
+      ) {
+        await readRequiredArtifact(
+          rootUrl,
+          `dist${target.pathname}`,
+          'internal navigation asset',
+        )
+      } else {
+        throw new Error(
+          `internal navigation: ${pathname} -> ${href} missing page`,
+        )
+      }
     }
   }
 }
@@ -188,6 +246,13 @@ async function createHtmlSnapshot(indexHtml: string): Promise<HtmlSnapshot> {
   const hrefs: string[] = []
   const activeTextParts: string[] = []
 
+  const ids: string[] = []
+  let language = ''
+  let h1Count = 0
+  const alternates: Record<string, string[]> = {}
+  const robots: string[] = []
+  const languageLinks: HtmlSnapshot['languageLinks'] = []
+
   let inertDepth = 0
   let validHeadDepth = 0
   let htmlCount = 0
@@ -210,9 +275,10 @@ async function createHtmlSnapshot(indexHtml: string): Promise<HtmlSnapshot> {
       },
     })
     .on('html', {
-      element() {
+      element(element) {
         if (inertDepth === 0) {
           htmlCount += 1
+          language = element.getAttribute('lang') ?? ''
         }
       },
     })
@@ -295,6 +361,40 @@ async function createHtmlSnapshot(indexHtml: string): Promise<HtmlSnapshot> {
         openGraphContents[property] = values
       },
     })
+    .on('[id]', {
+      element(element) {
+        if (inertDepth === 0) ids.push(element.getAttribute('id') ?? '')
+      },
+    })
+    .on('h1', {
+      element() {
+        if (inertDepth === 0) h1Count += 1
+      },
+    })
+    .on('link[rel="alternate"][hreflang]', {
+      element(element) {
+        if (inertDepth === 0 && validHeadDepth > 0) {
+          const lang = element.getAttribute('hreflang') ?? ''
+          ;(alternates[lang] ??= []).push(element.getAttribute('href') ?? '')
+        }
+      },
+    })
+    .on('meta[name="robots"]', {
+      element(element) {
+        if (inertDepth === 0 && validHeadDepth > 0)
+          robots.push(element.getAttribute('content') ?? '')
+      },
+    })
+    .on('a[data-language-link]', {
+      element(element) {
+        if (inertDepth === 0)
+          languageLinks.push({
+            href: element.getAttribute('href') ?? '',
+            current: element.getAttribute('aria-current'),
+            language: element.getAttribute('hreflang') ?? '',
+          })
+      },
+    })
     .on('script', {
       element(element) {
         const isActiveStructuredData =
@@ -374,6 +474,12 @@ async function createHtmlSnapshot(indexHtml: string): Promise<HtmlSnapshot> {
   })
 
   return {
+    language,
+    h1Count,
+    ids,
+    alternates,
+    robots,
+    languageLinks,
     doctypeNames,
     htmlCount,
     headCount,
@@ -396,12 +502,17 @@ async function createHtmlSnapshot(indexHtml: string): Promise<HtmlSnapshot> {
   }
 }
 
-export async function verifyHtmlOutput(indexHtml: string): Promise<void> {
+export async function verifyHtmlOutput(
+  indexHtml: string,
+  language: 'es' | 'en' = 'es',
+): Promise<void> {
   const snapshot = await createHtmlSnapshot(indexHtml)
-  const expectedTitle = 'Sergio Morales Rodríguez — Tech Lead Full Stack'
-  const expectedDescription =
-    'Portfolio de Sergio Morales Rodríguez, Tech Lead Full Stack especializado en liderazgo técnico, arquitectura, APIs y entrega de producto.'
-  const expectedCanonicalUrl = 'https://sgmr.dev/'
+  const expectedTitle = PAGE_METADATA.home[language].title
+  const expectedDescription = PAGE_METADATA.home[language].description
+  const expectedCanonicalUrl = new URL(
+    language === 'es' ? '/' : '/en',
+    EXPECTED_SITE_URL,
+  ).toString()
 
   if (snapshot.headCount !== 1 || snapshot.validHeadCount !== 1) {
     throw new Error(
@@ -434,7 +545,7 @@ export async function verifyHtmlOutput(indexHtml: string): Promise<void> {
     ['og:url', expectedCanonicalUrl, 'Open Graph URL'],
     ['og:title', expectedTitle, 'Open Graph title'],
     ['og:description', expectedDescription, 'Open Graph description'],
-    ['og:image', 'https://sgmr.dev/og.avif', 'Open Graph image'],
+    ['og:image', 'https://sgmr.dev/og.jpg', 'Open Graph image'],
   ] as const) {
     assertSingleValue(
       snapshot.openGraphContents[property] ?? [],
@@ -461,54 +572,37 @@ export async function verifyHtmlOutput(indexHtml: string): Promise<void> {
     )
   }
 
-  for (const [language, label] of [
-    ['es', 'Spanish localization'],
-    ['en', 'English localization'],
-  ] as const) {
-    if (!snapshot.localizedLanguages.includes(language)) {
-      throw new Error(
-        `${label}: expected active data-lang-content=${JSON.stringify(language)}`,
-      )
-    }
-  }
-
-  const educationLine = 'I.E.S. El Ricón · 2016 — 2018 · EQF/MEC 5'
-  for (const language of ['es', 'en'] as const) {
-    const educationLineCount =
-      snapshot.localizedText[language].split(educationLine).length - 1
-    if (educationLineCount !== 1) {
-      throw new Error(
-        `localized education (${language}): expected 1 scoped occurrence, found ${educationLineCount}`,
-      )
-    }
-  }
-
-  assertIncludes(
-    snapshot.localizedText.es,
-    'Evidencia:',
-    'Spanish evidence label',
-  )
-  assertIncludes(
-    snapshot.localizedText.en,
-    'Evidence:',
-    'English evidence label',
-  )
-
-  for (const [language, href, label] of [
-    ['es', '/sergio-morales-es.pdf', 'Spanish CV link'],
-    ['en', '/sergio-morales-en.pdf', 'English CV link'],
-  ] as const) {
-    const scopedStableCvHrefs = snapshot.localizedHrefs[language].filter(
-      (candidate) =>
-        /(?:^|\/)sergio-morales-(?:es|en)\.pdf(?:[?#]|$)/.test(
-          normalizeHrefForComparison(candidate),
-        ),
+  if (!snapshot.localizedLanguages.includes(language)) {
+    throw new Error(
+      `${language} localization: expected active localized content`,
     )
-    if (scopedStableCvHrefs.length !== 1 || scopedStableCvHrefs[0] !== href) {
-      throw new Error(
-        `${label}: expected exact scoped CV href set ${JSON.stringify([href])}, got ${JSON.stringify(scopedStableCvHrefs)}`,
-      )
-    }
+  }
+  if (snapshot.localizedLanguages.some((value) => value !== language)) {
+    throw new Error('URL locale: unexpected other-language content')
+  }
+  const educationLine = 'I.E.S. El Ricón · 2016 — 2018 · EQF/MEC 5'
+  const educationLineCount =
+    snapshot.localizedText[language].split(educationLine).length - 1
+  if (educationLineCount !== 1)
+    throw new Error(
+      `localized education (${language}): expected 1 scoped occurrence, found ${educationLineCount}`,
+    )
+  assertIncludes(
+    snapshot.localizedText[language],
+    language === 'es' ? 'Evidencia:' : 'Evidence:',
+    `${language} evidence label`,
+  )
+  const href = `/sergio-morales-${language}.pdf`
+  const scopedStableCvHrefs = snapshot.localizedHrefs[language].filter(
+    (candidate) =>
+      /(?:^|\/)sergio-morales-(?:es|en)\.pdf(?:[?#]|$)/.test(
+        normalizeHrefForComparison(candidate),
+      ),
+  )
+  if (scopedStableCvHrefs.length !== 1 || scopedStableCvHrefs[0] !== href) {
+    throw new Error(
+      `${language === 'es' ? 'Spanish' : 'English'} CV link: expected exact scoped CV href set ${JSON.stringify([href])}, got ${JSON.stringify(scopedStableCvHrefs)}`,
+    )
   }
 
   const legacyCvHref = snapshot.hrefs.find((href) => {
@@ -548,6 +642,156 @@ export async function verifyHtmlOutput(indexHtml: string): Promise<void> {
       'unsupported work arrangement',
     )
   }
+}
+
+export async function verifyPageOutput(
+  html: string,
+  path: string,
+): Promise<void> {
+  const snapshot = await createHtmlSnapshot(html)
+  const language = getLanguage(path)
+  const canonical = new URL(path, EXPECTED_SITE_URL).toString()
+  if (!hasValidHtmlDocumentStructure(snapshot))
+    throw new Error(`document structure: ${path}`)
+  if (snapshot.language !== language) throw new Error(`URL locale: ${path}`)
+  if (snapshot.h1Count !== 1)
+    throw new Error(
+      `H1: expected exactly one on ${path}, got ${snapshot.h1Count}`,
+    )
+  if (snapshot.localizedLanguages.some((value) => value !== language))
+    throw new Error(`URL locale: foreign-language content on ${path}`)
+  assertSingleValue(
+    snapshot.canonicalHrefs,
+    canonical,
+    `canonical link: ${path}`,
+  )
+  assertSingleValue(snapshot.robots, 'index, follow', `robots: ${path}`)
+  const paths = getAlternatePaths(path)
+  for (const lang of ['es', 'en', 'x-default'] as const) {
+    assertSingleValue(
+      snapshot.alternates[lang] ?? [],
+      new URL(
+        paths[lang === 'x-default' ? 'es' : lang],
+        EXPECTED_SITE_URL,
+      ).toString(),
+      `language alternates: ${path} ${lang}`,
+    )
+  }
+  for (const lang of ['es', 'en'] as const) {
+    const links = snapshot.languageLinks.filter(
+      (link) => link.language === lang,
+    )
+    if (
+      links.length !== 1 ||
+      links[0]?.href !== paths[lang] ||
+      links[0]?.current !== (lang === language ? 'page' : null)
+    )
+      throw new Error(`language navigation: ${path} ${lang}`)
+  }
+  const isHome = path === '/' || path === '/en'
+  const app = path.includes('/acezone/')
+    ? 'acezone'
+    : path.includes('/wattly/')
+      ? 'wattly'
+      : null
+  const project = PROFESSIONAL_PROFILE.projects.find(
+    (project) =>
+      project.kind === 'case-study' && path.endsWith(`/${project.id}`),
+  )
+  const metadata = isHome
+    ? PAGE_METADATA.home[language]
+    : app
+      ? PAGE_METADATA[app][language]
+      : project?.kind === 'case-study'
+        ? createCaseStudyMetadata(project)[language]
+        : null
+  if (!metadata) throw new Error(`unknown indexable route: ${path}`)
+  assertSingleValue(snapshot.titles, metadata.title, `page title: ${path}`)
+  assertSingleValue(
+    snapshot.descriptionContents,
+    metadata.description,
+    `meta description: ${path}`,
+  )
+  for (const [property, value] of Object.entries({
+    'og:url': canonical,
+    'og:title': metadata.title,
+    'og:description': metadata.description,
+    'og:locale': language === 'es' ? 'es_ES' : 'en_US',
+    'og:image': `${EXPECTED_SITE_URL}/og.jpg`,
+    'og:image:type': 'image/jpeg',
+    'og:image:width': '1200',
+    'og:image:height': '630',
+  })) {
+    assertSingleValue(
+      snapshot.openGraphContents[property] ?? [],
+      value,
+      `Open Graph ${property}: ${path}`,
+    )
+  }
+  if (
+    snapshot.structuredData.length !== 1 ||
+    JSON.stringify(snapshot.structuredData[0]) !==
+      JSON.stringify(metadata.schema)
+  )
+    throw new Error(`page structured data: ${path}`)
+  if (isHome) {
+    await verifyHtmlOutput(html, language)
+    for (const project of PROFESSIONAL_PROFILE.projects) {
+      const href =
+        project.kind === 'case-study'
+          ? getAlternatePaths(`/proyectos/${project.id}`)[language]
+          : project.evidenceUrl
+      if (!snapshot.hrefs.includes(href))
+        throw new Error(`project discovery link: ${path} ${project.id}`)
+    }
+    assertIncludes(
+      snapshot.activeText,
+      PROFESSIONAL_PROFILE.person.name,
+      'visible identity',
+    )
+    assertIncludes(
+      snapshot.activeText,
+      PROFESSIONAL_PROFILE.person.location[language],
+      'visible location',
+    )
+  }
+  if (project?.kind === 'case-study') {
+    const text = snapshot.activeText.replace(/\s+/g, ' ')
+    for (const field of [
+      'problem',
+      'responsibility',
+      'solution',
+      'result',
+    ] as const)
+      assertIncludes(
+        text,
+        project[field][language],
+        `case-study ${field}: ${path}`,
+      )
+    for (const technology of project.technologies)
+      assertIncludes(text, technology, `case-study technology: ${path}`)
+    if (!snapshot.hrefs.includes(project.evidenceUrl))
+      throw new Error(`project website link: ${path}`)
+  }
+  if (!snapshot.hrefs.includes(PROFESSIONAL_PROFILE.links.mail))
+    throw new Error(`contact link: ${path}`)
+  if (!JSON.stringify(metadata.schema).includes(PERSON_ID))
+    throw new Error(`stable person identity: ${path}`)
+}
+
+export async function verifyNotFoundOutput(html: string): Promise<void> {
+  const snapshot = await createHtmlSnapshot(html)
+  if (!hasValidHtmlDocumentStructure(snapshot) || snapshot.h1Count !== 1)
+    throw new Error('404 document structure')
+  assertSingleValue(snapshot.robots, 'noindex, follow', '404 robots')
+  if (
+    snapshot.canonicalHrefs.length ||
+    Object.keys(snapshot.alternates).length ||
+    snapshot.structuredData.length
+  )
+    throw new Error(
+      '404 discovery metadata: canonical, alternates and schema must be absent',
+    )
 }
 
 function sitemapError(reason: string, locations: string[] = []): never {
@@ -817,6 +1061,55 @@ export async function verifyPortfolioOutput(
     verifySitemapOutput(sitemapXml),
   ])
   await verifySitemapRouteArtifacts(rootUrl)
+  const missingHtml = await readRequiredArtifact(
+    rootUrl,
+    'dist/404.html',
+    '404 page',
+  )
+  await verifyNotFoundOutput(missingHtml.toString('utf8'))
+  const missingVercel = await readRequiredArtifact(
+    rootUrl,
+    '.vercel/output/static/404.html',
+    'Vercel 404 artifact',
+  )
+  if (!missingHtml.equals(missingVercel))
+    throw new Error('Vercel 404 artifact differs from dist')
+  const social = await readRequiredArtifact(
+    rootUrl,
+    'dist/og.jpg',
+    'social JPEG',
+  )
+  if (
+    social[0] !== 0xff ||
+    social[1] !== 0xd8 ||
+    social.at(-2) !== 0xff ||
+    social.at(-1) !== 0xd9
+  )
+    throw new Error('social JPEG: invalid format')
+  const outputConfig = JSON.parse(
+    await readFile(new URL('.vercel/output/config.json', rootUrl), 'utf8'),
+  ) as {
+    routes: {
+      src?: string
+      dest?: string
+      status?: number
+      headers?: { Location?: string }
+      handle?: string
+    }[]
+  }
+  const slash = outputConfig.routes.find((route) => route.src === '^/(.*)/$')
+  if (slash?.status !== 308 || slash.headers?.Location !== '/$1')
+    throw new Error('Vercel slash normalization: expected emitted 308')
+  const notFound = outputConfig.routes.at(-1)
+  if (
+    notFound?.src !== '^/.*$' ||
+    notFound.dest !== '/404.html' ||
+    notFound.status !== 404 ||
+    !outputConfig.routes.some((route) => route.handle === 'filesystem')
+  )
+    throw new Error(
+      'Vercel 404 route: expected real emitted status 404 fallback after filesystem',
+    )
 
   for (const locale of ['es', 'en'] as const) {
     const stableLabel = `${locale.toUpperCase()} stable CV`

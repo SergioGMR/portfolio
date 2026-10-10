@@ -1,0 +1,38 @@
+---
+import PageShell from '@/components/layout/PageShell.astro'
+import HeroSection from '@/components/sections/HeroSection.astro'
+import ProjectsSection from '@/components/sections/ProjectsSection.astro'
+import SkillsSection from '@/components/sections/SkillsSection.astro'
+import CodeSnippetBento from '@/components/sections/CodeSnippetBento.astro'
+import ExperienceSection from '@/components/sections/ExperienceSection.astro'
+import EducationLanguagesSection from '@/components/sections/EducationLanguagesSection.astro'
+import AboutContactSection from '@/components/sections/AboutContactSection.astro'
+import { PAGE_METADATA } from '@/lib/page-metadata'
+---
+
+<PageShell localizedMetadata={PAGE_METADATA.home}>
+  <HeroSection />
+
+  <div class="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
+    <div class="order-1 min-w-0 lg:col-span-8 lg:col-start-1 lg:row-start-1">
+      <ProjectsSection />
+    </div>
+
+    <div class="order-4 flex min-w-0 flex-col gap-6 lg:order-none lg:col-span-4 lg:col-start-9 lg:row-start-1">
+      <CodeSnippetBento />
+      <EducationLanguagesSection />
+    </div>
+
+    <div class="order-2 min-w-0 lg:col-span-8 lg:col-start-1 lg:row-start-2">
+      <ExperienceSection />
+    </div>
+
+    <div class="order-3 min-w-0 lg:col-span-4 lg:col-start-9 lg:row-start-2">
+      <SkillsSection />
+    </div>
+
+    <div class="order-5 min-w-0 lg:col-span-12 lg:col-start-1 lg:row-start-3">
+      <AboutContactSection />
+    </div>
+  </div>
+</PageShell>

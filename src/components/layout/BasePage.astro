@@ -1,6 +1,7 @@
 ---
 import type { LanguageMetadata } from '@/lib/language-client'
 import '@/styles/globals.css'
+import { getLanguage } from '@/lib/site'
 import HeadSEO from '@/components/HeadSEO.astro'
 import spaceGrotesk400 from '@fontsource/space-grotesk/files/space-grotesk-latin-400-normal.woff2?url'
 import spaceGrotesk600 from '@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff2?url'
@@ -23,7 +24,7 @@ const {
   description,
   localizedMetadata,
   schema,
-  locale = 'es',
+  locale = getLanguage(Astro.url.pathname),
   ogImage,
   ogType,
   noindex,
@@ -69,11 +70,6 @@ const {
         const root = document.documentElement
         root.classList.toggle('dark', resolved === 'dark')
         root.style.colorScheme = resolved
-
-        const savedLanguage = localStorage.getItem('language')
-        if (savedLanguage === 'es' || savedLanguage === 'en') {
-          root.setAttribute('lang', savedLanguage)
-        }
       } catch (_error) {}
     </script>
     <HeadSEO
