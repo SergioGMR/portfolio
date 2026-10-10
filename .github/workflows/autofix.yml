@@ -81,6 +81,29 @@ jobs:
             }
           }
           const text = (value) => typeof value === 'string' ? value.slice(0, 160) : null
+          const number = (value) => Number.isFinite(value) ? value : null
+          function traceEvidence(summary, detailed) {
+            if (summary?.status !== 'available') return { status: 'unavailable', reason: text(summary?.reason) }
+            const callFrame = (frame) => ({ functionName: text(frame?.functionName), url: frame?.url ? resource(frame.url) : null,
+              lineNumber: number(frame?.lineNumber), columnNumber: number(frame?.columnNumber) })
+            const rows = (values, limit) => (Array.isArray(values) ? values : []).slice(0, limit).map((row) => ({
+              name: text(row?.name), group: text(row?.group), startTimeMs: number(row?.startTimeMs),
+              durationMs: number(row?.durationMs), selfTimeMs: number(row?.selfTimeMs),
+              directURLs: (Array.isArray(row?.directURLs) ? row.directURLs : []).slice(0, 3).map(resource),
+              callFrames: (Array.isArray(row?.callFrames) ? row.callFrames : []).slice(0, 3).map(callFrame),
+            }))
+            return { status: 'available', timing: text(summary.timing), eventCount: number(summary.eventCount), taskCount: number(summary.taskCount),
+              unreliableSelfTimeCount: number(summary.unreliableSelfTimeCount), truncated: summary.truncated === true,
+              groups: Object.fromEntries(['parseHTML', 'styleLayout', 'paintCompositeRender', 'scriptParseCompile', 'scriptEvaluation', 'garbageCollection', 'other']
+                .map((id) => [id, number(summary.groups?.[id])])),
+              rootTasks: rows(summary.rootTasks, detailed ? 5 : 1), selfWork: rows(summary.selfWork, detailed ? 12 : 3),
+              cpuSamples: { sampleCount: number(summary.cpuSamples?.sampleCount), unresolvedSamples: number(summary.cpuSamples?.unresolvedSamples),
+                excludedBeforeNavigation: number(summary.cpuSamples?.excludedBeforeNavigation), unresolvedTimestamps: number(summary.cpuSamples?.unresolvedTimestamps),
+                rows: (Array.isArray(summary.cpuSamples?.rows) ? summary.cpuSamples.rows : []).slice(0, detailed ? 6 : 3)
+                  .map((row) => ({ ...callFrame(row), samples: number(row?.samples) })) },
+              limitations: (Array.isArray(summary.limitations) ? summary.limitations : []).slice(0, 3).map(text),
+            }
+          }
           const directories = fs.existsSync('.lighthouse')
             ? fs.readdirSync('.lighthouse', { withFileTypes: true })
               .filter((entry) => entry.isDirectory() && /^run-\d+$/.test(entry.name))
@@ -112,6 +135,9 @@ jobs:
               }, scores: Object.fromEntries(
                 Object.entries(report.categories || {}).map(([id, category]) => [id, category.score])
               ), metrics: Object.fromEntries(metrics.map((id) => [id, report.audits?.[id]?.numericValue ?? null])), breaches })
+              const traceFile = path.join(directory, `run-${run}.trace-summary.json`)
+              if (fs.existsSync(traceFile)) emit({ run, trace: traceEvidence(read(traceFile), breaches.length > 0 || !result || !!report.runtimeError) })
+              else if (breaches.length) emit({ run, trace: { status: 'unavailable', reason: 'No saved trace summary; inspect the failed step log.' } })
               if (!breaches.length && result && !report.runtimeError) continue
               emit({ run, detailReason: breaches.length ? 'error-budget breach' : 'runtime error or unavailable assertions' })
               const ids = [...new Set(['long-tasks', 'bootup-time', 'mainthread-work-breakdown',

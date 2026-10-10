@@ -32,6 +32,7 @@ interface Report {
 interface Measurement {
   lhr: Report
   report: string | string[]
+  artifacts?: { Trace?: unknown }
 }
 interface OwnedServer {
   url: string
@@ -330,6 +331,7 @@ export async function runMeasurements(options: Execution) {
   )
     throw new Error('Unsupported Lighthouse collection or upload configuration')
   const reports: Report[] = []
+  const traces: unknown[] = []
   let server: OwnedServer | undefined
   let browser: OwnedBrowser | undefined
   let serverClose: Promise<void> | undefined
@@ -382,6 +384,8 @@ export async function runMeasurements(options: Execution) {
         collect: { ...config.collect, numberOfRuns: 1 },
       })
       reports.push(report)
+      // Retain only references while measuring; serialize/process after the batch.
+      traces.push(result.artifacts?.Trace)
       await options.save(`run-${run}.report.json`, result.report[0])
       await options.save(`run-${run}.report.html`, result.report[1])
       console.log(
@@ -391,6 +395,28 @@ export async function runMeasurements(options: Execution) {
     signal?.throwIfAborted()
     const result = evaluateReports(reports, config)
     await options.save('assertions.json', JSON.stringify(result, null, 2))
+    if (result.failed) {
+      // Node's native TypeScript loader needs the extension; a URL also keeps
+      // this post-batch import compatible with the existing TS configuration.
+      const {
+        hasTraceEvents,
+        summarizeTrace,
+      }: typeof import('./lighthouse-trace') = await import(
+        new URL('./lighthouse-trace.ts', import.meta.url).href
+      )
+      for (const [index, trace] of traces.entries()) {
+        signal?.throwIfAborted()
+        if (hasTraceEvents(trace))
+          await options.save(
+            `run-${index + 1}.trace.json`,
+            JSON.stringify(trace),
+          )
+        await options.save(
+          `run-${index + 1}.trace-summary.json`,
+          JSON.stringify(await summarizeTrace(trace)),
+        )
+      }
+    }
     signal?.throwIfAborted()
     for (const assertion of result.assertions) {
       console.log(

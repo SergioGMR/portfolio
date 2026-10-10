@@ -399,3 +399,153 @@ test('rejects incomplete HTML report output', async () => {
     }),
   )
 })
+
+describe('post-measurement trace diagnostics', () => {
+  test.each([false, true])(
+    'preserves traces only after all five measurements when failed=%s',
+    async (failed) => {
+      const saved = new Map<string, string>()
+      const events: string[] = []
+      let measures = 0
+      const trace = {
+        traceEvents: [
+          {
+            name: 'TracingStartedInPage',
+            cat: 'devtools.timeline',
+            ph: 'I',
+            pid: 1,
+            tid: 1,
+            ts: 900,
+            args: { data: { page: 'main' } },
+          },
+          {
+            name: 'thread_name',
+            cat: '__metadata',
+            ph: 'M',
+            pid: 1,
+            tid: 1,
+            ts: 900,
+            args: { name: 'CrRendererMain' },
+          },
+          {
+            name: 'navigationStart',
+            cat: 'blink.user_timing',
+            ph: 'I',
+            pid: 1,
+            tid: 1,
+            ts: 950,
+            args: {
+              frame: 'main',
+              data: { documentLoaderURL: 'https://example.com/' },
+            },
+          },
+          {
+            name: 'ParseHTML',
+            cat: 'devtools.timeline',
+            ph: 'X',
+            pid: 1,
+            tid: 1,
+            ts: 1000,
+            dur: 100,
+            args: {},
+          },
+        ],
+      }
+      const result = await runMeasurements({
+        config,
+        startServer: async () => ({
+          url: 'http://127.0.0.1:9999/',
+          close: async () => {
+            events.push('close')
+          },
+        }),
+        launch: async () => ({
+          port: 9998,
+          kill: async () => {
+            events.push('kill')
+          },
+        }),
+        measure: async () => {
+          measures++
+          events.push(`measure-${measures}`)
+          const report = makeReport()
+          if (failed && measures === 1)
+            report.categories.performance.score = 0.89
+          return {
+            lhr: report,
+            report: [JSON.stringify(report), '<html>report</html>'],
+            artifacts: { Trace: trace },
+          }
+        },
+        save: async (name, body) => {
+          if (name.includes('trace')) expect(measures).toBe(5)
+          events.push(name)
+          saved.set(name, body)
+        },
+      })
+      expect(result.failed).toBe(failed)
+      expect(measures).toBe(5)
+      expect(events.filter((event) => event === 'close')).toHaveLength(1)
+      expect(events.filter((event) => event === 'kill')).toHaveLength(1)
+      expect(
+        [...saved.keys()].filter((name) => name.endsWith('.trace.json')),
+      ).toHaveLength(failed ? 5 : 0)
+      expect(
+        [...saved.keys()].filter((name) =>
+          name.endsWith('.trace-summary.json'),
+        ),
+      ).toHaveLength(failed ? 5 : 0)
+      if (failed) {
+        expect(JSON.parse(saved.get('run-1.trace.json')!)).toEqual(trace)
+        const summary = JSON.parse(saved.get('run-1.trace-summary.json')!)
+        expect(summary.status).toBe('available')
+        expect(summary.rootTasks[0].name).toBe('ParseHTML')
+        expect(summary.rootTasks[0].selfTimeMs).toBe(0.1)
+        expect(summary.rootTasks[0].startTimeMs).toBe(0.05)
+        expect(events.indexOf('run-1.trace.json')).toBeGreaterThan(
+          events.indexOf('measure-5'),
+        )
+      }
+    },
+  )
+  test('trace diagnostic write errors remain fatal and clean owned resources', async () => {
+    let measures = 0
+    const cleanup: string[] = []
+    let rejected = false
+    try {
+      await runMeasurements({
+        config,
+        startServer: async () => ({
+          url: 'http://127.0.0.1:9999/',
+          close: async () => {
+            cleanup.push('server')
+          },
+        }),
+        launch: async () => ({
+          port: 9998,
+          kill: async () => {
+            cleanup.push('browser')
+          },
+        }),
+        measure: async () => {
+          measures++
+          const report = makeReport()
+          report.categories.performance.score = 0.89
+          return {
+            lhr: report,
+            report: [JSON.stringify(report), '<html>report</html>'],
+            artifacts: { Trace: { traceEvents: [] } },
+          }
+        },
+        save: async (name) => {
+          if (name.includes('trace')) throw new Error('trace-write')
+        },
+      })
+    } catch (error) {
+      rejected = error instanceof Error && error.message === 'trace-write'
+    }
+    expect(rejected).toBe(true)
+    expect(measures).toBe(5)
+    expect(cleanup.sort()).toEqual(['browser', 'server'])
+  })
+})
