@@ -5,7 +5,7 @@
 - Request: fix the findings of the SEO/GEO audit and improve the portfolio.
 - Authorized: local implementation, regression tests, builds, browser checks and independent review. Follow-up explicitly authorizes all necessary local commits and a new review after those commits.
 - User correction: the primary domain is **`https://sgmr.dev` without www**. This supersedes the earlier inference from the observed public redirect. Apply apex consistently and redirect www to apex in repository configuration.
-- No pushes, deployment, provider configuration, paid services, dependency changes or credential access are authorized.
+- Follow-up explicitly authorizes aligning the production domain redirect through the Vercel CLI and completing its normal login flow. Only the two domain redirect settings are in scope; pushes, application deployment, paid services and dependency changes remain unauthorized. No credential files or tokens were inspected.
 - Working directory: `/Users/sergiogmr/portfolio-worktrees/seo-geo-20261010`.
 - Branch: `feat/seo-geo-20261010`; base: `1b499ed5452d615f39f78c4981c411af9d745b0b`.
 - Original dirty checkout: `/Volumes/Develop/Astro/portfolio`, HEAD `5ce09c867b9abaa6b51ee98c1d4bed16eadd2132`; preserve all existing changes.
@@ -23,6 +23,8 @@ The parent owns architecture, integration, this document and shared memory. Rese
 - [x] C1 — Investigator + executor: mapped and corrected canonical-domain contracts to `https://sgmr.dev`, with RED → GREEN evidence and full gates passing.
 - [x] C2 — Parent, after C1: validated prepared commit snapshots and created three cohesive local work-unit commits with tests and measurement documentation.
 - [x] C3 — Fresh independent reviewer, after C2: complete committed range reviewed; two newly found fragment/accessibility defects corrected in separate commits, validated and independently re-reviewed with APPROVED outcomes.
+- [x] R1 — Parent: authenticate the authorized Vercel CLI session and identify the project owning both production domains.
+- [x] R2 — Parent, after R1: align the provider redirect with the apex host; verify saved configuration, public root/nested/query behavior and unchanged production deployment identity.
 
 Previous implementation phase:
 
@@ -33,7 +35,7 @@ Previous implementation phase:
 
 ## Planned behavior units
 
-1. **Canonical URLs and languages:** use the user-confirmed primary host `https://sgmr.dev`; root Spanish and `/en` English; canonical URLs without trailing slash except `/`; stable translated legal/project routes; URL-authoritative locale; crawlable language links, per-page canonicals, reciprocal alternates and complete sitemap. Preserve existing Spanish routes. Represent the www-to-apex permanent redirect in local hosting configuration where supported; runtime/domain-dashboard behavior remains unverified until deployment.
+1. **Canonical URLs and languages:** use the user-confirmed primary host `https://sgmr.dev`; root Spanish and `/en` English; canonical URLs without trailing slash except `/`; stable translated legal/project routes; URL-authoritative locale; crawlable language links, per-page canonicals, reciprocal alternates and complete sitemap. Preserve existing Spanish routes. Represent the www-to-apex permanent redirect in local hosting configuration where supported. The provider redirect was subsequently aligned and verified on the existing deployment; behavior after publishing the application changes remains a separate release check.
 2. **Metadata and crawl policy:** consistent Person identity and page-specific WebPage/ProfilePage metadata; 404 noindex with no fake alternates; distinguish search crawlers from training crawlers, preserving existing training opt-outs. No special GEO files or fabricated schema data.
 3. **Project evidence and conversion:** dedicated bilingual case studies derived exclusively from existing factual project data, internal links and clear contact/CV actions; preserve existing external demos. Improve image descriptions and meaningful UI semantics where relevant.
 4. **Social assets and measurement:** use a broadly compatible social card derived from the existing image, with correct dimensions/MIME. Verify the existing analytics integration, add bounded non-PII conversion instrumentation only if supported without installing dependencies or activating paid provider features. Document provider-only steps and measurement baseline requirements honestly.
@@ -143,11 +145,11 @@ Remaining work is publication/provider validation, plus optional investigation o
 
 Production-only: provider domain redirect precedence, Search Console/Bing verification and indexing reports, CrUX field data, analytics/event reception and social-network preview caches. No access or success claimed.
 
-## Publication follow-up (not authorized or executed)
+## Publication follow-up
 
 After local validation and review, publication needs its own explicit authorization. The reviewable target is this feature branch, based on the recorded clean source; do not publish the older dirty checkout.
 
-1. Align the Vercel project's primary domain with the user's explicit choice, `sgmr.dev`. The previous audit observed apex redirecting to www; an opposite dashboard redirect must be removed or aligned before deploying a www-to-apex repository rule. Verify effective HTTP status and `Location`, including a nested route and query string. No dashboard change is authorized in this task.
+1. **Completed under later authorization:** the Vercel CLI now configures `sgmr.dev` to serve the existing production deployment directly and `www.sgmr.dev` to redirect to it with HTTP 308. Root and both legal routes were verified publicly, including query strings and one-hop completion. Recheck after any later deployment because the application changes have not been published.
 2. Confirm Web Analytics is enabled for this existing Hobby project, then verify actual pageviews/referrers after a production deployment. No plan upgrade or custom-event collection is part of this change.
 3. Use an already verified Search Console/Bing property if available. Ownership verification cannot be fabricated; any required token or DNS operation needs actual provider input and authorization.
 4. Submit the deployed sitemap and inspect Spanish, English and a case-study URL for selected canonical, language content and indexing eligibility. Submission is not evidence of indexing.
@@ -242,4 +244,12 @@ No horizontal overflow was observed in the tested views. Canonical URLs stay on 
 - Final preservation check: all **10 recorded dirty-file hashes** still match in `/Volumes/Develop/Astro/portfolio`; its Git status is unchanged. The separate main worktree remains clean. Dependencies, lockfile, Lighthouse runner/tests and thresholds have no changes from the recorded base.
 - Roles were explicitly requested through the client as investigator `gpt-6-luna/high`, executor `gpt-6.1-sol/high`, and reviewer `gpt-6-astra/xhigh`; no substitutions. Requested roles are distinguished from independent execution telemetry, which the client does not expose. The parent handled orchestration, commits and native browser verification.
 - Engram remains unavailable in the exposed tool catalog; this committed document is the local continuity record. No persistent-memory write is claimed.
-- Publication prerequisite remains: production currently redirects apex to www with HTTP 307, contrary to the confirmed apex primary domain. Align that effective redirect before deploying the local www-to-apex rule. Provider settings, deployed SHA, analytics reception, search indexing and AI citations remain **NOT_RUN / unverified**. This task does not publish the change or claim search-performance outcomes.
+- The provider redirect prerequisite was completed under later authorization, as recorded below. Application publication, deployed Git SHA, analytics reception, search indexing and AI citations remain **NOT_RUN / unverified**. The redirect change does not publish the local application commits or establish search-performance outcomes.
+
+## Production domain alignment — 2026-10-10
+
+- The user explicitly requested aligning the redirect using the CLI. The initial CLI account lacked access; after the user completed the normal login flow, the authorized account could read both domains on the same project. No credentials were extracted or copied, and no project/domain ownership was moved.
+- Before: `sgmr.dev` redirected to `www.sgmr.dev`, while www served production. The parent used the installed Vercel CLI **63.1.0** to clear the apex redirect, first verified public HTTP **200**, and only then set www's target to `sgmr.dev` with status **308**. Branch and custom-environment settings were unchanged.
+- Saved provider configuration was read back successfully: both domains remain verified, apex has no redirect, and www targets apex with 308. The apex alias points to the same deployment ID that www served before the change. No application deployment, DNS edit or source push was performed.
+- Public verification passed for `/`, `/acezone/tos?redirect_check=1&lang=es` and `/wattly/tos?redirect_check=1`: apex returns **200** without a Location header; www returns **308** to the exact apex path and query; following the redirect returns **200 in one hop**, without a loop. These checks cover the existing production routes, not the unpublished bilingual/case-study routes.
+- Local receipt: `.lighthouse/domain-redirect-20261010.json` (ignored, no credentials). Documentation is updated separately from application source. No application tests or Lighthouse rerun is needed for this provider-only operation; its evidence is the provider readback and real public HTTP responses. Engram remains unavailable.

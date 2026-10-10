@@ -31,9 +31,9 @@ Provider steps require explicit authorization: enable Web Analytics for the corr
 
 The canonical host is `https://sgmr.dev`; paths have no trailing slash except `/`. Spanish routes remain available, with real English equivalents. The sitemap includes two homes, four legal pages and eight case-study pages. The generated adapter routing config is checked for a 308 slash redirect and a real 404 fallback. `vercel.json` separately declares a permanent www-to-apex redirect preserving the path and existing query strings, with no redirect on the apex host.
 
-The previous production audit observed an apex-to-www HTTP 307 redirect. Before publishing this opposite redirect, align the provider/domain rule with the confirmed apex host to avoid a redirect loop. No dashboard setting was changed; effective production routing remains NOT_RUN.
+The earlier production audit observed an apex-to-www HTTP 307 redirect. On 2026-10-10, the user authorized aligning the provider settings through the Vercel CLI: apex now serves production directly, and www redirects to apex with HTTP 308. Public checks confirmed root and both existing legal routes, including query preservation and one-hop completion. The production deployment ID was unchanged; this did not publish the local application changes.
 
-After release, verify apex/www and slash variants for home, legal and case-study routes, preserving paths and query strings. Check the effective redirect status and final canonical response with the domain dashboard's rules in place. The local adapter output does not prove how Vercel merges project/domain rules, and no production redirect precedence was changed or verified in this work.
+After release, verify apex/www and slash variants for home, legal and case-study routes, preserving paths and query strings. Check the effective redirect status and final canonical response with the provider rules in place. The current public checks cover the existing deployment; the local adapter output does not establish how the newly deployed project rules will interact with domain rules.
 
 Submit the sitemap through already authorized Search Console/Bing properties and inspect representative Spanish/English pages. Unknown paths must respond with HTTP 404, `noindex, follow`, and no canonical, alternate or page schema. Social networks may retain cached cards; JPEG generation and correct Open Graph metadata do not prove a refreshed remote preview.
 
@@ -45,4 +45,4 @@ The build verifier checks initial single-language HTML on all indexable routes, 
 
 The repository's existing Lighthouse gate runs five mobile measurements of the Spanish homepage with unchanged category and metric budgets. It does not cover all 14 routes, desktop behavior or field performance. Separate browser checks should cover Spanish/English desktop/mobile language navigation, keyboard focus, theme, reduced motion and case-study links using the static build.
 
-Production analytics reception, Search Console/Bing access and reports, real redirects, indexing, field performance and remote social previews remain NOT_RUN until separately authorized and observed.
+Production analytics reception, Search Console/Bing access and reports, indexing, field performance and remote social previews remain NOT_RUN until separately authorized and observed. The existing production domain redirect has been verified as described above; redirect behavior after publishing the application changes remains a release check.
