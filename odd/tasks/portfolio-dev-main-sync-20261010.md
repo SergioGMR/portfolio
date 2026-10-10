@@ -23,8 +23,20 @@ Remote publication has not been performed or verified in this session.
 - [x] GI-02-E (executor): Uploadimg changes were already present; the three conflicted application/test files match main exactly. The duplicate public image matched the current source asset byte for byte and was removed only from the integration checkout.
 - [x] GI-02-D (parent): preserve pending registry/MCP bytes, retain the local ignore change, ignore the existing guidance backup, and reconcile concise project guidance with the current implementation.
 - [x] GI-02-V (parent): formatting, Astro diagnostics, and all 196 tests passed; the test suite built and verified the output.
-- [/] GI-02-R (independent reviewer): inspect the exact candidate and validation evidence. Depends on GI-02-E/D/V.
-- [ ] GI-03 (parent): commit, advance local dev/main, and switch the original checkout to dev. Depends on GI-02-R.
+- [x] GI-02-R (independent reviewer): APPROVED tree `e51d14e164a67c77800576e4a218ba873a3b2c13`; significant pending changes are preserved and there are no new integration findings.
+- [x] GI-03 (parent): committed the reviewed tree as `be6f31e492f94898c03428f80a18d24d28eed463`, fast-forwarded main, created local dev from main, and switched the original checkout to dev. Both refs were equal and both working trees clean after integration.
+
+## Delivery
+
+- Integration commit: `be6f31e492f94898c03428f80a18d24d28eed463`.
+- Local `dev` tracks the existing `origin/dev` reference; no remote connection
+  or push was performed. Cached remote refs are not fresh remote verification.
+- Original folder now uses the current portfolio source on `dev`.
+- This closure changes only this task record. Application/build/test checks
+  remain applicable because their inputs are unchanged.
+- Recovery stash `8109aefebe3a11f60627e7c372f2d530913595db` remains available.
+- The three AI Slop findings below remain pending; no application fix was
+  included in this branch synchronization.
 
 ## Review observations from the main baseline
 
@@ -66,3 +78,6 @@ The tool accepted investigator `gpt-6-luna/high`, executor `gpt-6.1-sol/high`, a
 independent reviewer `gpt-6-astra/xhigh`. Role TOMLs were read but are not loaded
 by the spawn API. Read-only restrictions for research/review are instructions,
 not a verified technical sandbox. No model substitution was requested.
+During independent review, one accidental `git write-tree` call returned the
+same candidate identity without changing the index or working tree. The
+reviewer reported the boundary violation and continued with read-only commands.
