@@ -35,8 +35,9 @@ Remote publication has not been performed or verified in this session.
 - This closure changes only this task record. Application/build/test checks
   remain applicable because their inputs are unchanged.
 - Recovery stash `8109aefebe3a11f60627e7c372f2d530913595db` remains available.
-- The three AI Slop findings below remain pending; no application fix was
-  included in this branch synchronization.
+- At the end of this synchronization, the three AI Slop findings below remained
+  pending; no application fix was included in this branch synchronization. The
+  subsequent correction task linked below records their resolution.
 
 ## Review observations from the main baseline
 

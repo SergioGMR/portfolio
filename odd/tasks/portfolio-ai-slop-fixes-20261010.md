@@ -32,8 +32,9 @@ finish with the original checkout on `dev`. Only the parent performs Git writes.
 - [x] AS-F03-R (independent reviewer): APPROVED; all three findings corrected,
   behavior coverage retained, no new regressions identified. Logs independently
   inspected; tests not redundantly rerun by the reviewer.
-- [/] AS-F04 (parent): commit verified corrections, synchronize local main, and
-  confirm the original checkout remains on dev. Depends on AS-F03-R.
+- [x] AS-F04 (parent): committed the reviewed corrections as
+  `cdf813a6445deec457335203a72a4a162865aa95`, fast-forwarded local main and dev,
+  and verified both working trees clean with the original checkout on dev.
 
 The executor owns the theme component, both legal components, a small shared
 legal stylesheet if needed, legacy/current language modules, and the existing
@@ -81,7 +82,9 @@ Implementation and validation moved to the existing clean worktree at
 `fix/portfolio-ai-slop-20261010`, from the same baseline. It has the existing
 complete dependency set, Bun 1.4.2, and Node v26.11.0. New regression tests were
 copied and verified byte for byte before restoring only our test edits in the
-original checkout. The original folder remains clean on `dev` until integration.
+original checkout. The original folder stayed on `dev` and received the verified
+corrections through the final fast-forward; its dependency directory was not
+modified.
 
 ## Observed regression evidence
 
@@ -108,10 +111,21 @@ original checkout. The original folder remains clean on `dev` until integration.
     a fresh production build, output verification, and compiled-page tests.
   - `git diff --check`: PASS. No lockfile or package manifest change.
 
-The source/test changes remove approximately 313 lines overall, including the
+The source/test changes remove 316 lines overall, including the
 340-line unused language module, while adding behavior regressions. The shared
 legal stylesheet contains the previous spacing/typography with valid colors and
 explicit selector scope. No code was compressed to satisfy a review-size budget.
+
+## Delivery
+
+- Reviewed source commit: `cdf813a6445deec457335203a72a4a162865aa95`.
+- Local `dev` and `main` were verified equal after fast-forward integration.
+- Original checkout remains on `dev`; code and tests match the validated
+  worktree. Its incomplete `node_modules` directory is a pre-existing local
+  environment limitation, not a passing validation claim for that folder.
+- This final closure changes task records only; application/test inputs remain
+  identical to the reviewed and tested source commit.
+- No push, deployment, dependency installation, or provider mutation occurred.
 
 ## Roles and continuity
 
