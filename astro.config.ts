@@ -17,6 +17,6 @@ export default defineConfig({
   },
 
   adapter: vercel({
-    webAnalytics: { enabled: false },
+    webAnalytics: { enabled: process.env.VERCEL_ENV === 'production' },
   }),
 })
