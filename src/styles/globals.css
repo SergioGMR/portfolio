@@ -118,6 +118,13 @@
   html {
     background-color: hsl(var(--background));
     scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  @media (width >= 40rem) {
+    html {
+      scroll-padding-top: 6rem;
+    }
   }
 
   :focus-visible {
