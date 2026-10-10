@@ -27,7 +27,11 @@ afterEach(async () => {
   await Promise.all(windows.splice(0).map((window) => window.close()))
 })
 
-function openBuiltPage(path: string, preferredLanguage: 'es' | 'en') {
+function openBuiltPage(
+  path: string,
+  preferredLanguage: 'es' | 'en',
+  configureBrowser?: (browser: Window) => void,
+) {
   const url = new URL(path, 'https://sgmr.dev')
   const browser = new Window({
     url: url.toString(),
@@ -38,6 +42,7 @@ function openBuiltPage(path: string, preferredLanguage: 'es' | 'en') {
   })
   windows.push(browser)
   browser.localStorage.setItem('language', preferredLanguage)
+  configureBrowser?.(browser)
   const artifact =
     url.pathname === '/' ? 'dist/index.html' : `dist${url.pathname}/index.html`
   browser.document.write(readFileSync(new URL(artifact, root), 'utf8'))
@@ -504,6 +509,75 @@ describe('compiled visible case-study breadcrumbs', () => {
 })
 
 describe('compiled localized theme controls', () => {
+  for (const failure of ['read', 'write'] as const) {
+    for (const saved of ['light', 'dark', 'system'] as const) {
+      test(`keeps theme controls and system changes working with blocked ${failure} and saved ${saved}`, () => {
+        let systemDark = false
+        let changeSystem = (_dark: boolean) => undefined
+        const { browser } = openBuiltPage('/', 'es', (browser) => {
+          browser.localStorage.setItem('theme', saved)
+          const storage = browser.localStorage
+          Object.defineProperty(
+            storage,
+            `${failure === 'read' ? 'get' : 'set'}Item`,
+            {
+              value: () => {
+                throw new Error('Storage blocked')
+              },
+            },
+          )
+          const query = browser.matchMedia('(prefers-color-scheme: dark)')
+          Object.defineProperty(query, 'matches', { get: () => systemDark })
+          browser.matchMedia = () => query
+          changeSystem = (dark) => {
+            systemDark = dark
+            query.dispatchEvent(new browser.Event('change'))
+          }
+        })
+        const document = browser.document
+        const select = document.querySelector<HTMLSelectElement>(
+          '[data-theme-select]',
+        )
+        if (!select) throw new Error('Missing mobile theme selector')
+        const expectMode = (mode: string) => {
+          expect(select.value).toBe(mode)
+          for (const button of document.querySelectorAll(
+            '[data-theme-option]',
+          )) {
+            const active = button.getAttribute('data-theme-option') === mode
+            expect(button.getAttribute('aria-pressed')).toBe(String(active))
+            expect(button.getAttribute('data-active')).toBe(String(active))
+          }
+          const dark = mode === 'dark' || (mode === 'system' && systemDark)
+          expect(document.documentElement.classList.contains('dark')).toBe(dark)
+          expect(document.documentElement.style.colorScheme).toBe(
+            dark ? 'dark' : 'light',
+          )
+        }
+        expectMode(failure === 'read' ? 'dark' : saved)
+        document
+          .querySelector<HTMLButtonElement>('[data-theme-option="system"]')
+          ?.click()
+        expectMode('system')
+        changeSystem(true)
+        expectMode('system')
+        changeSystem(false)
+        expectMode('system')
+        select.value = 'light'
+        select.dispatchEvent(new browser.Event('change', { bubbles: true }))
+        changeSystem(true)
+        expectMode('light')
+        document
+          .querySelector<HTMLButtonElement>('[data-theme-option="dark"]')
+          ?.click()
+        changeSystem(false)
+        expectMode('dark')
+        if (failure === 'write')
+          expect(browser.localStorage.getItem('theme')).toBe(saved)
+      })
+    }
+  }
+
   for (const [path, labels, accessible] of [
     ['/', ['Claro', 'Oscuro', 'Sistema'], 'Seleccionar tema'],
     ['/en', ['Light', 'Dark', 'System'], 'Select theme'],
@@ -544,6 +618,59 @@ describe('compiled localized theme controls', () => {
       select.dispatchEvent(new browser.Event('change', { bubbles: true }))
       expect(browser.localStorage.getItem('theme')).toBe('light')
       expect(document.documentElement.classList.contains('dark')).toBe(false)
+    })
+  }
+})
+
+describe('compiled legal content styles', () => {
+  for (const path of [
+    '/acezone/tos',
+    '/en/acezone/tos',
+    '/wattly/tos',
+    '/en/wattly/tos',
+  ]) {
+    test(`uses the active theme colors throughout the legal content at ${path}`, () => {
+      const { browser } = openBuiltPage(path, 'es')
+      const document = browser.document
+      for (const link of document.querySelectorAll('link[rel="stylesheet"]')) {
+        const href = link.getAttribute('href')
+        if (!href) throw new Error('Stylesheet has no href')
+        const css = readFileSync(new URL(`dist${href}`, root), 'utf8')
+        const style = document.createElement('style')
+        // Happy DOM does not evaluate Tailwind's @layer base. Expose the
+        // emitted theme rules unchanged so the computed colors use real tokens.
+        style.textContent = `${css}\n${[
+          ...(css.match(/:root\{[^}]+\}/g) ?? []),
+          ...(css.match(/\.dark\{[^}]+\}/g) ?? []),
+        ].join('\n')}`
+        document.head.append(style)
+      }
+      for (const dark of [false, true]) {
+        document.documentElement.classList.toggle('dark', dark)
+        const rootStyle = browser.getComputedStyle(document.documentElement)
+        for (const [selector, token] of [
+          ['h1', '--foreground'],
+          ['h2', '--foreground'],
+          ['.subtitle', '--primary'],
+          ['.date', '--muted-foreground'],
+          ['p:not(.subtitle):not(.date)', '--muted-foreground'],
+          ['li', '--muted-foreground'],
+          ['.contact-link', '--primary'],
+        ]) {
+          const element = document.querySelector(`.prose-tos ${selector}`)
+          if (!element) throw new Error(`Missing legal content: ${selector}`)
+          const colorToken = rootStyle.getPropertyValue(token!).trim()
+          expect(colorToken).not.toBe('')
+          const reference = document.createElement('span')
+          reference.style.color = `hsl(${colorToken})`
+          document.body.append(reference)
+          expect(reference.style.color).not.toBe('')
+          expect(browser.getComputedStyle(element).color).toBe(
+            browser.getComputedStyle(reference).color,
+          )
+          reference.remove()
+        }
+      }
     })
   }
 })

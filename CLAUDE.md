@@ -29,8 +29,7 @@ through the Vite plugin. Active theme tokens are in `src/styles/globals.css`.
 - `src/components/LangText.astro`: shared bilingual text rendering.
 
 Spanish and English have separate routes (`/` and `/en/`). Keep both locales
-consistent when editing content. `src/lib/language.ts` is a legacy module with
-no active consumers; do not treat it as the current translation store.
+consistent when editing content.
 
 ### Theme
 

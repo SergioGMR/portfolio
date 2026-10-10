@@ -3,35 +3,16 @@ import { Window } from 'happy-dom'
 
 import {
   initializeLanguage,
-  serializeLanguageMetadata,
+  serializeJsonForScript,
   type LanguageMetadata,
-  type LanguageStorage,
 } from '../src/lib/language-client'
 import { PAGE_METADATA } from '../src/lib/page-metadata'
 
 const metadata = PAGE_METADATA.home
 
-interface RecordingStorage extends LanguageStorage {
-  readonly writes: [string, string][]
-}
-
 let browser: Window
 let document: Document
 let cleanup: () => void = () => undefined
-
-const createStorage = (initial: string | null): RecordingStorage => {
-  let value = initial
-  const writes: [string, string][] = []
-
-  return {
-    writes,
-    getItem: () => value,
-    setItem: (key, next) => {
-      value = next
-      writes.push([key, next])
-    },
-  }
-}
 
 const metaContent = (selector: string) =>
   document.querySelector<HTMLMetaElement>(selector)?.content
@@ -49,17 +30,13 @@ const renderFixture = (pageMetadata: LanguageMetadata) => {
       <meta property="twitter:title" content="${pageMetadata.es.title}">
       <meta property="twitter:description" content="${pageMetadata.es.description}">
       <meta property="twitter:image:alt" content="${pageMetadata.es.imageAlt}">
-      <script type="application/json" data-language-metadata>${serializeLanguageMetadata(pageMetadata)}</script>
-      <script type="application/ld+json" data-language-schema>${JSON.stringify(pageMetadata.es.schema)}</script>
+      <script type="application/ld+json">${serializeJsonForScript(pageMetadata.es.schema)}</script>
     </head>
     <body>
       <span data-lang-content="es">Español</span>
       <span data-lang-content="en">English</span>
-      <select data-lang-select>
-        <option value="es">ES</option><option value="en">EN</option>
-      </select>
-      <button data-lang-option="es" aria-pressed="false">ES</button>
-      <button data-lang-option="en" aria-pressed="false">EN</button>
+      <a data-language-link href="/" hreflang="es">ES</a>
+      <a data-language-link href="/en" hreflang="en">EN</a>
     </body>`
 }
 
@@ -77,15 +54,15 @@ afterEach(() => {
 
 describe('language client', () => {
   test('keeps Spanish URL metadata when storage prefers English', () => {
-    const storage = createStorage('en')
+    browser.localStorage.setItem('language', 'en')
     document.documentElement.lang = 'es'
-    cleanup = initializeLanguage(document, storage)
+    cleanup = initializeLanguage(document)
     expect(document.documentElement.lang).toBe('es')
     expect(document.title).toBe(metadata.es.title)
     expect(metaContent('meta[name="description"]')).toBe(
       metadata.es.description,
     )
-    expect(storage.writes).toEqual([])
+    expect(browser.localStorage.getItem('language')).toBe('en')
   })
 
   test('keeps English URL metadata when storage prefers Spanish or throws', () => {
@@ -94,29 +71,31 @@ describe('language client', () => {
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute('content', metadata.en.description)
-    cleanup = initializeLanguage(document, createStorage('es'))
+    browser.localStorage.setItem('language', 'es')
+    cleanup = initializeLanguage(document)
     expect(document.documentElement.lang).toBe('en')
     expect(metaContent('meta[name="description"]')).toBe(
       metadata.en.description,
     )
+    expect(browser.localStorage.getItem('language')).toBe('es')
     cleanup()
-    expect(() =>
-      initializeLanguage(document, {
-        getItem: () => {
+    for (const method of ['getItem', 'setItem']) {
+      Object.defineProperty(browser.localStorage, method, {
+        value: () => {
           throw new Error('blocked')
         },
-        setItem: () => {
-          throw new Error('blocked')
-        },
-      }),
-    ).not.toThrow()
+      })
+    }
+    expect(() => {
+      cleanup = initializeLanguage(document)
+    }).not.toThrow()
     expect(document.documentElement.lang).toBe('en')
   })
 
   test('keeps real language navigation links and carries home section hash', () => {
     browser.location.hash = '#proyectos'
     document.body.innerHTML = '<a data-language-link href="/en">English</a>'
-    cleanup = initializeLanguage(document, createStorage('es'))
+    cleanup = initializeLanguage(document)
     expect(document.querySelector('a')?.getAttribute('href')).toBe(
       '/en#proyectos',
     )
@@ -127,8 +106,8 @@ describe('language client', () => {
     browser.location.hash = '#main-content'
     document.body.innerHTML =
       '<main id="main-content"></main><a data-language-link href="/en/acezone/tos#main-content">English</a>'
-    const storage = createStorage('en')
-    cleanup = initializeLanguage(document, storage)
+    browser.localStorage.setItem('language', 'en')
+    cleanup = initializeLanguage(document)
     expect(document.querySelector('a')?.getAttribute('href')).toBe(
       '/en/acezone/tos#main-content',
     )
@@ -148,14 +127,14 @@ describe('language client', () => {
     expect(document.querySelector('a')?.getAttribute('href')).toBe(
       '/en/acezone/tos#main-content',
     )
-    expect(storage.writes).toEqual([])
+    expect(browser.localStorage.getItem('language')).toBe('en')
   })
 
   test('escapes closing script text without changing metadata values', () => {
     const unsafe = structuredClone(metadata)
     unsafe.en.description = '</script><script>alert(1)</script>'
 
-    const serialized = serializeLanguageMetadata(unsafe)
+    const serialized = serializeJsonForScript(unsafe)
 
     expect(serialized).not.toContain('</script>')
     expect(JSON.parse(serialized)).toEqual(unsafe)

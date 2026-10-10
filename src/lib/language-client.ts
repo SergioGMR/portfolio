@@ -9,16 +9,8 @@ export interface LanguageMetadataEntry {
 
 export type LanguageMetadata = Record<Language, LanguageMetadataEntry>
 
-export interface LanguageStorage {
-  getItem(key: string): string | null
-  setItem(key: string, value: string): void
-}
-
 /** Enhance real language links without changing URL-owned content or metadata. */
-export function initializeLanguage(
-  document: Document,
-  _storage: LanguageStorage | null,
-): () => void {
+export function initializeLanguage(document: Document): () => void {
   const updateHashes = () => {
     const hash = document.defaultView?.location.hash ?? ''
     document
@@ -35,7 +27,7 @@ export function initializeLanguage(
 }
 
 export function initializeBrowserLanguage(): void {
-  initializeLanguage(document, null)
+  initializeLanguage(document)
 }
 
 export function serializeJsonForScript(value: unknown): string {
@@ -45,8 +37,4 @@ export function serializeJsonForScript(value: unknown): string {
     .replaceAll('>', '\\u003e')
     .replaceAll('\u2028', '\\u2028')
     .replaceAll('\u2029', '\\u2029')
-}
-
-export function serializeLanguageMetadata(metadata: LanguageMetadata): string {
-  return serializeJsonForScript(metadata)
 }

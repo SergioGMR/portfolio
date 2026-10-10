@@ -40,8 +40,9 @@ Remote publication has not been performed or verified in this session.
 
 ## Review observations from the main baseline
 
-These are existing issues, not changes introduced by this synchronization. They
-remain unmodified because the user requested review and branch integration.
+These issues existed before this synchronization and were not changed by it.
+The user subsequently authorized corrections; their current status and evidence
+are tracked in [Portfolio AI Slop corrections](portfolio-ai-slop-fixes-20261010.md).
 
 1. P2: theme persistence can throw after changing the DOM and before synchronizing
    controls (`src/components/ThemeToggleLite.astro:65,79,119`). Static review only.
