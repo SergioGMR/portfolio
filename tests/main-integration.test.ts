@@ -83,14 +83,13 @@ describe('main integration project showcase', () => {
       'jauntjar',
       'todo-lux',
       'basuraleza',
-      'solutec',
       'wattly',
       'tvradar',
       'duellum',
       'uploadimg',
     ])
 
-    const showcases = PROFESSIONAL_PROFILE.projects.slice(4)
+    const showcases = PROFESSIONAL_PROFILE.projects.slice(3)
     expect(showcases).toEqual([...expectedShowcases])
 
     for (const project of showcases) {

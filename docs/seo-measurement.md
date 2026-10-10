@@ -10,7 +10,7 @@ After an authorized production release, record the deployed SHA and release date
 | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Google Search Console / Bing search performance                          | Brand queries (Sergio Morales Rodríguez, SergioGMR, sgmr.dev) and non-brand queries separately | Impressions, clicks, CTR and average position                     |
 | Search performance by landing page                                       | Spanish `/` and `/proyectos/*`; English `/en` and `/en/projects/*`; legal pages separately     | Search visibility and clicks per language and case study          |
-| Indexing reports and URL inspection                                      | All 14 sitemap URLs                                                                            | Selected canonical, indexing status and crawl errors              |
+| Indexing reports and URL inspection                                      | All 12 sitemap URLs                                                                            | Selected canonical, indexing status and crawl errors              |
 | Vercel Web Analytics                                                     | Home, cases and language paths; available referrers                                            | Pageviews, visitors and acquisition sources                       |
 | Search Console Core Web Vitals / CrUX when sufficient public data exists | Mobile and desktop separately                                                                  | Field LCP, INP and CLS                                            |
 | Repeatable manual search observations                                    | Record query, date, engine, locale and cited page                                              | Observed references, without claiming comprehensive AI visibility |
@@ -29,7 +29,7 @@ Provider steps require explicit authorization: enable Web Analytics for the corr
 
 ## Canonical and crawler follow-up
 
-The canonical host is `https://sgmr.dev`; paths have no trailing slash except `/`. Spanish routes remain available, with real English equivalents. The sitemap includes two homes, four legal pages and eight case-study pages. The generated adapter routing config is checked for a 308 slash redirect and a real 404 fallback. `vercel.json` separately declares a permanent www-to-apex redirect preserving the path and existing query strings, with no redirect on the apex host.
+The canonical host is `https://sgmr.dev`; paths have no trailing slash except `/`. Spanish routes remain available, with real English equivalents. The sitemap includes two homes, four legal pages and six case-study pages. The generated adapter routing config is checked for a 308 slash redirect and a real 404 fallback. `vercel.json` separately declares a permanent www-to-apex redirect preserving the path and existing query strings, with no redirect on the apex host.
 
 The earlier production audit observed an apex-to-www HTTP 307 redirect. On 2026-10-10, the user authorized aligning the provider settings through the Vercel CLI: apex now serves production directly, and www redirects to apex with HTTP 308. Public checks confirmed root and both existing legal routes, including query preservation and one-hop completion. The production deployment ID was unchanged; this did not publish the local application changes.
 
@@ -43,6 +43,6 @@ Submit the sitemap through already authorized Search Console/Bing properties and
 
 The build verifier checks initial single-language HTML on all indexable routes, exact metadata and canonical URLs, reciprocal alternates, genuine language links, stable schema identity, factual project text, internal links/anchors, adapter HTML copies, sitemap completeness, noindex 404, social JPEG and unchanged canonical PDF bytes.
 
-The repository's existing Lighthouse gate runs five mobile measurements of the Spanish homepage with unchanged category and metric budgets. It does not cover all 14 routes, desktop behavior or field performance. Separate browser checks should cover Spanish/English desktop/mobile language navigation, keyboard focus, theme, reduced motion and case-study links using the static build.
+The repository's existing Lighthouse gate runs five mobile measurements of the Spanish homepage with unchanged category and metric budgets. It does not cover all 12 routes, desktop behavior or field performance. Separate browser checks should cover Spanish/English desktop/mobile language navigation, keyboard focus, theme, reduced motion and case-study links using the static build.
 
 Production analytics reception, Search Console/Bing access and reports, indexing, field performance and remote social previews remain NOT_RUN until separately authorized and observed. The existing production domain redirect has been verified as described above; redirect behavior after publishing the application changes remains a release check.

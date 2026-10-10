@@ -11,7 +11,7 @@ describe('bilingual URL contract', () => {
     ['/', '/en'],
     ['/acezone/tos', '/en/acezone/tos'],
     ['/wattly/tos', '/en/wattly/tos'],
-    ...['jauntjar', 'todo-lux', 'basuraleza', 'solutec'].map((id) => [
+    ...['jauntjar', 'todo-lux', 'basuraleza'].map((id) => [
       `/proyectos/${id}`,
       `/en/projects/${id}`,
     ]),

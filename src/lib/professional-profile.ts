@@ -187,7 +187,6 @@ const experiences: readonly Experience[] = [
       ],
     },
     technologies: ['Laravel', 'Laravel Sanctum', 'GitHub Actions', 'Plesk'],
-    evidenceUrl: 'https://solutec.pccom.ai/',
   },
   {
     id: 'freelance-2020',
@@ -313,31 +312,6 @@ const projects: readonly Project[] = [
       'https://proyectolibera.org/caracterizacion-residuos/basuraleza',
     imageKey: 'basuraleza',
     experienceIds: ['freelance-2020'],
-  },
-  {
-    id: 'solutec',
-    kind: 'case-study',
-    title: { es: 'Solutec', en: 'Solutec' },
-    problem: {
-      es: 'El producto necesitaba actualizar tecnologías y transferir datos sin perder información ni funcionalidades.',
-      en: 'The product needed technology updates and data transfer without losing information or functionality.',
-    },
-    responsibility: {
-      es: 'Coordinación de desarrollo y DevOps, rediseño de base de datos, API v3, pruebas y CI/CD.',
-      en: 'Coordination of development and DevOps, database redesign, v3 API, tests, and CI/CD.',
-    },
-    solution: {
-      es: 'Desarrollo de API v3 con Laravel Sanctum, planificación e implementación de pruebas y CI/CD con GitHub Actions y Plesk.',
-      en: 'Development of a v3 API with Laravel Sanctum, test planning and implementation, and CI/CD with GitHub Actions and Plesk.',
-    },
-    result: {
-      es: 'El producto dispone de un sitio público verificable en solutec.pccom.ai.',
-      en: 'The product has a publicly verifiable site at solutec.pccom.ai.',
-    },
-    technologies: ['Laravel', 'Laravel Sanctum', 'GitHub Actions', 'Plesk'],
-    evidenceUrl: 'https://solutec.pccom.ai/',
-    imageKey: 'solutec',
-    experienceIds: ['tecandu'],
   },
   {
     id: 'wattly',

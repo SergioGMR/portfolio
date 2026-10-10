@@ -1,6 +1,6 @@
 import type { HTMLButtonElement, HTMLSelectElement } from 'happy-dom'
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { Window } from 'happy-dom'
 
 const root = new URL('../', import.meta.url)
@@ -72,7 +72,7 @@ function languageHref(browser: Window, language: string) {
 }
 
 describe('compiled apex origin', () => {
-  test('uses the independently confirmed apex in all 14 page identities and discovery URLs', () => {
+  test('uses the independently confirmed apex in all 12 page identities and discovery URLs', () => {
     const paths = [
       '/',
       '/en',
@@ -80,12 +80,12 @@ describe('compiled apex origin', () => {
       '/en/acezone/tos',
       '/wattly/tos',
       '/en/wattly/tos',
-      ...['jauntjar', 'todo-lux', 'basuraleza', 'solutec'].flatMap((id) => [
+      ...['jauntjar', 'todo-lux', 'basuraleza'].flatMap((id) => [
         `/proyectos/${id}`,
         `/en/projects/${id}`,
       ]),
     ]
-    expect(paths).toHaveLength(14)
+    expect(paths).toHaveLength(12)
     for (const path of paths) {
       const { browser, schema } = openBuiltPage(path, 'es')
       const document = browser.document
@@ -134,6 +134,71 @@ describe('compiled apex origin', () => {
   })
 })
 
+describe('compiled Solutec removal and retained Tecandu experience', () => {
+  test('omits removed case artifacts from both static outputs and routing', () => {
+    for (const directory of ['dist', '.vercel/output/static']) {
+      for (const path of ['/proyectos/solutec', '/en/projects/solutec']) {
+        expect(
+          existsSync(new URL(`${directory}${path}/index.html`, root)),
+        ).toBe(false)
+      }
+    }
+    const config = JSON.parse(
+      readFileSync(new URL('.vercel/output/config.json', root), 'utf8'),
+    )
+    expect(JSON.stringify(config.routes)).not.toMatch(/solutec/i)
+    expect(config.routes.at(-1)).toMatchObject({
+      dest: '/404.html',
+      status: 404,
+    })
+  })
+
+  for (const [path, locale, company, dates, responsibility] of [
+    [
+      '/',
+      'es',
+      'Freelance | Tecandu S.L. · España',
+      '01/10/2023 — 23/04/2024',
+      'Coordinación del equipo de desarrollo y del equipo DevOps',
+    ],
+    [
+      '/en',
+      'en',
+      'Freelance | Tecandu S.L. · Spain',
+      '01/10/2023 — 23/04/2024',
+      'Coordination of the development team and the DevOps team',
+    ],
+  ] as const) {
+    test(`renders Tecandu as company text without the removed link at ${path}`, () => {
+      const { browser, schema } = openBuiltPage(path, locale)
+      const articles = Array.from(
+        browser.document.querySelectorAll('#experiencia article'),
+      )
+      const experience = articles.find((article) =>
+        article.textContent.includes('Tecandu S.L.'),
+      )
+      expect(experience).toBeDefined()
+      expect(experience?.querySelector('a')).toBeNull()
+      expect(
+        experience?.querySelector('p.text-primary')?.textContent.trim(),
+      ).toBe(company)
+      expect(experience?.textContent).toContain(dates)
+      expect(experience?.textContent).toContain(responsibility)
+      expect(experience?.textContent).toContain('Laravel Sanctum')
+      expect(experience?.textContent).toContain('GitHub Actions')
+      expect(experience?.textContent).toContain('Plesk')
+      expect(browser.document.body.textContent).not.toMatch(/solutec/i)
+      expect(
+        Array.from(browser.document.querySelectorAll('a'))
+          .map((a) => a.href)
+          .join(' '),
+      ).not.toMatch(/solutec/i)
+      expect(schema).not.toMatch(/solutec/i)
+      expect(browser.document.querySelectorAll('#proyectos h3')).toHaveLength(7)
+    })
+  }
+})
+
 describe('compiled page language enhancement', () => {
   for (const [path, locale, opposite] of [
     ['/#proyectos', 'es', 'en'],
@@ -167,7 +232,7 @@ describe('compiled page language enhancement', () => {
   const equivalentPages = [
     ['/acezone/tos', '/en/acezone/tos'],
     ['/wattly/tos', '/en/wattly/tos'],
-    ...['jauntjar', 'todo-lux', 'basuraleza', 'solutec'].map((id) => [
+    ...['jauntjar', 'todo-lux', 'basuraleza'].map((id) => [
       `/proyectos/${id}`,
       `/en/projects/${id}`,
     ]),
@@ -212,8 +277,8 @@ describe('compiled page language enhancement', () => {
 
 describe('compiled visible case-study breadcrumbs', () => {
   for (const [path, label, home] of [
-    ['/proyectos/solutec', 'Proyectos', '/#proyectos'],
-    ['/en/projects/solutec', 'Projects', '/en#proyectos'],
+    ['/proyectos/jauntjar', 'Proyectos', '/#proyectos'],
+    ['/en/projects/jauntjar', 'Projects', '/en#proyectos'],
   ] as const) {
     test(`matches the visible breadcrumb with structured data at ${path}`, () => {
       const { browser } = openBuiltPage(path, 'es')
@@ -224,7 +289,7 @@ describe('compiled visible case-study breadcrumbs', () => {
       expect(navigation?.querySelector('a')?.textContent.trim()).toBe(label)
       expect(
         navigation?.querySelector('[aria-current="page"]')?.textContent,
-      ).toBe('Solutec')
+      ).toBe('JauntJar')
       const schema = JSON.parse(
         browser.document.querySelector('script[type="application/ld+json"]')
           ?.textContent ?? '{}',
@@ -239,7 +304,7 @@ describe('compiled visible case-study breadcrumbs', () => {
         {
           '@type': 'ListItem',
           position: 2,
-          name: 'Solutec',
+          name: 'JauntJar',
           item: `https://sgmr.dev${path}`,
         },
       ])

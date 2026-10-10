@@ -18,14 +18,13 @@ describe('portfolio projects', () => {
       'jauntjar',
       'todo-lux',
       'basuraleza',
-      'solutec',
       'wattly',
       'tvradar',
       'duellum',
       'uploadimg',
     ])
 
-    const showcases = PROFESSIONAL_PROFILE.projects.slice(4)
+    const showcases = PROFESSIONAL_PROFILE.projects.slice(3)
     expect(showcases.every(({ kind }) => kind === 'showcase')).toBe(true)
 
     for (const project of showcases) {
@@ -43,10 +42,62 @@ describe('portfolio projects', () => {
     }
   })
 
+  test('removes Solutec from public data while preserving Tecandu evidence', () => {
+    expect(JSON.stringify(PROFESSIONAL_PROFILE)).not.toMatch(/solutec/i)
+    expect(projectsSource).not.toMatch(/solutec/i)
+    const tecandu = PROFESSIONAL_PROFILE.experiences.find(
+      ({ id }) => id === 'tecandu',
+    )
+    expect(tecandu).toBeDefined()
+    expect(tecandu?.evidenceUrl).toBeUndefined()
+    expect(tecandu?.technologies).toEqual([
+      'Laravel',
+      'Laravel Sanctum',
+      'GitHub Actions',
+      'Plesk',
+    ])
+    expect(tecandu?.responsibilities).toEqual({
+      es: [
+        'Adaptación de tecnologías a los nuevos tiempos',
+        'Coordinación del equipo de desarrollo y del equipo DevOps',
+        'Estudio y rediseño de la base de datos para transferir datos sin pérdida de información o funcionalidades',
+        'Desarrollo de una nueva versión v3 de la API utilizando Laravel Sanctum',
+        'Planificación de las pruebas faltantes y su implementación',
+        'Desarrollo de CI/CD con GitHub Actions y Plesk',
+      ],
+      en: [
+        'Adapting technologies to current needs',
+        'Coordination of the development team and the DevOps team',
+        'Study and redesign of the database to transfer data without losing information or functionality',
+        'Development of a new v3 API version using Laravel Sanctum',
+        'Planning and implementation of missing tests',
+        'CI/CD development with GitHub Actions and Plesk',
+      ],
+    })
+    expect(tecandu?.outcomes).toEqual({
+      es: [
+        'API v3 desarrollada con Laravel Sanctum',
+        'Pruebas pendientes planificadas e implementadas',
+        'CI/CD desarrollado con GitHub Actions y Plesk',
+      ],
+      en: [
+        'v3 API developed with Laravel Sanctum',
+        'Missing tests planned and implemented',
+        'CI/CD developed with GitHub Actions and Plesk',
+      ],
+    })
+    for (const id of ['technical-coordination', 'delivery-and-testing']) {
+      const capability = PROFESSIONAL_PROFILE.capabilities.find(
+        (capability) => capability.id === id,
+      )
+      expect(capability?.evidenceIds).toContain('tecandu')
+    }
+  })
+
   test('uses unique IDs and the verified public destinations', () => {
     const projects = PROFESSIONAL_PROFILE.projects
     const ids = projects.map(({ id }) => id)
-    const urls = projects.slice(4).map(({ evidenceUrl }) => evidenceUrl)
+    const urls = projects.slice(3).map(({ evidenceUrl }) => evidenceUrl)
 
     expect(new Set(ids).size).toBe(projects.length)
     expect(urls).toEqual([
@@ -67,7 +118,6 @@ describe('portfolio projects', () => {
     for (const asset of [
       'todo-lux.avif',
       'basuraleza.avif',
-      'solutec.avif',
       'jauntjar.avif',
       'wattly.webp',
       'tvradar.webp',

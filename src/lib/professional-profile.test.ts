@@ -69,7 +69,7 @@ describe('professional profile', () => {
     expect(new Set(ids).size).toBe(ids.length)
     expect(new Set(projectIds).size).toBe(projectIds.length)
     expect(PROFESSIONAL_PROFILE.experiences).toHaveLength(3)
-    expect(PROFESSIONAL_PROFILE.projects).toHaveLength(8)
+    expect(PROFESSIONAL_PROFILE.projects).toHaveLength(7)
 
     for (const experience of PROFESSIONAL_PROFILE.experiences) {
       expect(experience.title.es).toBeTruthy()
@@ -92,7 +92,6 @@ describe('professional profile', () => {
       'jauntjar',
       'todo-lux',
       'basuraleza',
-      'solutec',
       'wattly',
       'tvradar',
       'duellum',

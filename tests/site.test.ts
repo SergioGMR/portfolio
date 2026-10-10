@@ -22,11 +22,14 @@ describe('production site discovery', () => {
     const xml = createSitemapXml(SITE_URL)
 
     expect(SITE_URL).toBe('https://sgmr.dev')
-    expect(INDEXABLE_PATHS).toHaveLength(14)
+    expect(INDEXABLE_PATHS).toHaveLength(12)
     expect(INDEXABLE_PATHS).toContain('/en')
     expect(INDEXABLE_PATHS).toContain('/en/acezone/tos')
     expect(INDEXABLE_PATHS).toContain('/proyectos/jauntjar')
-    expect(INDEXABLE_PATHS).toContain('/en/projects/solutec')
+    expect(INDEXABLE_PATHS).toContain('/en/projects/basuraleza')
+    expect(INDEXABLE_PATHS).not.toContain('/proyectos/solutec')
+    expect(INDEXABLE_PATHS).not.toContain('/en/projects/solutec')
+    expect(xml).not.toMatch(/solutec/i)
     expect(
       Array.from(xml.matchAll(/<loc>(.*?)<\/loc>/g), (match) => match[1]),
     ).toEqual(INDEXABLE_PATHS.map((path) => `https://sgmr.dev${path}`))

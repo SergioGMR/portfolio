@@ -1,12 +1,7 @@
 import type { Language } from './language-client'
 
 export const SITE_URL = 'https://sgmr.dev'
-export const CASE_STUDY_IDS = [
-  'jauntjar',
-  'todo-lux',
-  'basuraleza',
-  'solutec',
-] as const
+export const CASE_STUDY_IDS = ['jauntjar', 'todo-lux', 'basuraleza'] as const
 
 export const INDEXABLE_PATHS = [
   '/',

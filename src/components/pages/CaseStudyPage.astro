@@ -9,7 +9,6 @@ import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
 import jauntjarImg from '@/assets/experience/jauntjar.avif'
 import todoLuxImg from '@/assets/experience/todo-lux.avif'
 import basuralezaImg from '@/assets/experience/basuraleza.avif'
-import solutecImg from '@/assets/experience/solutec.avif'
 
 interface Props {
   project: CaseStudyProject
@@ -21,7 +20,6 @@ const images = {
   jauntjar: jauntjarImg,
   'todo-lux': todoLuxImg,
   basuraleza: basuralezaImg,
-  solutec: solutecImg,
 }
 const image = images[project.imageKey as keyof typeof images]
 const sections = [
