@@ -109,56 +109,9 @@ const locale = getLanguage(Astro.url.pathname)
               <LangText es="Caso de estudio" en="Case study" />
             </p>
 
-            <div class="mt-3 space-y-2.5 text-sm leading-relaxed">
-              <p class="text-foreground/90">
-                <strong class="font-semibold">
-                  <LangText es="Problema:" en="Problem:" />
-                </strong>{' '}
-                {locale === 'es' && (
-                  <span data-lang-content="es">{project.problem.es}</span>
-                )}
-                {locale === 'en' && (
-                  <span data-lang-content="en">{project.problem.en}</span>
-                )}
-              </p>
-              <p class="text-muted-foreground text-xs leading-relaxed">
-                <strong class="text-foreground/90 font-medium">
-                  <LangText es="Responsabilidad:" en="Responsibility:" />
-                </strong>{' '}
-                {locale === 'es' && (
-                  <span data-lang-content="es">
-                    {project.responsibility.es}
-                  </span>
-                )}
-                {locale === 'en' && (
-                  <span data-lang-content="en">
-                    {project.responsibility.en}
-                  </span>
-                )}
-              </p>
-              <p class="text-muted-foreground text-xs leading-relaxed">
-                <strong class="text-foreground/90 font-medium">
-                  <LangText es="Solución:" en="Solution:" />
-                </strong>{' '}
-                {locale === 'es' && (
-                  <span data-lang-content="es">{project.solution.es}</span>
-                )}
-                {locale === 'en' && (
-                  <span data-lang-content="en">{project.solution.en}</span>
-                )}
-              </p>
-              <div class="result-card rounded-lg p-2.5 text-xs font-medium">
-                <strong>
-                  <LangText es="Resultado:" en="Result:" />
-                </strong>{' '}
-                {locale === 'es' && (
-                  <span data-lang-content="es">{project.result.es}</span>
-                )}
-                {locale === 'en' && (
-                  <span data-lang-content="en">{project.result.en}</span>
-                )}
-              </div>
-            </div>
+            <p class="text-muted-foreground mt-3 text-sm leading-relaxed">
+              <LangText es={project.summary.es} en={project.summary.en} />
+            </p>
 
             <div class="mt-4 flex flex-wrap gap-1.5 font-mono text-[10px] tracking-wider uppercase">
               {project.technologies.map((technology) => (

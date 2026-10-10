@@ -28,19 +28,19 @@ const fixtureRoots: string[] = []
 
 const educationLine = 'I.E.S. El Ricón · 2016 — 2018 · EQF/MEC 5'
 const expectedTitle =
-  '<title>Sergio Morales Rodríguez — Tech Lead Full Stack</title>'
+  '<title>Sergio Morales Rodríguez — Tech Lead Full Stack | Laravel</title>'
 const spanishCvHref = 'href="/sergio-morales-es.pdf"'
 const englishCvHref = 'href="/sergio-morales-en.pdf"'
 const personStructuredData = `<script type="application/ld+json">${JSON.stringify(PAGE_METADATA.home.es.schema)}</script>`
 const expectedDescription =
-  'Portfolio de Sergio Morales Rodríguez, Tech Lead Full Stack especializado en liderazgo técnico, arquitectura, APIs y entrega de producto.'
+  'Sergio Morales Rodríguez, Tech Lead Full Stack en Las Palmas. Arquitectura y desarrollo web con Laravel, APIs y coordinación de desarrollo y DevOps.'
 const descriptionMeta = `<meta name="description" content="${expectedDescription}">`
 const canonicalLink = '<link rel="canonical" href="https://sgmr.dev/">'
 const openGraphUrl = '<meta property="og:url" content="https://sgmr.dev/">'
 const openGraphMetadata = [
   '<meta property="og:type" content="website">',
   openGraphUrl,
-  '<meta property="og:title" content="Sergio Morales Rodríguez — Tech Lead Full Stack">',
+  '<meta property="og:title" content="Sergio Morales Rodríguez — Tech Lead Full Stack | Laravel">',
   `<meta property="og:description" content="${expectedDescription}">`,
   '<meta property="og:image" content="https://sgmr.dev/og.jpg">',
 ].join('\n    ')

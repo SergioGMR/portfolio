@@ -23,14 +23,14 @@ const images = {
 }
 const image = images[project.imageKey as keyof typeof images]
 const sections = [
-  { es: 'Problema', en: 'Problem', text: project.problem },
+  { es: 'Contexto', en: 'Context', text: project.problem },
   {
-    es: 'Mi responsabilidad',
-    en: 'My responsibility',
+    es: 'Mi participación',
+    en: 'My contribution',
     text: project.responsibility,
   },
-  { es: 'Solución', en: 'Solution', text: project.solution },
-  { es: 'Resultado', en: 'Result', text: project.result },
+  { es: 'Desarrollo', en: 'Development', text: project.solution },
+  { es: 'Entregables', en: 'Deliverables', text: project.result },
 ]
 ---
 
@@ -89,6 +89,16 @@ const sections = [
       ))}
       <section>
         <h2 class="text-xl font-semibold">
+          <LangText es="Tareas concretas" en="Concrete tasks" />
+        </h2>
+        <ul class="text-muted-foreground mt-3 list-disc space-y-2 pl-5 leading-relaxed">
+          {project.tasks[locale].map((task) => (
+            <li>{task}</li>
+          ))}
+        </ul>
+      </section>
+      <section>
+        <h2 class="text-xl font-semibold">
           <LangText es="Tecnologías" en="Technologies" />
         </h2>
         <ul class="mt-3 flex flex-wrap gap-2">
@@ -107,7 +117,7 @@ const sections = [
         rel="noopener noreferrer"
         class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex min-h-11 items-center rounded-full px-5 py-2 text-sm font-semibold"
       >
-        <LangText es="Visitar sitio del proyecto" en="Visit project website" />{' '}
+        <LangText es="Ver proyecto" en="View project" />{' '}
         <span class="ml-2" aria-hidden="true">
           ↗
         </span>

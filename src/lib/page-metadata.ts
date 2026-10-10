@@ -59,11 +59,14 @@ function createTermsMetadata(app: string, path: string): LanguageMetadata {
 }
 
 const homeEntry = (language: Language) => {
-  const title = 'Sergio Morales Rodríguez — Tech Lead Full Stack'
+  const title =
+    language === 'es'
+      ? 'Sergio Morales Rodríguez — Tech Lead Full Stack | Laravel'
+      : 'Sergio Morales Rodríguez — Full Stack Tech Lead | Laravel'
   const description =
     language === 'es'
-      ? 'Portfolio de Sergio Morales Rodríguez, Tech Lead Full Stack especializado en liderazgo técnico, arquitectura, APIs y entrega de producto.'
-      : 'Portfolio of Sergio Morales Rodríguez, a Tech Lead Full Stack focused on technical leadership, architecture, APIs, and product delivery.'
+      ? 'Sergio Morales Rodríguez, Tech Lead Full Stack en Las Palmas. Arquitectura y desarrollo web con Laravel, APIs y coordinación de desarrollo y DevOps.'
+      : 'Sergio Morales Rodríguez, a Full Stack Tech Lead based in Las Palmas. Laravel web architecture and development, APIs, and development and DevOps coordination.'
   return {
     title,
     description,
@@ -88,8 +91,8 @@ export function createCaseStudyMetadata(
   project: CaseStudyProject,
 ): LanguageMetadata {
   const entry = (language: Language) => {
-    const title = `${project.title[language]} — ${language === 'es' ? 'Caso de estudio' : 'Case study'} | Sergio Morales Rodríguez`
-    const description = project.problem[language]
+    const title = `${project.title[language]} — ${language === 'es' ? 'Desarrollo con Laravel' : 'Laravel development'} | Sergio Morales Rodríguez`
+    const description = `${project.title[language]}: ${project.summary[language]}`
     return {
       title,
       description,

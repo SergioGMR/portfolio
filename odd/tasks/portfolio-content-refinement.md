@@ -10,9 +10,9 @@ Work only in `/Users/sergiogmr/portfolio-worktrees/seo-geo-20261010`, branch `fe
 
 - [x] I1 — Parent: reconcile instructions, clean candidate, audit evidence and the user's removal scope.
 - [x] I2-A — Executor: remove the Solutec project, routes, public project links and unused project assets; retain Tecandu chronology and responsibilities. Include meaningful regression coverage and report any CV link implications before editing PDF assets.
-- [ ] I2-B — Executor, after I2-A: improve bilingual hero/contact copy, concise project summaries, substantive case detail from existing factual sources, case metadata, linked capability evidence and the ambiguous practice badge. Do not invent outcomes or architectural decisions.
-- [ ] I2-C — Executor/parent: update measurement guidance for the resulting route inventory and current official generative AI reporting, with explicit limits for Hobby analytics.
-- [ ] I3 — Executor/parent/reviewer: RED/GREEN for changed behavior, existing test/check/format/build gates, browser verification of changed pages, applicable Lighthouse gate and separate read-only review.
+- [x] I2-B — Executor, after I2-A: improve bilingual hero/contact copy, concise project summaries, substantive case detail from existing factual sources, case metadata, linked capability evidence and the ambiguous practice badge. Do not invent outcomes or architectural decisions.
+- [x] I2-C — Executor/parent: update measurement guidance for the resulting route inventory and current official generative AI reporting, with explicit limits for Hobby analytics.
+- [/] I3 — Executor/parent/reviewer: RED/GREEN for changed behavior, existing test/check/format/build gates, browser verification of changed pages, applicable Lighthouse gate and separate read-only review.
 - [ ] I4 — Parent: commit coherent behavior units, verify final clean source and resolve publication against the authorized destination and repository workflow. Provider reception, indexing and rankings require separate observed evidence.
 
 ## Acceptance
@@ -32,7 +32,7 @@ Work only in `/Users/sergiogmr/portfolio-worktrees/seo-geo-20261010`, branch `fe
 2. `improve portfolio content and evidence`: localized content/data/templates/link behavior with relevant tests. Rollback restores the previous copy and presentation while keeping the project removal.
 3. Measurement/coordination documentation follows the behavior it describes, with final receipts recorded honestly. Do not rewrite historical receipts from earlier 14-page builds.
 
-No new checks have passed for this implementation yet. Previous 160-test/Lighthouse receipts apply to the old source only. Browser and Lighthouse runs must be serialized; source must be frozen during independent review.
+Current implementation receipts are recorded below. Previous 160-test/Lighthouse receipts apply to the old source only. Browser and Lighthouse runs are serialized; source remains frozen during independent review.
 
 ## Environment and continuity
 
@@ -54,3 +54,25 @@ The codebase-memory refresh failed with `Transport closed`; focused local search
 - Parent inspected full-suite, Astro, format and verifier receipts: Astro **52 files / zero errors, warnings or hints**; formatting, generated-output validation and `git diff --check` pass. Logs are `.lighthouse/i2a-{green-focused,tests-full,check,format,format-check,verify-output,diff-check}.log`.
 - Current generated inventory: **12 indexable pages, six case pages and seven projects**. Both removed localized case artifacts are absent from `dist` and the Vercel output; the generated fallback remains HTTP 404. This is local output proof, not a deployed HTTP check.
 - Source diff before this task record: 12 files, **140 additions / 59 deletions**, plus removal of the 29,605-byte AVIF. Browser, Lighthouse and independent review remain pending for the complete refinement.
+- Parent created `68ed8ce` (`refactor(portfolio): remove Solutec while retaining Tecandu experience`) after inspecting receipts and the staged diff. This includes the behavior, related tests, route-count documentation and this task's initial record. No push or deployment was performed at this checkpoint.
+
+## I2-B/I2-C decisions
+
+- Keep hero discovery links, and give client-project and employment contact options equal styling in the contact section. Both use the existing public portfolio email with distinct localized, encoded subjects; no external communication is sent during validation.
+- Explain existing work with clearer summaries and deeper details from the profile/CV, rather than inventing architectural motivations or impact metrics. Capability links identify actual cases or the retained Tecandu experience.
+- Replace the unexplained practice-year count with a localized factual specialty. Do not rewrite CV education facts without confirmation.
+- Update Basuraleza's external URL to its observed final public destination, `https://proyectolibera.org/app-basuraleza-caracterizacion-residuos`, which returned HTTP 200 during the fresh audit.
+- Add the currently documented Search Console generative AI impressions report to measurement guidance, without claiming access, enough impressions or a collected baseline.
+
+
+## I2-B/I2-C implementation evidence
+
+- Executor completed and its final status was confirmed before integration. The source is frozen for final visual/performance checks and independent review.
+- Both locales now state the Tech Lead role, Laravel specialty and Las Palmas location. Project and employment contact links have identical styling, distinct localized encoded subjects and the existing public portfolio mailbox.
+- Home cards use short summaries; the six localized case pages add context, participation, tasks, deliverables and technologies from existing project/CV facts. JauntJar retains the collaboration with the author's wife. Todo-Lux and Basuraleza reuse their canonical experience responsibilities; repeated 2020 entries were deduplicated in profile data only.
+- Capabilities link to localized Todo-Lux/Basuraleza cases or the Tecandu experience anchor. The employment name remains `Tecandu S.L.`. The ambiguous year count and unsupported decorative Hexagonal label were replaced by Laravel specialty and APIs/CI/CD focus.
+- Observed compiled-contract RED: **20 pass / 10 fail / 377 expectations**. Focused GREEN: **30 pass / 0 fail / 467 expectations**. Full suite: **171 pass / 0 fail / 1,069 expectations** in 15 files. Build and generated-output validation ran in the compiled-page fixture.
+- Parent inspected receipts: Astro **52 files, zero errors/warnings/hints**; formatting, standalone generated-output validation and diff checks passed. Receipts: `.lighthouse/i2b-{red,green-focused,tests-full,check,format,format-check,verify-output,diff-check}.log`. Failure output now uses bounded assertions instead of dumping DOM graphs.
+- The implementation unit is 13 files, **383 additions / 132 deletions = 515 authored lines**, excluding the parent's task record. Data, rendering and compiled-output coverage form one coherent contract; it was not artificially split to hide the size.
+- CV sources/PDFs, dependencies, lockfile, legal content, analytics behavior and Lighthouse budgets remain unchanged. Browser, Lighthouse and final independent review are pending below.
+- Read-only Vercel CLI metadata confirms project `prj_KCGw8ftCB1MADnNGZIMjmnEu6Oif` is linked to `SergioGMR/portfolio`, production branch `main`; current production SHA remains `1b499ed5452d615f39f78c4981c411af9d745b0b`. Web Analytics is enabled and reports existing data, which does not establish reception of the new implementation.

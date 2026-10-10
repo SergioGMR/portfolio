@@ -1,24 +1,43 @@
 ---
-import { getLanguage } from '@/lib/site'
+import { getAlternatePaths, getLanguage } from '@/lib/site'
 import LangText from '@/components/LangText.astro'
 import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
 
 const capabilities = PROFESSIONAL_PROFILE.capabilities
-const evidenceLabels = {
-  es: new Map(
-    PROFESSIONAL_PROFILE.experiences.map((experience) => [
-      experience.id,
-      experience.title.es,
-    ]),
-  ),
-  en: new Map(
-    PROFESSIONAL_PROFILE.experiences.map((experience) => [
-      experience.id,
-      experience.title.en,
-    ]),
-  ),
-}
 const locale = getLanguage(Astro.url.pathname)
+const caseStudies = PROFESSIONAL_PROFILE.projects.filter(
+  (project) => project.kind === 'case-study',
+)
+const evidenceLinks = new Map([
+  ...PROFESSIONAL_PROFILE.experiences.map((experience) => {
+    const project = caseStudies.find((project) =>
+      project.experienceIds.includes(experience.id),
+    )
+    return [
+      experience.id,
+      {
+        label:
+          project?.title[locale] ??
+          (experience.id === 'tecandu'
+            ? 'Tecandu'
+            : experience.company[locale]),
+        href: project
+          ? getAlternatePaths(`/proyectos/${project.id}`)[locale]
+          : `${locale === 'es' ? '/' : '/en'}#experiencia-${experience.id}`,
+      },
+    ] as const
+  }),
+  ...caseStudies.map(
+    (project) =>
+      [
+        project.id,
+        {
+          label: project.title[locale],
+          href: getAlternatePaths(`/proyectos/${project.id}`)[locale],
+        },
+      ] as const,
+  ),
+])
 ---
 
 <section
@@ -34,8 +53,8 @@ const locale = getLanguage(Astro.url.pathname)
     </h2>
     <p class="text-muted-foreground text-sm leading-relaxed">
       <LangText
-        es="Capacidades conectadas con experiencias y casos verificables, sin separar la tecnología de la entrega."
-        en="Capabilities connected to verifiable experiences and case studies, keeping technology tied to delivery."
+        es="Capacidades conectadas con mi experiencia y con proyectos concretos."
+        en="Capabilities connected to my experience and to specific projects."
       />
     </p>
     <div class="flex flex-wrap gap-1.5 pt-1">
@@ -76,26 +95,27 @@ const locale = getLanguage(Astro.url.pathname)
           )}
         </p>
         <p class="text-muted-foreground border-border mt-3 border-t pt-2.5 font-mono text-[10px]">
-          {locale === 'es' && (
-            <span data-lang-content="es">
-              <span class="text-foreground/70 tracking-wider uppercase">
-                Evidencia:
-              </span>{' '}
-              {capability.evidenceIds
-                .map((id) => evidenceLabels.es.get(id) ?? id)
-                .join(' · ')}
-            </span>
-          )}
-          {locale === 'en' && (
-            <span data-lang-content="en">
-              <span class="text-foreground/70 tracking-wider uppercase">
-                Evidence:
-              </span>{' '}
-              {capability.evidenceIds
-                .map((id) => evidenceLabels.en.get(id) ?? id)
-                .join(' · ')}
-            </span>
-          )}
+          <span data-lang-content={locale}>
+            <span class="text-foreground/70 tracking-wider uppercase">
+              {locale === 'es' ? 'Evidencia:' : 'Evidence:'}
+            </span>{' '}
+            {capability.evidenceIds.map((id, index) => {
+              const evidence = evidenceLinks.get(id)
+              if (!evidence)
+                throw new Error(`Missing capability evidence: ${id}`)
+              return (
+                <>
+                  {index > 0 && ' · '}
+                  <a
+                    href={evidence.href}
+                    class="text-primary underline underline-offset-4 hover:no-underline"
+                  >
+                    {evidence.label}
+                  </a>
+                </>
+              )
+            })}
+          </span>
         </p>
       </article>
     ))}

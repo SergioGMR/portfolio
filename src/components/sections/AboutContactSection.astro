@@ -1,6 +1,28 @@
 ---
 import LangText from '@/components/LangText.astro'
 import { LINKS } from '@/lib/constants'
+import { getLanguage } from '@/lib/site'
+
+const locale = getLanguage(Astro.url.pathname)
+const contactOptions = [
+  {
+    label: { es: 'Proponer un proyecto', en: 'Propose a project' },
+    subject: {
+      es: 'Proyecto para Sergio Morales',
+      en: 'Project for Sergio Morales',
+    },
+  },
+  {
+    label: {
+      es: 'Hablar de una oportunidad',
+      en: 'Discuss a career opportunity',
+    },
+    subject: {
+      es: 'Oportunidad profesional para Sergio Morales',
+      en: 'Career opportunity for Sergio Morales',
+    },
+  },
+]
 ---
 
 <section
@@ -13,14 +35,14 @@ import { LINKS } from '@/lib/constants'
     </p>
     <h2 class="text-foreground text-2xl font-semibold sm:text-3xl">
       <LangText
-        es="Colaboro de forma cercana y pragmática."
-        en="I collaborate closely and pragmatically."
+        es="Hablemos de tu equipo o de tu producto."
+        en="Let’s talk about your team or your product."
       />
     </h2>
     <p class="text-muted-foreground">
       <LangText
-        es="Me incorporo a proyectos con contexto, analizo necesidades, coordino trabajo técnico y convierto requisitos en entregables."
-        en="I join projects with context, analyse needs, coordinate technical work, and turn requirements into deliverables."
+        es="¿Buscas un perfil técnico para tu equipo o apoyo para desarrollar un producto? Cuéntame qué necesitas."
+        en="Looking for a technical professional for your team or help developing a product? Tell me what you need."
       />
     </p>
     <div
@@ -41,6 +63,16 @@ import { LINKS } from '@/lib/constants'
     <p class="text-muted-foreground text-xs tracking-[0.25em] uppercase">
       <LangText es="Contacto" en="Contact" />
     </p>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+      {contactOptions.map((option) => (
+        <a
+          href={`${LINKS.mail}?subject=${encodeURIComponent(option.subject[locale])}`}
+          class="border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 inline-flex min-h-12 items-center justify-center rounded-xl border px-4 py-3 text-center text-sm font-semibold transition"
+        >
+          <LangText es={option.label.es} en={option.label.en} />
+        </a>
+      ))}
+    </div>
     <div class="mt-4 space-y-3">
       <div
         data-animate="reveal"

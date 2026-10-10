@@ -31,6 +31,8 @@ interface ProjectBase {
 
 export interface CaseStudyProject extends ProjectBase {
   readonly kind: 'case-study'
+  readonly summary: Localized<string>
+  readonly tasks: Localized<readonly string[]>
   readonly problem: Localized<string>
   readonly responsibility: Localized<string>
   readonly solution: Localized<string>
@@ -202,15 +204,11 @@ const experiences: readonly Experience[] = [
         'Desarrollo del backend de la aplicación con Laravel',
         'Desarrollo de la aplicación móvil con Quasar Framework',
         'Desarrollo de una aplicación web con Laravel y Livewire',
-        'Desarrollo de una aplicación móvil con Quasar Framework',
-        'Desarrollo del backend de la aplicación con Laravel',
       ],
       en: [
         'Backend development for the application with Laravel',
         'Mobile application development with Quasar Framework',
         'Web application development with Laravel and Livewire',
-        'Mobile application development with Quasar Framework',
-        'Backend development for the application with Laravel',
       ],
     },
     outcomes: {
@@ -225,15 +223,39 @@ const experiences: readonly Experience[] = [
     },
     technologies: ['Laravel', 'Quasar Framework', 'Livewire'],
     evidenceUrl:
-      'https://proyectolibera.org/caracterizacion-residuos/basuraleza',
+      'https://proyectolibera.org/app-basuraleza-caracterizacion-residuos',
   },
 ]
+
+function getExperienceTasks(id: string): Localized<readonly string[]> {
+  const experience = experiences.find((experience) => experience.id === id)
+  if (!experience) throw new Error(`Missing experience: ${id}`)
+  return experience.responsibilities
+}
 
 const projects: readonly Project[] = [
   {
     id: 'jauntjar',
     kind: 'case-study',
     title: { es: 'JauntJar', en: 'JauntJar' },
+    summary: {
+      es: 'Aplicación privada de viajes con Laravel, creada junto a mi mujer, ingeniera de datos, para planificar destinos y valorar experiencias.',
+      en: 'A private Laravel travel app, built with my wife, a data engineer, to plan destinations and rate experiences.',
+    },
+    tasks: {
+      es: [
+        'Modelado de la información y gestión de destinos',
+        'Interfaz para planificar y puntuar viajes',
+        'Registro de lugares visitados y preparación de destinos futuros',
+        'Mapas y estadísticas de viaje',
+      ],
+      en: [
+        'Information modeling and destination management',
+        'Interface for planning and rating trips',
+        'Visited-place records and future destination planning',
+        'Travel maps and statistics',
+      ],
+    },
     problem: {
       es: 'Queríamos un espacio privado para planificar viajes, guardar destinos visitados y convertir experiencias en un ranking personal.',
       en: 'We wanted a private space to plan trips, keep visited destinations, and turn experiences into a personal ranking.',
@@ -247,8 +269,8 @@ const projects: readonly Project[] = [
       en: 'A private web app to record visited places, plan future destinations, rate experiences, and explore maps and travel statistics.',
     },
     result: {
-      es: 'Producto desplegado en trips.sgmr.es para organizar nuestros viajes y revisar cada experiencia.',
-      en: 'Product deployed at trips.sgmr.es to organize our trips and review each experience.',
+      es: 'Registro de lugares visitados, planificación de destinos futuros y valoraciones, con mapas y estadísticas de nuestros viajes.',
+      en: 'Visited-place records, future destination planning, and ratings, with maps and statistics for our travels.',
     },
     technologies: [
       'Laravel 12',
@@ -266,6 +288,11 @@ const projects: readonly Project[] = [
     id: 'todo-lux',
     kind: 'case-study',
     title: { es: 'Todo-Lux', en: 'Todo-Lux' },
+    summary: {
+      es: 'Desarrollo con Laravel de BackOffice, importación BMCAT y backups, desde el análisis de requisitos hasta el frontend y los flujos de eventos y colas.',
+      en: 'Laravel development of BackOffice, BMCAT import, and backups, from requirements analysis to the frontend and event and queue flows.',
+    },
+    tasks: getExperienceTasks('current-project'),
     problem: {
       es: 'El sistema necesitaba análisis de requisitos, operación interna y flujos de importación y respaldo.',
       en: 'The system needed requirements analysis, internal operations, and import and backup flows.',
@@ -279,8 +306,8 @@ const projects: readonly Project[] = [
       en: 'Development with Laravel, Livewire, and FilamentPHP to centralize project operations.',
     },
     result: {
-      es: 'El proyecto cuenta con un sitio público verificable en todo-lux.com.',
-      en: 'The project has a publicly verifiable site at todo-lux.com.',
+      es: 'BackOffice y sistema de backups implementados; importación BMCAT, frontend y lógica de eventos y colas desarrollados.',
+      en: 'BackOffice and backup system implemented; BMCAT import, frontend, and event and queue logic developed.',
     },
     technologies: ['Laravel', 'Livewire', 'FilamentPHP'],
     evidenceUrl: 'https://todo-lux.com/',
@@ -291,6 +318,11 @@ const projects: readonly Project[] = [
     id: 'basuraleza',
     kind: 'case-study',
     title: { es: 'Basuraleza', en: 'Basuraleza' },
+    summary: {
+      es: 'Desarrollo del backend y de las aplicaciones web y móvil para caracterizar residuos, con Laravel, Livewire y Quasar Framework.',
+      en: 'Development of backend, web, and mobile applications for waste characterization with Laravel, Livewire, and Quasar Framework.',
+    },
+    tasks: getExperienceTasks('freelance-2020'),
     problem: {
       es: 'El proyecto necesitaba una aplicación con backend, web y móvil para la caracterización de residuos.',
       en: 'The project needed backend, web, and mobile applications for waste characterization.',
@@ -300,16 +332,16 @@ const projects: readonly Project[] = [
       en: 'Development of the Laravel backend and the web and mobile applications with Laravel, Livewire, and Quasar Framework.',
     },
     solution: {
-      es: 'Implementación coordinada de las superficies backend, web y móvil descritas en el CV.',
-      en: 'Coordinated implementation of the backend, web, and mobile surfaces described in the CV.',
+      es: 'Backend con Laravel, aplicación web con Laravel y Livewire y aplicación móvil con Quasar Framework.',
+      en: 'Laravel backend, a web application with Laravel and Livewire, and a mobile application with Quasar Framework.',
     },
     result: {
-      es: 'La caracterización de residuos está publicada en el sitio de Proyecto Libera.',
-      en: 'The waste characterization project is published on the Proyecto Libera site.',
+      es: 'Backend desarrollado con Laravel y aplicaciones web y móvil desarrolladas para la caracterización de residuos.',
+      en: 'Laravel backend and web and mobile applications developed for waste characterization.',
     },
     technologies: ['Laravel', 'Livewire', 'Quasar Framework'],
     evidenceUrl:
-      'https://proyectolibera.org/caracterizacion-residuos/basuraleza',
+      'https://proyectolibera.org/app-basuraleza-caracterizacion-residuos',
     imageKey: 'basuraleza',
     experienceIds: ['freelance-2020'],
   },

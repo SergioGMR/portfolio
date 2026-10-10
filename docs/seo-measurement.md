@@ -10,12 +10,17 @@ After an authorized production release, record the deployed SHA and release date
 | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Google Search Console / Bing search performance                          | Brand queries (Sergio Morales Rodríguez, SergioGMR, sgmr.dev) and non-brand queries separately | Impressions, clicks, CTR and average position                     |
 | Search performance by landing page                                       | Spanish `/` and `/proyectos/*`; English `/en` and `/en/projects/*`; legal pages separately     | Search visibility and clicks per language and case study          |
+| Search Console Generative AI performance (when sufficient data exists)   | Canonical pages, country, device and comparable date windows                                   | Impressions in Google Search AI Overviews and AI Mode             |
 | Indexing reports and URL inspection                                      | All 12 sitemap URLs                                                                            | Selected canonical, indexing status and crawl errors              |
 | Vercel Web Analytics                                                     | Home, cases and language paths; available referrers                                            | Pageviews, visitors and acquisition sources                       |
 | Search Console Core Web Vitals / CrUX when sufficient public data exists | Mobile and desktop separately                                                                  | Field LCP, INP and CLS                                            |
 | Repeatable manual search observations                                    | Record query, date, engine, locale and cited page                                              | Observed references, without claiming comprehensive AI visibility |
 
 URL language is a landing-page segment, not proof of the visitor's preferred language. Search Console average position is an aggregate; it is not a guaranteed rank for an individual query. Referrers can be absent or suppressed, so analytics cannot fully attribute all AI or organic discovery.
+
+[Google's Generative AI performance report](https://support.google.com/webmasters/answer/16984139), rolled out worldwide on August 31, 2026, reports impressions for links in AI Overviews and AI Mode. The report may be absent when the site has insufficient generative AI impressions. After authorized property access, export comparable periods and segment by canonical page, country and device. Missing or preliminary data is not proof of zero visibility; this change has not collected a baseline or observed the site's report. These impressions do not measure clicks, leads or visibility across other AI providers.
+
+[Google's optimization guide](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide) emphasizes original, useful content grounded in first-hand experience alongside ordinary SEO. It does not require a special AI schema or an `llms.txt` file. The portfolio presents documented contributions and deliverables; local content and link checks do not establish retrieval, indexing or citations.
 
 ## Vercel Hobby
 

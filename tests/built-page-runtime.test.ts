@@ -178,7 +178,7 @@ describe('compiled Solutec removal and retained Tecandu experience', () => {
         article.textContent.includes('Tecandu S.L.'),
       )
       expect(experience).toBeDefined()
-      expect(experience?.querySelector('a')).toBeNull()
+      expect(experience?.querySelectorAll('a').length).toBe(0)
       expect(
         experience?.querySelector('p.text-primary')?.textContent.trim(),
       ).toBe(company)
@@ -195,6 +195,197 @@ describe('compiled Solutec removal and retained Tecandu experience', () => {
       ).not.toMatch(/solutec/i)
       expect(schema).not.toMatch(/solutec/i)
       expect(browser.document.querySelectorAll('#proyectos h3')).toHaveLength(7)
+    })
+  }
+})
+
+describe('compiled portfolio content and contact choices', () => {
+  const normalize = (text: string | undefined | null) =>
+    text?.replace(/\s+/g, ' ').trim()
+  for (const [path, locale, headline, intro, choices, subjects, footer] of [
+    [
+      '/',
+      'es',
+      'Tech Lead Full Stack. Arquitectura y desarrollo web con Laravel.',
+      'Soy Sergio Morales Rodríguez, de Las Palmas. Desarrollo aplicaciones web y APIs, con experiencia coordinando equipos de desarrollo y DevOps.',
+      ['Proponer un proyecto', 'Hablar de una oportunidad'],
+      [
+        'Proyecto para Sergio Morales',
+        'Oportunidad profesional para Sergio Morales',
+      ],
+      'Hablemos de tu equipo o de tu próximo proyecto.',
+    ],
+    [
+      '/en',
+      'en',
+      'Full Stack Tech Lead. Web architecture and development with Laravel.',
+      'I’m Sergio Morales Rodríguez, based in Las Palmas. I develop web applications and APIs, with experience coordinating development and DevOps teams.',
+      ['Propose a project', 'Discuss a career opportunity'],
+      ['Project for Sergio Morales', 'Career opportunity for Sergio Morales'],
+      'Let’s talk about your team or your next project.',
+    ],
+  ] as const) {
+    test(`identifies the Laravel role and offers equal contact choices at ${path}`, () => {
+      const { browser, title, description } = openBuiltPage(path, locale)
+      const document = browser.document
+      expect(normalize(document.querySelector('#inicio h1')?.textContent)).toBe(
+        headline,
+      )
+      expect(
+        normalize(document.querySelector('#inicio')?.textContent),
+      ).toContain(intro)
+      expect(title).toContain('Sergio Morales Rodríguez')
+      expect(title).toContain('Laravel')
+      expect(description).toContain('Laravel')
+      const links = Array.from(
+        document.querySelectorAll('#contacto a[href*="?subject="]'),
+      )
+      expect(links.map((link) => normalize(link.textContent))).toEqual([
+        ...choices,
+      ])
+      expect(links.map((link) => link.className)).toEqual([
+        links[0]?.className,
+        links[0]?.className,
+      ])
+      expect(
+        links.map((link, index) => {
+          expect(link.getAttribute('href')).toBe(
+            `mailto:sergiogmr+portfolio@icloud.com?subject=${encodeURIComponent(subjects[index]!)}`,
+          )
+          const href = new URL(link.getAttribute('href')!)
+          expect(href.protocol).toBe('mailto:')
+          expect(href.pathname).toBe('sergiogmr+portfolio@icloud.com')
+          expect(href.searchParams.size).toBe(1)
+          return href.searchParams.get('subject')
+        }),
+      ).toEqual([...subjects])
+      expect(
+        normalize(document.querySelector('footer')?.textContent),
+      ).toContain(footer)
+      expect(document.body.textContent).not.toMatch(
+        /10\+ Years|Clean Hexagonal|Hexagonal/,
+      )
+      const specialty = document.querySelector(
+        '.code-panel > div:last-child > div:first-child',
+      )
+      expect(specialty?.querySelector('span.block')?.textContent.trim()).toBe(
+        locale === 'es' ? 'ESPECIALIDAD' : 'SPECIALTY',
+      )
+      expect(specialty?.querySelector('.font-semibold')?.textContent).toBe(
+        'Laravel',
+      )
+    })
+
+    test(`links capabilities to named cases and the stable Tecandu anchor at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const home = locale === 'es' ? '/' : '/en'
+      const prefix = locale === 'es' ? '/proyectos' : '/en/projects'
+      const links = Array.from(
+        browser.document.querySelectorAll('#habilidades a'),
+      )
+      expect(
+        links.map((link) => [
+          normalize(link.textContent),
+          link.getAttribute('href'),
+        ]),
+      ).toEqual([
+        ['Todo-Lux', `${prefix}/todo-lux`],
+        ['Tecandu', `${home}#experiencia-tecandu`],
+        ['Basuraleza', `${prefix}/basuraleza`],
+        ['Todo-Lux', `${prefix}/todo-lux`],
+        ['Basuraleza', `${prefix}/basuraleza`],
+        ['Todo-Lux', `${prefix}/todo-lux`],
+        ['Tecandu', `${home}#experiencia-tecandu`],
+        ['Tecandu', `${home}#experiencia-tecandu`],
+      ])
+      expect(
+        browser.document.querySelectorAll('#experiencia-tecandu').length,
+      ).toBe(1)
+      browser.location.hash = '#experiencia-tecandu'
+      browser.dispatchEvent(new browser.HashChangeEvent('hashchange'))
+      expect(languageHref(browser, 'es')).toBe('/#experiencia-tecandu')
+      expect(languageHref(browser, 'en')).toBe('/en#experiencia-tecandu')
+    })
+  }
+
+  for (const [id, locale, summary, detail, outcome] of [
+    [
+      'jauntjar',
+      'es',
+      'Aplicación privada de viajes con Laravel, creada junto a mi mujer, ingeniera de datos, para planificar destinos y valorar experiencias.',
+      'Modelado de la información y gestión de destinos',
+      'Registro de lugares visitados, planificación de destinos futuros y valoraciones, con mapas y estadísticas de nuestros viajes.',
+    ],
+    [
+      'jauntjar',
+      'en',
+      'A private Laravel travel app, built with my wife, a data engineer, to plan destinations and rate experiences.',
+      'Information modeling and destination management',
+      'Visited-place records, future destination planning, and ratings, with maps and statistics for our travels.',
+    ],
+    [
+      'todo-lux',
+      'es',
+      'Desarrollo con Laravel de BackOffice, importación BMCAT y backups, desde el análisis de requisitos hasta el frontend y los flujos de eventos y colas.',
+      'Diseño del sistema de importación de archivos BMCAT',
+      'BackOffice y sistema de backups implementados; importación BMCAT, frontend y lógica de eventos y colas desarrollados.',
+    ],
+    [
+      'todo-lux',
+      'en',
+      'Laravel development of BackOffice, BMCAT import, and backups, from requirements analysis to the frontend and event and queue flows.',
+      'Design of the BMCAT file import system',
+      'BackOffice and backup system implemented; BMCAT import, frontend, and event and queue logic developed.',
+    ],
+    [
+      'basuraleza',
+      'es',
+      'Desarrollo del backend y de las aplicaciones web y móvil para caracterizar residuos, con Laravel, Livewire y Quasar Framework.',
+      'Desarrollo de la aplicación móvil con Quasar Framework',
+      'Backend desarrollado con Laravel y aplicaciones web y móvil desarrolladas para la caracterización de residuos.',
+    ],
+    [
+      'basuraleza',
+      'en',
+      'Development of backend, web, and mobile applications for waste characterization with Laravel, Livewire, and Quasar Framework.',
+      'Mobile application development with Quasar Framework',
+      'Laravel backend and web and mobile applications developed for waste characterization.',
+    ],
+  ] as const) {
+    test(`adds documented detail beyond the ${id} card in ${locale}`, () => {
+      const home = locale === 'es' ? '/' : '/en'
+      const path = `${locale === 'es' ? '/proyectos' : '/en/projects'}/${id}`
+      const { browser: homepage } = openBuiltPage(home, locale)
+      const card = homepage.document.querySelector(
+        `#proyectos a[href="${path}"]`,
+      )
+      expect(card?.querySelectorAll('p').length).toBe(2)
+      expect(normalize(card?.querySelectorAll('p')[1]?.textContent)).toBe(
+        summary,
+      )
+      expect(normalize(card?.textContent)?.includes(detail)).toBe(false)
+      const {
+        browser: casePage,
+        title,
+        description,
+      } = openBuiltPage(path, locale)
+      const article = casePage.document.querySelector('main article')
+      expect(normalize(article?.textContent)).toContain(detail)
+      expect(normalize(article?.textContent)).toContain(outcome)
+      expect(article?.querySelectorAll('section ul li').length).toBeGreaterThan(
+        3,
+      )
+      expect(title).toContain('Laravel')
+      expect(description).toContain(summary)
+      expect(description).toContain(
+        casePage.document.querySelector('h1')?.textContent ?? 'missing title',
+      )
+      if (id === 'basuraleza')
+        expect(
+          article?.querySelector('a[target="_blank"]')?.getAttribute('href'),
+        ).toBe(
+          'https://proyectolibera.org/app-basuraleza-caracterizacion-residuos',
+        )
     })
   }
 })
