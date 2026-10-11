@@ -13,7 +13,7 @@ const projectsSource = await readFile(
 )
 
 describe('portfolio projects', () => {
-  test('keeps current projects first and appends four bilingual showcases', () => {
+  test('keeps current projects first and appends five bilingual showcases', () => {
     expect(PROFESSIONAL_PROFILE.projects.map(({ id }) => id)).toEqual([
       'jauntjar',
       'todo-lux',
@@ -22,6 +22,7 @@ describe('portfolio projects', () => {
       'tvradar',
       'duellum',
       'uploadimg',
+      'uploadimg-desktop',
     ])
 
     const showcases = PROFESSIONAL_PROFILE.projects.slice(3)
@@ -105,6 +106,7 @@ describe('portfolio projects', () => {
       'https://tvradar.sgmr.es/',
       'https://duellum.vercel.app/',
       'https://uploadimg.vercel.app/',
+      'https://github.com/SergioGMR/uploadimg-desktop',
     ])
   })
 
@@ -123,6 +125,7 @@ describe('portfolio projects', () => {
       'tvradar.webp',
       'duellum.webp',
       'uploadimg.webp',
+      'uploadimg-desktop.webp',
     ]) {
       expect(projectsSource).toContain(asset)
     }
@@ -134,6 +137,7 @@ describe('portfolio projects', () => {
       'tvradar.webp',
       'duellum.webp',
       'uploadimg.webp',
+      'uploadimg-desktop.webp',
     ]) {
       const path = join(root, 'src/assets/projects', asset)
       const metadata = await sharp(path).metadata()

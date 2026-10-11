@@ -199,7 +199,25 @@ describe('compiled Solutec removal and retained Tecandu experience', () => {
           .join(' '),
       ).not.toMatch(/solutec/i)
       expect(schema).not.toMatch(/solutec/i)
-      expect(browser.document.querySelectorAll('#proyectos h3')).toHaveLength(7)
+      expect(browser.document.querySelectorAll('#proyectos h3')).toHaveLength(8)
+      const desktopCard = browser.document.querySelector(
+        '#proyectos a[href="https://github.com/SergioGMR/uploadimg-desktop"]',
+      )
+      expect(desktopCard).not.toBeNull()
+      expect(desktopCard?.querySelector('h3')?.textContent.trim()).toBe(
+        'UploadIMG - Desktop',
+      )
+      expect(desktopCard?.getAttribute('href')).toBe(
+        'https://github.com/SergioGMR/uploadimg-desktop',
+      )
+      expect(desktopCard?.getAttribute('target')).toBe('_blank')
+      expect(desktopCard?.getAttribute('rel')).toContain('noopener')
+      expect(desktopCard?.getAttribute('rel')).toContain('noreferrer')
+      expect(desktopCard?.querySelector('img')?.getAttribute('alt')).toBe(
+        locale === 'es'
+          ? 'Captura de la interfaz de UploadIMG - Desktop'
+          : 'UploadIMG - Desktop interface screenshot',
+      )
     })
   }
 })

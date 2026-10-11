@@ -75,10 +75,26 @@ const expectedShowcases: readonly ShowcaseProject[] = [
     imageKey: 'uploadimg',
     experienceIds: [],
   },
+  {
+    id: 'uploadimg-desktop',
+    kind: 'showcase',
+    title: { es: 'UploadIMG - Desktop', en: 'UploadIMG - Desktop' },
+    category: {
+      es: 'Aplicación de escritorio · beta',
+      en: 'Desktop application · beta',
+    },
+    summary: {
+      es: 'Pega una imagen en macOS Apple Silicon, revisa la vista previa y súbela para compartir un enlace temporal de 24 horas.',
+      en: 'Paste an image on macOS Apple Silicon, review the preview, and upload it to share a temporary 24-hour link.',
+    },
+    evidenceUrl: 'https://github.com/SergioGMR/uploadimg-desktop',
+    imageKey: 'uploadimg-desktop',
+    experienceIds: [],
+  },
 ]
 
 describe('main integration project showcase', () => {
-  test('appends four truthful showcase records after current main projects', () => {
+  test('appends five truthful showcase records after current main projects', () => {
     expect(PROFESSIONAL_PROFILE.projects.map(({ id }) => id)).toEqual([
       'jauntjar',
       'todo-lux',
@@ -87,6 +103,7 @@ describe('main integration project showcase', () => {
       'tvradar',
       'duellum',
       'uploadimg',
+      'uploadimg-desktop',
     ])
 
     const showcases = PROFESSIONAL_PROFILE.projects.slice(3)
@@ -116,6 +133,7 @@ describe('main integration project showcase', () => {
       'tvradar.webp',
       'duellum.webp',
       'uploadimg.webp',
+      'uploadimg-desktop.webp',
     ]) {
       expect(source).toContain(asset)
     }
