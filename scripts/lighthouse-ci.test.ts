@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import type { ServerWebSocket } from 'bun'
 import { mkdtemp, mkdir, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -9,6 +10,7 @@ import {
   runMeasurements,
   startStaticServer,
   launchOwnedBrowser,
+  warmUpBrowser,
   withInterruptSignals,
 } from './lighthouse-ci'
 
@@ -39,6 +41,15 @@ async function expectRejected(promise: Promise<unknown>) {
     rejected = true
   }
   expect(rejected).toBe(true)
+}
+
+async function rejection(promise: Promise<unknown>): Promise<Error> {
+  try {
+    await promise
+  } catch (error) {
+    return error as Error
+  }
+  throw new Error('Expected the promise to reject')
 }
 
 const reports = () => Array.from({ length: 5 }, makeReport)
@@ -195,6 +206,7 @@ describe('owned execution boundary', () => {
             },
           }
         },
+        warmUp: async () => {},
         measure: async () => {
           if (scenario === 'measurement') throw Error('measurement')
           if (scenario === 'abort') controller.abort()
@@ -226,6 +238,7 @@ describe('owned execution boundary', () => {
           close: async () => {},
         }),
         launch: async () => ({ port: 9998, kill: async () => {} }),
+        warmUp: async () => {},
         measure: async () => undefined,
         save: async () => {},
       }),
@@ -280,6 +293,7 @@ describe('browser startup and interruption ownership', () => {
             throw Error('kill')
           },
         }),
+        warmUp: async () => {},
         measure: async () => ({
           lhr: makeReport(),
           report: [JSON.stringify(makeReport()), '<html>report</html>'],
@@ -326,6 +340,7 @@ describe('numeric boundary and invalid output', () => {
             close: async () => {},
           }),
           launch: async () => ({ port: 9998, kill: async () => {} }),
+          warmUp: async () => {},
           measure: async () => ({
             lhr: makeReport(),
             report: [raw, '<html>report</html>'],
@@ -391,6 +406,7 @@ test('rejects incomplete HTML report output', async () => {
         close: async () => {},
       }),
       launch: async () => ({ port: 9998, kill: async () => {} }),
+      warmUp: async () => {},
       measure: async () => ({
         lhr: makeReport(),
         report: [JSON.stringify(makeReport()), 'not an HTML report'],
@@ -465,6 +481,7 @@ describe('post-measurement trace diagnostics', () => {
             events.push('kill')
           },
         }),
+        warmUp: async () => {},
         measure: async () => {
           measures++
           events.push(`measure-${measures}`)
@@ -527,6 +544,7 @@ describe('post-measurement trace diagnostics', () => {
             cleanup.push('browser')
           },
         }),
+        warmUp: async () => {},
         measure: async () => {
           measures++
           const report = makeReport()
@@ -547,5 +565,315 @@ describe('post-measurement trace diagnostics', () => {
     expect(rejected).toBe(true)
     expect(measures).toBe(5)
     expect(cleanup.sort()).toEqual(['browser', 'server'])
+  })
+})
+
+describe('unmeasured warm-up navigation', () => {
+  const serverUrl = 'http://127.0.0.1:9999/'
+  const setup = (
+    overrides: {
+      warmUp?: (url: string, port: number) => Promise<void>
+      signal?: AbortSignal
+    } = {},
+  ) => {
+    const events: string[] = []
+    const saved: string[] = []
+    const warmUps: { url: string; port: number }[] = []
+    const measured: { url: string; port: number }[] = []
+    const options = {
+      config,
+      signal: overrides.signal,
+      startServer: async () => ({
+        url: serverUrl,
+        close: async () => {
+          events.push('server-close')
+        },
+      }),
+      launch: async () => ({
+        port: 9998,
+        kill: async () => {
+          events.push('browser-kill')
+        },
+      }),
+      warmUp:
+        overrides.warmUp ??
+        (async (url: string, port: number) => {
+          events.push('warm-up')
+          warmUps.push({ url, port })
+        }),
+      measure: async (url: string, port: number) => {
+        events.push('measure')
+        measured.push({ url, port })
+        return {
+          lhr: makeReport(),
+          report: [JSON.stringify(makeReport()), '<html>report</html>'],
+        }
+      },
+      save: async (name: string) => {
+        events.push('save')
+        saved.push(name)
+      },
+    }
+    return { options, events, saved, warmUps, measured }
+  }
+
+  test('runs once, before the first measurement, on the measured URL and port', async () => {
+    const { options, events, warmUps, measured } = setup()
+    await runMeasurements(options)
+    expect(warmUps).toEqual([{ url: `${serverUrl}index.html`, port: 9998 }])
+    expect(warmUps[0]).toEqual(measured[0])
+    expect(events.indexOf('warm-up')).toBe(0)
+    expect(events.indexOf('warm-up')).toBeLessThan(events.indexOf('measure'))
+  })
+
+  test('does not add a measured run or a saved report', async () => {
+    const { options, events, saved } = setup()
+    await runMeasurements(options)
+    expect(events.filter((event) => event === 'measure')).toHaveLength(
+      config.collect.numberOfRuns,
+    )
+    expect(saved.filter((name) => name.endsWith('.report.json'))).toHaveLength(
+      config.collect.numberOfRuns,
+    )
+    expect(saved.filter((name) => name.endsWith('.report.html'))).toHaveLength(
+      config.collect.numberOfRuns,
+    )
+    expect(saved.filter((name) => name.startsWith('run-'))).toHaveLength(
+      config.collect.numberOfRuns * 2,
+    )
+    expect(saved.indexOf('run-1.report.json')).toBe(0)
+  })
+
+  test('a warm-up failure rejects loudly, skips measurement and cleans owned resources', async () => {
+    const { options, events } = setup({
+      warmUp: async () => {
+        throw new Error('warm-up')
+      },
+    })
+    let message: string | undefined
+    try {
+      await runMeasurements(options)
+    } catch (error) {
+      message = error instanceof Error ? error.message : undefined
+    }
+    expect(message).toBe('warm-up')
+    expect(events).not.toContain('measure')
+    expect(events).not.toContain('save')
+    expect(events.filter((event) => event === 'browser-kill')).toHaveLength(1)
+    expect(events.filter((event) => event === 'server-close')).toHaveLength(1)
+  })
+
+  test('an abort during the warm-up stops measurement and cleans owned resources', async () => {
+    const controller = new AbortController()
+    const { options, events } = setup({
+      signal: controller.signal,
+      warmUp: async () => {
+        controller.abort(new Error('aborted'))
+      },
+    })
+    await expectRejected(runMeasurements(options))
+    expect(events).not.toContain('measure')
+    expect(events).not.toContain('save')
+    expect(events.filter((event) => event === 'browser-kill')).toHaveLength(1)
+    expect(events.filter((event) => event === 'server-close')).toHaveLength(1)
+  })
+})
+
+describe('warm-up browser navigation', () => {
+  type Handler = (
+    ws: ServerWebSocket<undefined>,
+    message: { id: number; method: string; params?: { url?: string } },
+  ) => void
+  const reply = (ws: ServerWebSocket<undefined>, id: number, result = {}) =>
+    ws.send(JSON.stringify({ id, result }))
+  const loaded = (ws: ServerWebSocket<undefined>) =>
+    ws.send(JSON.stringify({ method: 'Page.loadEventFired', params: {} }))
+  // Chrome answers Page.enable, then replies to Page.navigate and fires load.
+  const loadsAfterReply: Handler = (ws, message) => {
+    reply(ws, message.id)
+    if (message.method === 'Page.navigate') loaded(ws)
+  }
+
+  // Minimal stand-in for Chrome's DevTools HTTP + WebSocket endpoint.
+  async function withFakeDevTools(
+    onMessage: Handler,
+    run: (port: number, seen: Record<string, string[]>) => Promise<void>,
+    options: { hangNew?: boolean; failNew?: boolean } = {},
+  ) {
+    const seen: Record<string, string[]> = {
+      requests: [],
+      methods: [],
+      navigated: [],
+    }
+    const server = Bun.serve<undefined>({
+      hostname: '127.0.0.1',
+      port: 0,
+      fetch(request, srv) {
+        const { pathname, search } = new URL(request.url)
+        seen.requests.push(`${request.method} ${pathname}${search}`)
+        if (pathname === '/ws')
+          return srv.upgrade(request)
+            ? undefined
+            : new Response('upgrade failed', { status: 400 })
+        if (pathname === '/json/new') {
+          if (options.hangNew) return new Promise<Response>(() => {})
+          if (options.failNew) return new Response('no', { status: 500 })
+          if (request.method !== 'PUT')
+            return new Response('PUT required', { status: 405 })
+          return Response.json({
+            id: 'tab-1',
+            webSocketDebuggerUrl: `ws://127.0.0.1:${srv.port}/ws`,
+          })
+        }
+        if (pathname === '/json/close/tab-1')
+          return new Response('Target is closing')
+        return new Response('not found', { status: 404 })
+      },
+      websocket: {
+        message(ws, raw) {
+          const message = JSON.parse(String(raw))
+          seen.methods.push(message.method)
+          if (message.method === 'Page.navigate')
+            seen.navigated.push(message.params.url)
+          onMessage(ws, message)
+        },
+      },
+    })
+    try {
+      await run(server.port as number, seen)
+    } finally {
+      await server.stop(true)
+    }
+  }
+  const closes = (seen: Record<string, string[]>) =>
+    seen.requests.filter((request) => request.startsWith('GET /json/close/'))
+
+  test('resolves on the load event after Page.navigate and closes the tab', async () => {
+    await withFakeDevTools(loadsAfterReply, async (port, seen) => {
+      await warmUpBrowser('http://127.0.0.1:1234/index.html', port, 2000)
+      expect(seen.requests[0]).toBe('PUT /json/new?about%3Ablank')
+      expect(seen.methods).toEqual(['Page.enable', 'Page.navigate'])
+      expect(seen.navigated).toEqual(['http://127.0.0.1:1234/index.html'])
+      expect(closes(seen)).toEqual(['GET /json/close/tab-1'])
+    })
+  })
+
+  test('resolves when the load event arrives before the navigate reply', async () => {
+    await withFakeDevTools(
+      (ws, message) => {
+        if (message.method === 'Page.navigate') {
+          loaded(ws)
+          reply(ws, message.id)
+        } else reply(ws, message.id)
+      },
+      async (port, seen) => {
+        await warmUpBrowser('http://127.0.0.1:1234/', port, 2000)
+        expect(closes(seen)).toHaveLength(1)
+      },
+    )
+  })
+
+  test('rejects when Page.navigate reports an errorText and closes the tab', async () => {
+    await withFakeDevTools(
+      (ws, message) =>
+        reply(
+          ws,
+          message.id,
+          message.method === 'Page.navigate'
+            ? { errorText: 'net::ERR_CONNECTION_REFUSED' }
+            : {},
+        ),
+      async (port, seen) => {
+        expect(
+          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 2000)))
+            .message,
+        ).toContain('net::ERR_CONNECTION_REFUSED')
+        expect(closes(seen)).toHaveLength(1)
+      },
+    )
+  })
+
+  test('rejects when a protocol error is returned and closes the tab', async () => {
+    await withFakeDevTools(
+      (ws, message) =>
+        ws.send(JSON.stringify({ id: message.id, error: { message: 'boom' } })),
+      async (port, seen) => {
+        expect(
+          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 2000)))
+            .message,
+        ).toContain('boom')
+        expect(closes(seen)).toHaveLength(1)
+      },
+    )
+  })
+
+  test('rejects when the socket closes before the page loads and closes the tab', async () => {
+    await withFakeDevTools(
+      (ws, message) => {
+        if (message.method === 'Page.navigate') ws.close()
+        else reply(ws, message.id)
+      },
+      async (port, seen) => {
+        expect(
+          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 2000)))
+            .message,
+        ).toContain('Warm-up connection closed')
+        expect(closes(seen)).toHaveLength(1)
+      },
+    )
+  })
+
+  test('rejects after the timeout when no load event arrives and closes the tab', async () => {
+    await withFakeDevTools(
+      (ws, message) => reply(ws, message.id),
+      async (port, seen) => {
+        expect(
+          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 100)))
+            .message,
+        ).toContain('Warm-up did not load within 100ms')
+        expect(closes(seen)).toHaveLength(1)
+      },
+    )
+  })
+
+  test('rejects instead of throwing uncaught on a non-JSON frame and closes the tab', async () => {
+    await withFakeDevTools(
+      (ws) => ws.send('not json'),
+      async (port, seen) => {
+        expect(
+          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 2000)))
+            .name,
+        ).toBe('SyntaxError')
+        expect(closes(seen)).toHaveLength(1)
+      },
+    )
+  })
+
+  test('rejects when the DevTools endpoint does not answer in time', async () => {
+    await withFakeDevTools(
+      loadsAfterReply,
+      async (port, seen) => {
+        expect(
+          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 100)))
+            .name,
+        ).toBe('TimeoutError')
+        expect(seen.methods).toEqual([])
+      },
+      { hangNew: true },
+    )
+  })
+
+  test('rejects when the tab cannot be opened', async () => {
+    await withFakeDevTools(
+      loadsAfterReply,
+      async (port, seen) => {
+        expect(
+          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 2000)))
+            .message,
+        ).toContain('Warm-up tab failed: 500')
+        expect(seen.methods).toEqual([])
+      },
+      { failNew: true },
+    )
   })
 })
