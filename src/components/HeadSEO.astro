@@ -8,6 +8,9 @@ interface Props {
   description?: string
   localizedMetadata?: LanguageMetadata
   ogImage?: URL | string
+  ogImageType?: string
+  ogImageWidth?: number
+  ogImageHeight?: number
   noindex?: boolean
   nofollow?: boolean
   locale?: Language
@@ -25,6 +28,9 @@ const {
   locale = getLanguage(Astro.url.pathname),
   schema,
   ogType = 'website',
+  ogImageType = 'image/jpeg',
+  ogImageWidth = 1200,
+  ogImageHeight = 630,
 } = Astro.props
 const site = Astro.site?.toString() ?? SITE_URL
 const canonicalURL = new URL(
@@ -41,6 +47,7 @@ const initial = localizedMetadata?.[locale] ?? {
   schema,
 }
 const initialOgLocale = locale === 'es' ? 'es_ES' : 'en_US'
+const alternateOgLocale = locale === 'es' ? 'en_US' : 'es_ES'
 const robotsContent = [
   noindex ? 'noindex' : 'index',
   nofollow ? 'nofollow' : 'follow',
@@ -51,11 +58,13 @@ const robotsContent = [
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{initial.title}</title>
 <meta name="robots" content={robotsContent} />
-<meta name="googlebot" content={robotsContent} />
 {!noindex && <link rel="canonical" href={canonicalURL} />}
 <meta name="description" content={initial.description} />
 <meta name="author" content="Sergio Morales Rodríguez" />
 <meta property="og:locale" content={initialOgLocale} />
+{!noindex && (
+  <meta property="og:locale:alternate" content={alternateOgLocale} />
+)}
 {!noindex && (
   <>
     <link rel="alternate" hreflang="es" href={new URL(alternates.es, site)} />
@@ -69,6 +78,9 @@ const robotsContent = [
 )}
 
 <link rel="icon" type="image/avif" href="/favicon.avif" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
 
 <meta property="og:type" content={ogType} />
 <meta property="og:url" content={canonicalURL} />
@@ -76,18 +88,18 @@ const robotsContent = [
 <meta property="og:description" content={initial.description} />
 <meta property="og:image" content={resolvedOgImage} />
 <meta property="og:image:secure_url" content={resolvedOgImage} />
-<meta property="og:image:type" content="image/jpeg" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
+<meta property="og:image:type" content={ogImageType} />
+<meta property="og:image:width" content={String(ogImageWidth)} />
+<meta property="og:image:height" content={String(ogImageHeight)} />
 <meta property="og:image:alt" content={initial.imageAlt} />
 <meta property="og:site_name" content="Sergio Morales Rodríguez - Portfolio" />
 
-<meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content={canonicalURL} />
-<meta property="twitter:title" content={initial.title} />
-<meta property="twitter:description" content={initial.description} />
-<meta property="twitter:image" content={resolvedOgImage} />
-<meta property="twitter:image:alt" content={initial.imageAlt} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:url" content={canonicalURL} />
+<meta name="twitter:title" content={initial.title} />
+<meta name="twitter:description" content={initial.description} />
+<meta name="twitter:image" content={resolvedOgImage} />
+<meta name="twitter:image:alt" content={initial.imageAlt} />
 <meta name="twitter:site" content="@sergiogmr" />
 <meta name="twitter:creator" content="@sergiogmr" />
 

@@ -11,6 +11,19 @@ export default defineConfig({
   trailingSlash: 'never',
   build: {},
 
+  // Legacy year-stamped CV URLs; `vercel.json` is not copied into the adapter
+  // output, so the redirects live here where they can be verified locally.
+  redirects: {
+    '/sergio-morales-2024-es.pdf': {
+      status: 301,
+      destination: '/sergio-morales-es.pdf',
+    },
+    '/sergio-morales-2024-en.pdf': {
+      status: 301,
+      destination: '/sergio-morales-en.pdf',
+    },
+  },
+
   integrations: [],
 
   vite: {

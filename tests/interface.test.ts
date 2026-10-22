@@ -40,6 +40,7 @@ describe('portfolio interface', () => {
       'ExperienceSection',
       'SkillsSection',
       'EducationLanguagesSection',
+      'FaqSection',
       'AboutContactSection',
     ]) {
       expect(index).toContain(`<${component}`)
@@ -47,6 +48,7 @@ describe('portfolio interface', () => {
 
     expect(index).toContain('order-1')
     expect(index).toContain('order-5')
+    expect(index).toContain('order-6')
     expect(projects).toContain('surface-panel')
     expect(projects).toContain('sm:grid-cols-2')
   })

@@ -2,9 +2,9 @@
 import type { CaseStudyProject } from '@/lib/professional-profile'
 import PageShell from '@/components/layout/PageShell.astro'
 import LangText from '@/components/LangText.astro'
-import { Image } from 'astro:assets'
+import { Image, getImage } from 'astro:assets'
 import { createCaseStudyMetadata } from '@/lib/page-metadata'
-import { getLanguage } from '@/lib/site'
+import { getLanguage, SITE_URL } from '@/lib/site'
 import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
 import jauntjarImg from '@/assets/experience/jauntjar.avif'
 import todoLuxImg from '@/assets/experience/todo-lux.avif'
@@ -22,6 +22,23 @@ const images = {
   basuraleza: basuralezaImg,
 }
 const image = images[project.imageKey as keyof typeof images]
+// Social cards are WebP. Astro never enlarges a source: when it is smaller than
+// 1200x630 in either dimension the card keeps the source size, so the head
+// declares that real size instead of the requested one. The output verifier
+// checks the declared size against the emitted file.
+const CARD = { width: 1200, height: 630 }
+const card = await getImage({
+  src: image,
+  format: 'webp',
+  ...CARD,
+  fit: 'cover',
+  quality: 80,
+})
+const cardSize =
+  image.width < CARD.width || image.height < CARD.height
+    ? { width: image.width, height: image.height }
+    : CARD
+const metadata = createCaseStudyMetadata(project)
 const sections = [
   { es: 'Contexto', en: 'Context', text: project.problem },
   {
@@ -34,7 +51,13 @@ const sections = [
 ]
 ---
 
-<PageShell localizedMetadata={createCaseStudyMetadata(project)}>
+<PageShell
+  localizedMetadata={metadata}
+  ogImage={new URL(card.src, SITE_URL)}
+  ogImageType="image/webp"
+  ogImageWidth={cardSize.width}
+  ogImageHeight={cardSize.height}
+>
   <article class="surface-panel mx-auto w-full max-w-4xl rounded-3xl p-5 sm:p-8 lg:p-10">
     <nav
       aria-label={locale === 'es' ? 'Ruta de navegación' : 'Breadcrumb'}

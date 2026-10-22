@@ -457,7 +457,7 @@ export const PROFESSIONAL_PROFILE: ProfessionalProfile = {
         es: 'Certificado de Educación Superior en Desarrollo de Aplicaciones Web',
         en: 'Certificate of Higher Education in Web Application Development',
       },
-      institution: { es: 'I.E.S. El Ricón', en: 'I.E.S. El Ricón' },
+      institution: { es: 'I.E.S. El Rincón', en: 'I.E.S. El Rincón' },
       location: {
         es: 'Las Palmas de G.C., España',
         en: 'Las Palmas de Gran Canaria, Spain',

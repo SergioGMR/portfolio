@@ -139,7 +139,7 @@ describe('professional profile', () => {
       id: 'web-application-development',
       startDate: '2016-06-30',
       endDate: '2018-04-30',
-      institution: { es: 'I.E.S. El Ricón', en: 'I.E.S. El Ricón' },
+      institution: { es: 'I.E.S. El Rincón', en: 'I.E.S. El Rincón' },
       qualification: {
         es: 'Certificado de Educación Superior en Desarrollo de Aplicaciones Web',
         en: 'Certificate of Higher Education in Web Application Development',

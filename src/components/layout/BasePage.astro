@@ -13,6 +13,9 @@ interface Props {
   schema?: Record<string, unknown>
   locale?: 'es' | 'en'
   ogImage?: URL | string
+  ogImageType?: string
+  ogImageWidth?: number
+  ogImageHeight?: number
   ogType?: string
   noindex?: boolean
   nofollow?: boolean
@@ -26,6 +29,9 @@ const {
   schema,
   locale = getLanguage(Astro.url.pathname),
   ogImage,
+  ogImageType,
+  ogImageWidth,
+  ogImageHeight,
   ogType,
   noindex,
   nofollow,
@@ -78,6 +84,9 @@ const {
       localizedMetadata={localizedMetadata}
       schema={schema}
       ogImage={ogImage}
+      ogImageType={ogImageType}
+      ogImageWidth={ogImageWidth}
+      ogImageHeight={ogImageHeight}
       ogType={ogType}
       locale={locale}
       noindex={noindex}

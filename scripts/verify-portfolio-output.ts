@@ -1,10 +1,12 @@
 import { createHash } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
+import { access, readFile } from 'node:fs/promises'
 
 import {
   INDEXABLE_PATHS,
+  PAGE_LAST_MODIFIED,
   getLanguage,
   getAlternatePaths,
+  type IndexablePath,
 } from '../src/lib/site'
 import {
   PAGE_METADATA,
@@ -19,12 +21,15 @@ const EXPECTED_SITE_URL = 'https://sgmr.dev'
 const defaultRootUrl = new URL('../', import.meta.url)
 
 const canonicalPdfSha256 = {
-  es: '1cde05758d5e3109f7151ec4f96b91c2bc3592df473914cd91177388e5071add',
-  en: 'a1ceeec46ad62401a2164ef3566d4fcabbe8a141577134dd7a752e1395bee7a9',
+  es: '9dcc01b4a761ba98b88fc16ab49e2c84d27c8384002945417b8dd570af343cc9',
+  en: 'f3ca1cf2451eab873cd07aed7d93441e1805ddbd13dbb453936d824f54f8af76',
 } as const
 
 const expectedSitemapLocations = INDEXABLE_PATHS.map((path) =>
   new URL(path, EXPECTED_SITE_URL).toString(),
+)
+const expectedSitemapLastModified = INDEXABLE_PATHS.map(
+  (path) => PAGE_LAST_MODIFIED[path],
 )
 
 type StructuredData = Record<string, unknown>
@@ -51,9 +56,19 @@ interface HtmlSnapshot extends HtmlDocumentStructure {
   activeText: string
   language: string
   h1Count: number
+  headingLevels: number[]
   ids: string[]
   alternates: Record<string, string[]>
   robots: string[]
+  googlebot: string[]
+  twitterMeta: Record<string, string[]>
+  twitterPropertyMeta: string[]
+  icons: {
+    rel: string
+    href: string
+    sizes: string | null
+    type: string | null
+  }[]
   languageLinks: { href: string; current: string | null; language: string }[]
 }
 
@@ -61,11 +76,14 @@ interface SitemapElement {
   name: string
   text: string
   directLocationCount: number
+  directLastModifiedCount: number
 }
 
 interface SitemapSnapshot {
   locations: string[]
+  lastModified: string[]
   urlLocationCounts: number[]
+  urlLastModifiedCounts: number[]
 }
 
 function assertIncludes(value: string, expected: string, label: string): void {
@@ -113,6 +131,15 @@ function assertCanonicalPdf(
   }
 }
 
+async function pathExists(url: URL): Promise<boolean> {
+  try {
+    await access(url)
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function readRequiredArtifact(
   rootUrl: URL,
   artifactPath: string,
@@ -123,6 +150,80 @@ async function readRequiredArtifact(
   } catch {
     throw new Error(`${label}: missing emitted artifact ${artifactPath}`)
   }
+}
+
+const PNG_SIGNATURE = '89504e470d0a1a0a'
+
+function readPngSize(bytes: Buffer, label: string) {
+  if (
+    bytes.byteLength < 24 ||
+    bytes.subarray(0, 8).toString('hex') !== PNG_SIGNATURE ||
+    bytes.subarray(12, 16).toString('ascii') !== 'IHDR'
+  )
+    throw new Error(`${label}: not a valid PNG`)
+  return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) }
+}
+
+function readWebpSize(bytes: Buffer, label: string) {
+  if (
+    bytes.byteLength < 30 ||
+    bytes.subarray(0, 4).toString('ascii') !== 'RIFF' ||
+    bytes.subarray(8, 12).toString('ascii') !== 'WEBP'
+  )
+    throw new Error(`${label}: not a valid WebP (missing RIFF/WEBP header)`)
+  const chunk = bytes.subarray(12, 16).toString('ascii')
+  if (chunk === 'VP8X')
+    return {
+      width: bytes.readUIntLE(24, 3) + 1,
+      height: bytes.readUIntLE(27, 3) + 1,
+    }
+  if (chunk === 'VP8L') {
+    const bits = bytes.readUInt32LE(21)
+    return { width: (bits & 0x3fff) + 1, height: ((bits >> 14) & 0x3fff) + 1 }
+  }
+  if (chunk === 'VP8 ')
+    return {
+      width: bytes.readUInt16LE(26) & 0x3fff,
+      height: bytes.readUInt16LE(28) & 0x3fff,
+    }
+  throw new Error(`${label}: unsupported WebP chunk ${JSON.stringify(chunk)}`)
+}
+
+function readIcoSize(bytes: Buffer, label: string) {
+  if (
+    bytes.byteLength < 22 ||
+    bytes.readUInt16LE(0) !== 0 ||
+    bytes.readUInt16LE(2) !== 1 ||
+    bytes.readUInt16LE(4) < 1
+  )
+    throw new Error(`${label}: not a valid ICO`)
+  // A width or height byte of 0 means 256 in the ICO directory.
+  return { width: bytes[6] || 256, height: bytes[7] || 256 }
+}
+
+async function verifyIdentityAssets(rootUrl: URL): Promise<void> {
+  for (const [file, size] of [
+    ['favicon-96x96.png', 96],
+    ['apple-touch-icon.png', 180],
+    ['sergio-morales-avatar.png', 500],
+  ] as const) {
+    const actual = readPngSize(
+      await readRequiredArtifact(rootUrl, `dist/${file}`, file),
+      file,
+    )
+    if (actual.width !== size || actual.height !== size)
+      throw new Error(
+        `${file}: expected ${size}x${size}, got ${actual.width}x${actual.height}`,
+      )
+  }
+  const ico = await readRequiredArtifact(
+    rootUrl,
+    'dist/favicon.ico',
+    'favicon.ico',
+  )
+  const { width, height } = readIcoSize(ico, 'favicon.ico')
+  if (width !== 32 || height !== 32)
+    throw new Error(`favicon.ico: expected 32x32, got ${width}x${height}`)
 }
 
 async function verifySitemapRouteArtifacts(rootUrl: URL): Promise<void> {
@@ -142,7 +243,7 @@ async function verifySitemapRouteArtifacts(rootUrl: URL): Promise<void> {
       throw new Error(
         `sitemap route artifact: expected emitted HTML at ${artifactPath}`,
       )
-    await verifyPageOutput(artifact.toString('utf8'), pathname)
+    await verifyPageOutput(artifact.toString('utf8'), pathname, rootUrl)
     snapshots.set(pathname, snapshot)
     const vercelArtifact = await readRequiredArtifact(
       rootUrl,
@@ -249,8 +350,13 @@ async function createHtmlSnapshot(indexHtml: string): Promise<HtmlSnapshot> {
   const ids: string[] = []
   let language = ''
   let h1Count = 0
+  const headingLevels: number[] = []
   const alternates: Record<string, string[]> = {}
   const robots: string[] = []
+  const googlebot: string[] = []
+  const twitterMeta: Record<string, string[]> = {}
+  const twitterPropertyMeta: string[] = []
+  const icons: HtmlSnapshot['icons'] = []
   const languageLinks: HtmlSnapshot['languageLinks'] = []
 
   let inertDepth = 0
@@ -371,6 +477,12 @@ async function createHtmlSnapshot(indexHtml: string): Promise<HtmlSnapshot> {
         if (inertDepth === 0) h1Count += 1
       },
     })
+    .on('h1, h2, h3, h4, h5, h6', {
+      element(element) {
+        if (inertDepth === 0)
+          headingLevels.push(Number(element.tagName.slice(1)))
+      },
+    })
     .on('link[rel="alternate"][hreflang]', {
       element(element) {
         if (inertDepth === 0 && validHeadDepth > 0) {
@@ -383,6 +495,37 @@ async function createHtmlSnapshot(indexHtml: string): Promise<HtmlSnapshot> {
       element(element) {
         if (inertDepth === 0 && validHeadDepth > 0)
           robots.push(element.getAttribute('content') ?? '')
+      },
+    })
+    .on('meta[name="googlebot"]', {
+      element(element) {
+        if (inertDepth === 0 && validHeadDepth > 0)
+          googlebot.push(element.getAttribute('content') ?? '')
+      },
+    })
+    .on('meta[name^="twitter:"]', {
+      element(element) {
+        if (inertDepth === 0 && validHeadDepth > 0)
+          (twitterMeta[element.getAttribute('name') ?? ''] ??= []).push(
+            element.getAttribute('content') ?? '',
+          )
+      },
+    })
+    .on('meta[property^="twitter:"]', {
+      element(element) {
+        if (inertDepth === 0 && validHeadDepth > 0)
+          twitterPropertyMeta.push(element.getAttribute('property') ?? '')
+      },
+    })
+    .on('link[rel="icon"], link[rel="apple-touch-icon"]', {
+      element(element) {
+        if (inertDepth === 0 && validHeadDepth > 0)
+          icons.push({
+            rel: element.getAttribute('rel') ?? '',
+            href: element.getAttribute('href') ?? '',
+            sizes: element.getAttribute('sizes'),
+            type: element.getAttribute('type'),
+          })
       },
     })
     .on('a[data-language-link]', {
@@ -476,9 +619,14 @@ async function createHtmlSnapshot(indexHtml: string): Promise<HtmlSnapshot> {
   return {
     language,
     h1Count,
+    headingLevels,
     ids,
     alternates,
     robots,
+    googlebot,
+    twitterMeta,
+    twitterPropertyMeta,
+    icons,
     languageLinks,
     doctypeNames,
     htmlCount,
@@ -580,7 +728,7 @@ export async function verifyHtmlOutput(
   if (snapshot.localizedLanguages.some((value) => value !== language)) {
     throw new Error('URL locale: unexpected other-language content')
   }
-  const educationLine = 'I.E.S. El Ricón · 2016 — 2018 · EQF/MEC 5'
+  const educationLine = 'I.E.S. El Rincón · 2016 — 2018 · EQF/MEC 5'
   const educationLineCount =
     snapshot.localizedText[language].split(educationLine).length - 1
   if (educationLineCount !== 1)
@@ -644,9 +792,25 @@ export async function verifyHtmlOutput(
   }
 }
 
+/** The outline starts at h1 and never descends more than one level at a time. */
+function assertHeadingOrder(levels: readonly number[], path: string): void {
+  if (levels[0] !== undefined && levels[0] !== 1)
+    throw new Error(
+      `heading order: ${path} starts with h${levels[0]} instead of h1`,
+    )
+  for (const [index, level] of levels.entries()) {
+    const previous = levels[index - 1]
+    if (previous !== undefined && level > previous + 1)
+      throw new Error(
+        `heading order: ${path} skips from h${previous} to h${level}`,
+      )
+  }
+}
+
 export async function verifyPageOutput(
   html: string,
   path: string,
+  rootUrl: URL = defaultRootUrl,
 ): Promise<void> {
   const snapshot = await createHtmlSnapshot(html)
   const language = getLanguage(path)
@@ -658,6 +822,9 @@ export async function verifyPageOutput(
     throw new Error(
       `H1: expected exactly one on ${path}, got ${snapshot.h1Count}`,
     )
+  // Applies to every indexable page: home, case studies and the terms pages all
+  // keep a gapless outline today.
+  assertHeadingOrder(snapshot.headingLevels, path)
   if (snapshot.localizedLanguages.some((value) => value !== language))
     throw new Error(`URL locale: foreign-language content on ${path}`)
   assertSingleValue(
@@ -712,15 +879,55 @@ export async function verifyPageOutput(
     metadata.description,
     `meta description: ${path}`,
   )
+  // Case studies declare their own emitted WebP card; every other page keeps
+  // the generic og.jpg. The declared type and size must describe the real file.
+  let card = {
+    url: `${EXPECTED_SITE_URL}/og.jpg`,
+    type: 'image/jpeg',
+    width: '1200',
+    height: '630',
+  }
+  if (project?.kind === 'case-study') {
+    const declared = snapshot.openGraphContents['og:image']?.[0] ?? ''
+    if (!/^https:\/\/sgmr\.dev\/_astro\/[^/]+\.webp$/.test(declared))
+      throw new Error(
+        `Open Graph og:image: ${path} expected an emitted _astro WebP card, got ${JSON.stringify(declared)}`,
+      )
+    const emitted = await readRequiredArtifact(
+      rootUrl,
+      `dist${new URL(declared).pathname}`,
+      'social card',
+    )
+    const size = readWebpSize(emitted, `social card ${path}`)
+    const metaSize = [
+      snapshot.openGraphContents['og:image:width']?.[0],
+      snapshot.openGraphContents['og:image:height']?.[0],
+    ]
+    if (
+      metaSize[0] !== String(size.width) ||
+      metaSize[1] !== String(size.height)
+    )
+      throw new Error(
+        `social card dimensions: ${path} meta declares ${metaSize.join('x')} but the file is ${size.width}x${size.height}`,
+      )
+    card = {
+      url: declared,
+      type: 'image/webp',
+      width: String(size.width),
+      height: String(size.height),
+    }
+  }
   for (const [property, value] of Object.entries({
     'og:url': canonical,
     'og:title': metadata.title,
     'og:description': metadata.description,
     'og:locale': language === 'es' ? 'es_ES' : 'en_US',
-    'og:image': `${EXPECTED_SITE_URL}/og.jpg`,
-    'og:image:type': 'image/jpeg',
-    'og:image:width': '1200',
-    'og:image:height': '630',
+    'og:locale:alternate': language === 'es' ? 'en_US' : 'es_ES',
+    'og:image': card.url,
+    'og:image:type': card.type,
+    'og:image:width': card.width,
+    'og:image:height': card.height,
+    'og:image:alt': metadata.imageAlt,
   })) {
     assertSingleValue(
       snapshot.openGraphContents[property] ?? [],
@@ -728,12 +935,69 @@ export async function verifyPageOutput(
       `Open Graph ${property}: ${path}`,
     )
   }
+  if (snapshot.twitterPropertyMeta.length)
+    throw new Error(
+      `Twitter tags: ${path} must use the name attribute, found property ${JSON.stringify(snapshot.twitterPropertyMeta)}`,
+    )
+  for (const [name, value] of Object.entries({
+    'twitter:card': 'summary_large_image',
+    'twitter:url': canonical,
+    'twitter:title': metadata.title,
+    'twitter:description': metadata.description,
+    'twitter:image': card.url,
+    'twitter:image:alt': metadata.imageAlt,
+    'twitter:site': '@sergiogmr',
+    'twitter:creator': '@sergiogmr',
+  })) {
+    assertSingleValue(
+      snapshot.twitterMeta[name] ?? [],
+      value,
+      `Twitter ${name}: ${path}`,
+    )
+  }
+  if (snapshot.googlebot.length)
+    throw new Error(
+      `googlebot meta: ${path} must be absent (robots already covers it)`,
+    )
+  for (const [rel, href, sizes, type] of [
+    ['icon', '/favicon.avif', null, 'image/avif'],
+    ['icon', '/favicon.ico', '32x32', null],
+    ['icon', '/favicon-96x96.png', '96x96', 'image/png'],
+    ['apple-touch-icon', '/apple-touch-icon.png', '180x180', null],
+  ] as const) {
+    const links = snapshot.icons.filter(
+      (icon) => icon.rel === rel && icon.href === href,
+    )
+    if (
+      links.length !== 1 ||
+      links[0]?.sizes !== sizes ||
+      links[0]?.type !== type
+    )
+      throw new Error(
+        `icon link: ${path} expected one <link rel="${rel}" href="${href}" sizes=${sizes} type=${type}>, got ${JSON.stringify(links)}`,
+      )
+  }
   if (
     snapshot.structuredData.length !== 1 ||
     JSON.stringify(snapshot.structuredData[0]) !==
       JSON.stringify(metadata.schema)
   )
     throw new Error(`page structured data: ${path}`)
+  const structured = snapshot.structuredData[0] as StructuredData
+  if (structured.dateModified !== PAGE_LAST_MODIFIED[path as IndexablePath])
+    throw new Error(
+      `dateModified: ${path} expected ${PAGE_LAST_MODIFIED[path as IndexablePath]}, got ${JSON.stringify(structured.dateModified)}`,
+    )
+  if (
+    !findPeople(structured).some(
+      (person) =>
+        person['@id'] === PERSON_ID &&
+        person.name === PROFESSIONAL_PROFILE.person.name &&
+        person.alternateName === 'SergioGMR' &&
+        person.image === `${EXPECTED_SITE_URL}/sergio-morales-avatar.png`,
+    )
+  )
+    throw new Error(`Person structured data: ${path} expected the full Person`)
   if (isHome) {
     await verifyHtmlOutput(html, language)
     for (const project of PROFESSIONAL_PROFILE.projects) {
@@ -870,7 +1134,9 @@ function parseSitemapXml(sitemapXml: string): SitemapSnapshot {
 
   const elements: SitemapElement[] = []
   const locations: string[] = []
+  const lastModified: string[] = []
   const urlLocationCounts: number[] = []
+  const urlLastModifiedCounts: number[] = []
   let cursor = declaration.length
   let rootCount = 0
 
@@ -886,8 +1152,12 @@ function parseSitemapXml(sitemapXml: string): SitemapSnapshot {
     if (name === 'loc') {
       locations.push(element.text.trim())
     }
+    if (name === 'lastmod') {
+      lastModified.push(element.text.trim())
+    }
     if (name === 'url') {
       urlLocationCounts.push(element.directLocationCount)
+      urlLastModifiedCounts.push(element.directLastModifiedCount)
     }
   }
 
@@ -983,12 +1253,7 @@ function parseSitemapXml(sitemapXml: string): SitemapSnapshot {
       if (parent?.name !== 'urlset' || attributes !== '') {
         sitemapError('url must be a direct child of urlset', locations)
       }
-    } else if (
-      name === 'loc' ||
-      name === 'lastmod' ||
-      name === 'changefreq' ||
-      name === 'priority'
-    ) {
+    } else if (name === 'loc' || name === 'lastmod') {
       if (parent?.name !== 'url' || attributes !== '') {
         sitemapError(
           `${name} must be an attribute-free direct child of url`,
@@ -1006,9 +1271,13 @@ function parseSitemapXml(sitemapXml: string): SitemapSnapshot {
       name,
       text: '',
       directLocationCount: 0,
+      directLastModifiedCount: 0,
     }
     if (name === 'loc' && parent !== undefined) {
       parent.directLocationCount += 1
+    }
+    if (name === 'lastmod' && parent !== undefined) {
+      parent.directLastModifiedCount += 1
     }
     elements.push(element)
 
@@ -1028,7 +1297,7 @@ function parseSitemapXml(sitemapXml: string): SitemapSnapshot {
     sitemapError(`expected one urlset root, found ${rootCount}`, locations)
   }
 
-  return { locations, urlLocationCounts }
+  return { locations, lastModified, urlLocationCounts, urlLastModifiedCounts }
 }
 
 export async function verifySitemapOutput(sitemapXml: string): Promise<void> {
@@ -1043,6 +1312,26 @@ export async function verifySitemapOutput(sitemapXml: string): Promise<void> {
   if (!hasExpectedStructure || !hasExpectedLocations) {
     sitemapError(
       'unexpected sitemap structure or locations',
+      snapshot.locations,
+    )
+  }
+  if (!snapshot.urlLastModifiedCounts.every((count) => count === 1)) {
+    sitemapError(
+      'every url must have exactly one direct lastmod',
+      snapshot.locations,
+    )
+  }
+  if (
+    !snapshot.lastModified.every((value) => /^\d{4}-\d{2}-\d{2}$/.test(value))
+  ) {
+    sitemapError('lastmod must use the YYYY-MM-DD format', snapshot.locations)
+  }
+  if (
+    JSON.stringify(snapshot.lastModified) !==
+    JSON.stringify(expectedSitemapLastModified)
+  ) {
+    sitemapError(
+      `lastmod values ${JSON.stringify(snapshot.lastModified)} differ from the page dates ${JSON.stringify(expectedSitemapLastModified)}`,
       snapshot.locations,
     )
   }
@@ -1061,6 +1350,7 @@ export async function verifyPortfolioOutput(
     verifySitemapOutput(sitemapXml),
   ])
   await verifySitemapRouteArtifacts(rootUrl)
+  await verifyIdentityAssets(rootUrl)
   const missingHtml = await readRequiredArtifact(
     rootUrl,
     'dist/404.html',
@@ -1119,25 +1409,32 @@ export async function verifyPortfolioOutput(
       `dist/sergio-morales-${locale}.pdf`,
       stableLabel,
     )
-    const legacyAlias = await readRequiredArtifact(
-      rootUrl,
-      `dist/sergio-morales-2024-${locale}.pdf`,
-      aliasLabel,
+    assertCanonicalPdf(stableLabel, stable, canonicalPdfSha256[locale])
+
+    // The year-stamped alias is a permanent redirect, never a second PDF copy.
+    for (const directory of ['dist', '.vercel/output/static']) {
+      const aliasPath = `${directory}/sergio-morales-2024-${locale}.pdf`
+      if (await pathExists(new URL(aliasPath, rootUrl))) {
+        throw new Error(
+          `${aliasLabel}: ${aliasPath} must not be emitted; it must redirect instead`,
+        )
+      }
+    }
+    const aliasRedirect = outputConfig.routes.find(
+      (route) => route.src === `^/sergio-morales-2024-${locale}\\.pdf$`,
     )
-    const expectedSha256 = canonicalPdfSha256[locale]
-
-    assertCanonicalPdf(stableLabel, stable, expectedSha256)
-    assertCanonicalPdf(aliasLabel, legacyAlias, expectedSha256)
-
-    if (!stable.equals(legacyAlias)) {
+    if (
+      (aliasRedirect?.status !== 301 && aliasRedirect?.status !== 308) ||
+      aliasRedirect.headers?.Location !== `/sergio-morales-${locale}.pdf`
+    ) {
       throw new Error(
-        `${locale.toUpperCase()} CV alias differs from stable PDF`,
+        `${aliasLabel} redirect: expected an emitted permanent redirect (301 or 308) to /sergio-morales-${locale}.pdf`,
       )
     }
   }
 
   console.log(
-    'Portfolio output verification passed: HTML metadata, localization, links, sitemap, and canonical PDF aliases.',
+    'Portfolio output verification passed: HTML metadata, localization, links, sitemap, canonical PDFs, social cards, icons, and permanent CV alias redirects.',
   )
 }
 

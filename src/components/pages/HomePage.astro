@@ -6,6 +6,7 @@ import SkillsSection from '@/components/sections/SkillsSection.astro'
 import CodeSnippetBento from '@/components/sections/CodeSnippetBento.astro'
 import ExperienceSection from '@/components/sections/ExperienceSection.astro'
 import EducationLanguagesSection from '@/components/sections/EducationLanguagesSection.astro'
+import FaqSection from '@/components/sections/FaqSection.astro'
 import AboutContactSection from '@/components/sections/AboutContactSection.astro'
 import { PAGE_METADATA } from '@/lib/page-metadata'
 ---
@@ -32,6 +33,10 @@ import { PAGE_METADATA } from '@/lib/page-metadata'
     </div>
 
     <div class="order-5 min-w-0 lg:col-span-12 lg:col-start-1 lg:row-start-3">
+      <FaqSection />
+    </div>
+
+    <div class="order-6 min-w-0 lg:col-span-12 lg:col-start-1 lg:row-start-4">
       <AboutContactSection />
     </div>
   </div>

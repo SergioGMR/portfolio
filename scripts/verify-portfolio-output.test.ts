@@ -11,8 +11,12 @@ import {
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
+import sharp from 'sharp'
+
 import {
+  CASE_STUDY_IDS,
   INDEXABLE_PATHS,
+  PAGE_LAST_MODIFIED,
   SITE_URL,
   getAlternatePaths,
   getLanguage,
@@ -26,7 +30,7 @@ import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
 const projectRoot = new URL('../', import.meta.url)
 const fixtureRoots: string[] = []
 
-const educationLine = 'I.E.S. El Ricón · 2016 — 2018 · EQF/MEC 5'
+const educationLine = 'I.E.S. El Rincón · 2016 — 2018 · EQF/MEC 5'
 const expectedTitle =
   '<title>Sergio Morales Rodríguez — Tech Lead Full Stack | Laravel</title>'
 const spanishCvHref = 'href="/sergio-morales-es.pdf"'
@@ -44,11 +48,49 @@ const openGraphMetadata = [
   `<meta property="og:description" content="${expectedDescription}">`,
   '<meta property="og:image" content="https://sgmr.dev/og.jpg">',
 ].join('\n    ')
+const isCaseStudyPath = (path: string) =>
+  /^\/(?:en\/projects|proyectos)\//.test(path)
+const WEBP_CARD = { width: 600, height: 315 } as const
+// Case studies point at an emitted WebP; every other page keeps og.jpg.
+const socialCard = (path: string) =>
+  isCaseStudyPath(path)
+    ? {
+        url: `${SITE_URL}/_astro/${path.split('/').at(-1)}.test1234.webp`,
+        type: 'image/webp',
+        ...WEBP_CARD,
+      }
+    : {
+        url: `${SITE_URL}/og.jpg`,
+        type: 'image/jpeg',
+        width: 1200,
+        height: 630,
+      }
+const iconHead =
+  '<link rel="icon" type="image/avif" href="/favicon.avif"><link rel="icon" href="/favicon.ico" sizes="32x32"><link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96"><link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">'
+const twitterHead = (path: string) => {
+  const card = socialCard(path)
+  const entry = metadataFor(path)
+  return [
+    ['twitter:card', 'summary_large_image'],
+    ['twitter:url', new URL(path, SITE_URL).toString()],
+    ['twitter:title', entry.title],
+    ['twitter:description', entry.description],
+    ['twitter:image', card.url],
+    ['twitter:image:alt', entry.imageAlt],
+    ['twitter:site', '@sergiogmr'],
+    ['twitter:creator', '@sergiogmr'],
+  ]
+    .map(([name, value]) => `<meta name="${name}" content="${value}">`)
+    .join('')
+}
 const extraHead = (path: string) => {
   const language = getLanguage(path)
   const paths = getAlternatePaths(path)
+  const card = socialCard(path)
   return (
-    `<meta name="robots" content="index, follow"><meta property="og:locale" content="${language === 'es' ? 'es_ES' : 'en_US'}"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">` +
+    `<meta name="robots" content="index, follow"><meta property="og:locale" content="${language === 'es' ? 'es_ES' : 'en_US'}"><meta property="og:locale:alternate" content="${language === 'es' ? 'en_US' : 'es_ES'}"><meta property="og:image:type" content="${card.type}"><meta property="og:image:width" content="${card.width}"><meta property="og:image:height" content="${card.height}"><meta property="og:image:alt" content="${metadataFor(path).imageAlt}">` +
+    twitterHead(path) +
+    iconHead +
     ['es', 'en', 'x-default']
       .map(
         (lang) =>
@@ -56,6 +98,28 @@ const extraHead = (path: string) => {
       )
       .join('')
   )
+}
+function metadataFor(path: string) {
+  const language = getLanguage(path)
+  const isHome = path === '/' || path === '/en'
+  const app = path.includes('/acezone/')
+    ? 'acezone'
+    : path.includes('/wattly/')
+      ? 'wattly'
+      : null
+  const project = PROFESSIONAL_PROFILE.projects.find(
+    (project) =>
+      project.kind === 'case-study' && path.endsWith(`/${project.id}`),
+  )
+  const entry = isHome
+    ? PAGE_METADATA.home[language]
+    : app
+      ? PAGE_METADATA[app][language]
+      : project?.kind === 'case-study'
+        ? createCaseStudyMetadata(project)[language]
+        : null
+  if (!entry) throw new Error(`Unknown fixture ${path}`)
+  return entry
 }
 const navigation = (path: string) => {
   const paths = getAlternatePaths(path)
@@ -112,9 +176,18 @@ const expectedSitemapLocations = INDEXABLE_PATHS.map((path) =>
 const validSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${expectedSitemapLocations
-  .map((location) => `  <url><loc>${location}</loc></url>`)
+  .map(
+    (location, index) =>
+      `  <url><loc>${location}</loc><lastmod>${PAGE_LAST_MODIFIED[INDEXABLE_PATHS[index]!]}</lastmod></url>`,
+  )
   .join('\n')}
 </urlset>`
+
+const cvAliasRedirects = (['es', 'en'] as const).map((locale) => ({
+  src: `^/sergio-morales-2024-${locale}\\.pdf$`,
+  headers: { Location: `/sergio-morales-${locale}.pdf` },
+  status: 301,
+}))
 
 function routeFixture(path: string): string {
   const language = getLanguage(path)
@@ -128,29 +201,45 @@ function routeFixture(path: string): string {
     (project) =>
       project.kind === 'case-study' && path.endsWith(`/${project.id}`),
   )
-  const entry = isHome
-    ? PAGE_METADATA.home[language]
-    : app
-      ? PAGE_METADATA[app][language]
-      : project?.kind === 'case-study'
-        ? createCaseStudyMetadata(project)[language]
-        : null
-  if (!entry) throw new Error(`Unknown fixture ${path}`)
+  const entry = metadataFor(path)
   const body = isHome
     ? `<h1>Sergio Morales Rodríguez</h1><p>${PROFESSIONAL_PROFILE.person.location[language]}</p><section data-lang-content="${language}"><p>${educationLine}</p><p>${language === 'es' ? 'Evidencia:' : 'Evidence:'}</p><a href="/sergio-morales-${language}.pdf">CV</a></section><a href="https://www.linkedin.com/in/sergiogmr/">LinkedIn</a><a href="https://github.com/sergiogmr">GitHub</a>${projectLinks(language)}`
     : project?.kind === 'case-study'
       ? `<h1>${project.title[language]}</h1>${['problem', 'responsibility', 'solution', 'result'].map((field) => `<p>${project[field as 'problem'][language]}</p>`).join('')}${project.technologies.join(' ')}<a href="${project.evidenceUrl}">Project</a>`
       : `<h1>${app} terms</h1>`
   const url = new URL(path, SITE_URL).toString()
-  return `<!doctype html><html lang="${language}"><head><title>${entry.title}</title><meta name="description" content="${entry.description}"><link rel="canonical" href="${url}"><meta property="og:type" content="website"><meta property="og:url" content="${url}"><meta property="og:title" content="${entry.title}"><meta property="og:description" content="${entry.description}"><meta property="og:image" content="${SITE_URL}/og.jpg">${extraHead(path)}<script type="application/ld+json">${JSON.stringify(entry.schema)}</script></head><body>${navigation(path)}${body}</body></html>`
+  return `<!doctype html><html lang="${language}"><head><title>${entry.title}</title><meta name="description" content="${entry.description}"><link rel="canonical" href="${url}"><meta property="og:type" content="website"><meta property="og:url" content="${url}"><meta property="og:title" content="${entry.title}"><meta property="og:description" content="${entry.description}"><meta property="og:image" content="${socialCard(path).url}">${extraHead(path)}<script type="application/ld+json">${JSON.stringify(entry.schema)}</script></head><body>${navigation(path)}${body}</body></html>`
 }
 
 function moveMarkupToBody(html: string, markup: string): string {
   return html.replace(markup, '').replace('</body>', `${markup}</body>`)
 }
 
+async function writeOutputConfig(
+  fixtureRoot: string,
+  mutate: (
+    routes: {
+      src?: string
+      status?: number
+      headers?: { Location?: string }
+    }[],
+  ) => unknown[],
+): Promise<void> {
+  const configPath = join(fixtureRoot, '.vercel', 'output', 'config.json')
+  const config = JSON.parse(await readFile(configPath, 'utf8')) as {
+    routes: Parameters<typeof mutate>[0]
+  }
+  await writeFile(
+    configPath,
+    JSON.stringify({ ...config, routes: mutate(config.routes) }),
+  )
+}
+
 function addLastModifiedValue(sitemap: string, value: string): string {
-  return sitemap.replace('</url>', `<lastmod>${value}</lastmod></url>`)
+  return sitemap.replace(
+    /<lastmod>[^<]*<\/lastmod>/,
+    `<lastmod>${value}</lastmod>`,
+  )
 }
 
 afterEach(async () => {
@@ -204,14 +293,6 @@ async function runVerifier(
         new URL(`public/sergio-morales-${locale}.pdf`, projectRoot),
         join(fixtureRoot, 'dist', `sergio-morales-${locale}.pdf`),
       ),
-      copyFile(
-        new URL(`public/sergio-morales-2024-${locale}.pdf`, projectRoot),
-        join(fixtureRoot, 'public', `sergio-morales-2024-${locale}.pdf`),
-      ),
-      copyFile(
-        new URL(`public/sergio-morales-2024-${locale}.pdf`, projectRoot),
-        join(fixtureRoot, 'dist', `sergio-morales-2024-${locale}.pdf`),
-      ),
     ]),
   ])
 
@@ -232,6 +313,7 @@ async function runVerifier(
       version: 3,
       routes: [
         { src: '^/(.*)/$', headers: { Location: '/$1' }, status: 308 },
+        ...cvAliasRedirects,
         { handle: 'filesystem' },
         { src: '^/.*$', dest: '/404.html', status: 404 },
       ],
@@ -245,6 +327,27 @@ async function runVerifier(
     new URL('../public/og.jpg', import.meta.url),
     join(fixtureRoot, 'dist', 'og.jpg'),
   )
+  for (const asset of [
+    'favicon.ico',
+    'favicon-96x96.png',
+    'apple-touch-icon.png',
+    'sergio-morales-avatar.png',
+  ])
+    await copyFile(
+      new URL(`../public/${asset}`, import.meta.url),
+      join(fixtureRoot, 'dist', asset),
+    )
+  await mkdir(join(fixtureRoot, 'dist', '_astro'), { recursive: true })
+  const webp = await sharp({
+    create: { ...WEBP_CARD, channels: 3, background: '#223344' },
+  })
+    .webp()
+    .toBuffer()
+  for (const id of CASE_STUDY_IDS)
+    await writeFile(
+      join(fixtureRoot, 'dist', '_astro', `${id}.test1234.webp`),
+      webp,
+    )
   await cp(
     join(fixtureRoot, 'dist'),
     join(fixtureRoot, '.vercel', 'output', 'static'),
@@ -363,6 +466,208 @@ describe('portfolio output verifier', () => {
     expect(result.output).toContain('case-study responsibility')
   })
 
+  const routeFile = (fixtureRoot: string, path: string) =>
+    join(fixtureRoot, 'dist', path, 'index.html')
+  const rewriteRoute =
+    (
+      path: string,
+      rewrite: (html: string) => string,
+    ): ((fixtureRoot: string) => Promise<void>) =>
+    async (fixtureRoot) => {
+      const file = routeFile(fixtureRoot, path)
+      await writeFile(file, rewrite(await readFile(file, 'utf8')))
+    }
+
+  test('rejects twitter tags that use the property attribute', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      rewriteRoute('/en', (html) =>
+        html.replace(
+          '<meta name="twitter:title"',
+          '<meta property="twitter:title"',
+        ),
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('twitter:title')
+  })
+
+  test('rejects the redundant googlebot meta', async () => {
+    const result = await runVerifier(
+      validHtml.replace(
+        '</head>',
+        '<meta name="googlebot" content="index, follow"></head>',
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('googlebot')
+  })
+
+  test('rejects a page without its alternate Open Graph locale', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      rewriteRoute('/en', (html) =>
+        html.replace(/<meta property="og:locale:alternate"[^>]*>/, ''),
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('og:locale:alternate')
+  })
+
+  test('rejects a page without the apple touch icon link', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      rewriteRoute('/en', (html) =>
+        html.replace(/<link rel="apple-touch-icon"[^>]*>/, ''),
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('apple-touch-icon')
+  })
+
+  test('rejects an icon file with the wrong dimensions', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      async (fixtureRoot) => {
+        await sharp({
+          create: { width: 64, height: 64, channels: 4, background: '#fff' },
+        })
+          .png()
+          .toFile(join(fixtureRoot, 'dist', 'apple-touch-icon.png'))
+      },
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('apple-touch-icon.png')
+  })
+
+  test('rejects a favicon.ico that is not a 32x32 ICO', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      async (fixtureRoot) => {
+        await writeFile(join(fixtureRoot, 'dist', 'favicon.ico'), 'not an icon')
+      },
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('favicon.ico')
+  })
+
+  test('rejects a case-study card that was not emitted', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      async (fixtureRoot) => {
+        await rm(join(fixtureRoot, 'dist', '_astro', 'jauntjar.test1234.webp'))
+      },
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('social card')
+  })
+
+  test('accepts a well-formed heading outline on the home page', async () => {
+    const result = await runVerifier(
+      validHtml.replace(
+        '</body>',
+        '<h2>A</h2><h3>B</h3><h3>C</h3><h2>D</h2><h3>E</h3></body>',
+      ),
+    )
+    expect(result.exitCode).toBe(0)
+  })
+
+  test('rejects a skipped heading level on the home page', async () => {
+    const result = await runVerifier(
+      validHtml.replace('</body>', '<h2>A</h2><h4>Skipped</h4></body>'),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('heading order')
+    expect(result.output).toContain('h4')
+  })
+
+  test('rejects a heading that appears before the H1', async () => {
+    const result = await runVerifier(
+      validHtml.replace('<h1>', '<h2>Early</h2><h1>'),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('heading order')
+  })
+
+  test('rejects a skipped heading level on the English home page', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      rewriteRoute('/en', (html) =>
+        html.replace('</body>', '<h2>A</h2><h3>B</h3><h5>Skipped</h5></body>'),
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('heading order')
+    expect(result.output).toContain('/en')
+  })
+
+  test('rejects a skipped heading level on a case-study page', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      rewriteRoute('/en/projects/todo-lux', (html) =>
+        html.replace('</body>', '<h3>Skipped</h3></body>'),
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('heading order')
+    expect(result.output).toContain('/en/projects/todo-lux')
+  })
+
+  test('rejects a case-study card whose real size differs from its meta tags', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      rewriteRoute('/proyectos/jauntjar', (html) =>
+        html.replace(
+          `<meta property="og:image:width" content="${WEBP_CARD.width}">`,
+          '<meta property="og:image:width" content="1200">',
+        ),
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('social card dimensions')
+  })
+
+  test('rejects a case study that still uses the generic JPEG card', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      rewriteRoute('/en/projects/todo-lux', (html) =>
+        html
+          .replaceAll(
+            socialCard('/en/projects/todo-lux').url,
+            `${SITE_URL}/og.jpg`,
+          )
+          .replace('content="image/webp"', 'content="image/jpeg"'),
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('og:image')
+  })
+
+  test('rejects a case-study card whose twitter image differs from og:image', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      rewriteRoute('/proyectos/basuraleza', (html) =>
+        html.replace(
+          /<meta name="twitter:image" content="[^"]*">/,
+          `<meta name="twitter:image" content="${SITE_URL}/og.jpg">`,
+        ),
+      ),
+    )
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('twitter:image')
+  })
+
   test('rejects a 404 with an indexable canonical', async () => {
     const result = await runVerifier(
       validHtml,
@@ -421,17 +726,81 @@ describe('portfolio output verifier', () => {
     expect(result.output).toContain('ES stable CV')
   })
 
-  test('rejects a missing emitted PDF alias when public sources are correct', async () => {
+  test('accepts the emitted permanent CV alias redirects without alias files', async () => {
+    const result = await runVerifier(validHtml)
+
+    expect(result.exitCode).toBe(0)
+    expect(result.output).toContain('permanent CV alias redirects')
+  })
+
+  test('rejects a legacy 2024 CV file that is still emitted', async () => {
     const result = await runVerifier(
       validHtml,
       validSitemap,
       async (fixtureRoot) => {
-        await rm(join(fixtureRoot, 'dist', 'sergio-morales-2024-en.pdf'))
+        await copyFile(
+          join(fixtureRoot, 'dist', 'sergio-morales-en.pdf'),
+          join(fixtureRoot, 'dist', 'sergio-morales-2024-en.pdf'),
+        )
       },
     )
 
     expect(result.exitCode).not.toBe(0)
     expect(result.output).toContain('EN 2024 CV alias')
+    expect(result.output).toContain('must not be emitted')
+  })
+
+  test('rejects a missing legacy CV alias redirect', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      async (fixtureRoot) => {
+        await writeOutputConfig(fixtureRoot, (routes) =>
+          routes.filter((route) => route.src !== cvAliasRedirects[1]!.src),
+        )
+      },
+    )
+
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('EN 2024 CV alias redirect')
+  })
+
+  test('rejects a temporary legacy CV alias redirect', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      async (fixtureRoot) => {
+        await writeOutputConfig(fixtureRoot, (routes) =>
+          routes.map((route) =>
+            route.src === cvAliasRedirects[0]!.src
+              ? { ...route, status: 302 }
+              : route,
+          ),
+        )
+      },
+    )
+
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('ES 2024 CV alias redirect')
+  })
+
+  test('rejects a legacy CV alias redirect to the wrong destination', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap,
+      async (fixtureRoot) => {
+        await writeOutputConfig(fixtureRoot, (routes) =>
+          routes.map((route) =>
+            route.src === cvAliasRedirects[0]!.src
+              ? { ...route, headers: { Location: '/sergio-morales-en.pdf' } }
+              : route,
+          ),
+        )
+      },
+    )
+
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('ES 2024 CV alias redirect')
   })
 
   test('rejects a sitemap route without its emitted HTML artifact', async () => {
@@ -801,5 +1170,64 @@ ${expectedSitemapLocations
 
     expect(result.exitCode).not.toBe(0)
     expect(result.output).toContain('sitemap')
+  })
+
+  test('rejects a sitemap url without a last modification date', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap.replace(/<lastmod>[^<]*<\/lastmod>/, ''),
+    )
+
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('sitemap')
+    expect(result.output).toContain('lastmod')
+  })
+
+  test('rejects a sitemap url with a duplicated last modification date', async () => {
+    const result = await runVerifier(
+      validHtml,
+      validSitemap.replace(
+        '</url>',
+        `<lastmod>${PAGE_LAST_MODIFIED['/']}</lastmod></url>`,
+      ),
+    )
+
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('lastmod')
+  })
+
+  test('rejects a sitemap last modification date that differs from the page date', async () => {
+    const result = await runVerifier(
+      validHtml,
+      addLastModifiedValue(validSitemap, '2020-01-01'),
+    )
+
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('lastmod')
+  })
+
+  test('rejects a sitemap last modification date that is not YYYY-MM-DD', async () => {
+    const result = await runVerifier(
+      validHtml,
+      addLastModifiedValue(validSitemap, '2026-10-22T10:00:00Z'),
+    )
+
+    expect(result.exitCode).not.toBe(0)
+    expect(result.output).toContain('lastmod')
+  })
+
+  test('rejects ignored changefreq and priority sitemap elements', async () => {
+    for (const element of [
+      '<changefreq>monthly</changefreq>',
+      '<priority>0.8</priority>',
+    ]) {
+      const result = await runVerifier(
+        validHtml,
+        validSitemap.replace('</url>', `${element}</url>`),
+      )
+
+      expect(result.exitCode).not.toBe(0)
+      expect(result.output).toContain('sitemap')
+    }
   })
 })

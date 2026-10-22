@@ -12,6 +12,7 @@
   "scripts": {
     "build": "astro build && bun run verify:output",
     "check": "astro check",
+    "cv:build": "bun scripts/build-cv-pdfs.ts",
     "dev": "astro dev",
     "format": "prettier -w . --cache",
     "format:check": "prettier --check \"src/**/*.{astro,ts,css}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"package.json\" \"astro.config.ts\" \".lighthouserc.cjs\" \".github/workflows/*.yml\" --cache",
