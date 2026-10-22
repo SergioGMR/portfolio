@@ -13,6 +13,9 @@ interface Props {
   schema?: Record<string, unknown>
   locale?: 'es' | 'en'
   ogImage?: URL | string
+  ogImageType?: string
+  ogImageWidth?: number
+  ogImageHeight?: number
   ogType?: string
   noindex?: boolean
   nofollow?: boolean
@@ -26,6 +29,9 @@ const {
   schema,
   locale = getLanguage(Astro.url.pathname),
   ogImage,
+  ogImageType,
+  ogImageWidth,
+  ogImageHeight,
   ogType,
   noindex,
   nofollow,
@@ -35,6 +41,8 @@ const {
 
 <html lang={locale}>
   <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
       rel="preload"
       href={spaceGrotesk400}
@@ -78,6 +86,9 @@ const {
       localizedMetadata={localizedMetadata}
       schema={schema}
       ogImage={ogImage}
+      ogImageType={ogImageType}
+      ogImageWidth={ogImageWidth}
+      ogImageHeight={ogImageHeight}
       ogType={ogType}
       locale={locale}
       noindex={noindex}

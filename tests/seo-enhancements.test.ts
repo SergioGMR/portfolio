@@ -11,10 +11,16 @@ describe('bilingual URL contract', () => {
     ['/', '/en'],
     ['/acezone/tos', '/en/acezone/tos'],
     ['/wattly/tos', '/en/wattly/tos'],
-    ...['jauntjar', 'todo-lux', 'basuraleza'].map((id) => [
-      `/proyectos/${id}`,
-      `/en/projects/${id}`,
-    ]),
+    ...[
+      'jauntjar',
+      'todo-lux',
+      'basuraleza',
+      'wattly',
+      'tvradar',
+      'duellum',
+      'uploadimg',
+      'uploadimg-desktop',
+    ].map((id) => [`/proyectos/${id}`, `/en/projects/${id}`]),
   ]) {
     test(`uses reciprocal routes ${spanish} and ${english}`, () => {
       expect(getAlternatePaths(spanish!)).toEqual({ es: spanish, en: english })
@@ -29,11 +35,13 @@ describe('bilingual URL contract', () => {
 })
 
 describe('project discovery and social card', () => {
-  test('home links to internal case studies while retaining showcase demos', () => {
+  test('home links every project card to its internal case study', () => {
     const source = read('src/components/sections/ProjectsSection.astro')
     expect(source).toContain('getAlternatePaths')
     expect(source).toContain('`/proyectos/${project.id}`')
-    expect(source).toContain('project.evidenceUrl')
+    expect(source).not.toContain('project.evidenceUrl')
+    expect(source).not.toContain('_blank')
+    expect(source).not.toContain('showcase')
   })
   test('social card is an actual JPEG at the declared native dimensions', async () => {
     const metadata = await sharp(
@@ -63,5 +71,21 @@ describe('local hosting configuration', () => {
       key: 'X-Content-Type-Options',
       value: 'nosniff',
     })
+    expect(config.headers[1].headers).toContainEqual({
+      key: 'X-Frame-Options',
+      value: 'DENY',
+    })
+    expect(config.headers[1].headers).toContainEqual({
+      key: 'Referrer-Policy',
+      value: 'strict-origin-when-cross-origin',
+    })
+    expect(config.headers[1].headers).toContainEqual({
+      key: 'Permissions-Policy',
+      value: 'camera=(), microphone=(), geolocation=()',
+    })
+    // Deprecated header: modern guidance is to omit it entirely.
+    expect(
+      config.headers[1].headers.map((header: { key: string }) => header.key),
+    ).not.toContain('X-XSS-Protection')
   })
 })

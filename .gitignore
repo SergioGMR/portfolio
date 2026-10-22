@@ -42,3 +42,6 @@ service-account.json
 .atl/
 .codegraph/
 CLAUDE.md.backup
+
+# local agent skills (otherwise scanned by Tailwind)
+.agents/

@@ -4,7 +4,7 @@
   "engines": {
     "node": ">=22.19.0"
   },
-  "description": "An Astro template for building peofiles.",
+  "description": "An Astro template for building profiles.",
   "author": {
     "name": "SergioGMR"
   },
@@ -12,11 +12,13 @@
   "scripts": {
     "build": "astro build && bun run verify:output",
     "check": "astro check",
+    "cv:build": "bun scripts/build-cv-pdfs.ts",
     "dev": "astro dev",
     "format": "prettier -w . --cache",
     "format:check": "prettier --check \"src/**/*.{astro,ts,css}\" \"scripts/**/*.ts\" \"tests/**/*.ts\" \"package.json\" \"astro.config.ts\" \".lighthouserc.cjs\" \".github/workflows/*.yml\" --cache",
     "lighthouse:ci": "bun run build && node scripts/lighthouse-ci.ts",
     "preview": "astro preview",
+    "social:build": "bun scripts/build-social-sources.ts",
     "start": "astro dev",
     "test": "bun test",
     "verify:output": "bun scripts/verify-portfolio-output.ts"
@@ -24,12 +26,11 @@
   "dependencies": {
     "@astrojs/vercel": "11.0.11",
     "@fontsource/space-grotesk": "^5.3.0",
-    "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "7.3.5",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3",
-    "vite": "^8.3.2"
+    "vite": "^8.3.5"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

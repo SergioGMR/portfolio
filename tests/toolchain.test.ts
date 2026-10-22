@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 
@@ -7,6 +7,7 @@ const root = join(import.meta.dirname, '..')
 const packageJson = JSON.parse(
   readFileSync(join(root, 'package.json'), 'utf8'),
 ) as {
+  description?: string
   engines?: { node?: string }
   packageManager?: string
   scripts?: Record<string, string>
@@ -50,13 +51,30 @@ describe('project toolchain', () => {
     expect(packageJson.dependencies).toMatchObject({
       '@astrojs/vercel': '11.0.11',
       '@fontsource/space-grotesk': '^5.3.0',
-      '@tailwindcss/postcss': '^4.3.3',
       '@tailwindcss/vite': '^4.3.3',
       astro: '7.3.5',
       sharp: '^0.35.5',
       tailwindcss: '^4.3.3',
-      vite: '^8.3.2',
+      vite: '^8.3.5',
     })
+  })
+
+  test('configures Tailwind only through the Vite plugin, without PostCSS or legacy configs', () => {
+    expect(packageJson.dependencies).not.toHaveProperty('@tailwindcss/postcss')
+    for (const stale of [
+      'postcss.config.cjs',
+      'tailwind.config.ts',
+      'netlify.toml',
+      'aceZone/tos.md',
+    ]) {
+      expect(existsSync(join(root, stale))).toBe(false)
+    }
+  })
+
+  test('describes the project without the former typo', () => {
+    expect(packageJson.description).toBe(
+      'An Astro template for building profiles.',
+    )
   })
 
   test('resolves Astro package exports with the bundler strategy', () => {

@@ -13,7 +13,7 @@ const projectsSource = await readFile(
 )
 
 describe('portfolio projects', () => {
-  test('keeps current projects first and appends five bilingual showcases', () => {
+  test('keeps the eight projects in order, all as bilingual case studies', () => {
     expect(PROFESSIONAL_PROFILE.projects.map(({ id }) => id)).toEqual([
       'jauntjar',
       'todo-lux',
@@ -24,22 +24,21 @@ describe('portfolio projects', () => {
       'uploadimg',
       'uploadimg-desktop',
     ])
+    expect(
+      PROFESSIONAL_PROFILE.projects.every(({ kind }) => kind === 'case-study'),
+    ).toBe(true)
 
-    const showcases = PROFESSIONAL_PROFILE.projects.slice(3)
-    expect(showcases.every(({ kind }) => kind === 'showcase')).toBe(true)
-
-    for (const project of showcases) {
-      if (project.kind !== 'showcase') throw new Error('Expected showcase')
+    for (const project of PROFESSIONAL_PROFILE.projects.slice(3)) {
       expect(project.title.es).toBeTruthy()
       expect(project.title.en).toBeTruthy()
-      expect(project.category.es).toBeTruthy()
-      expect(project.category.en).toBeTruthy()
       expect(project.summary.es).toBeTruthy()
       expect(project.summary.en).toBeTruthy()
       expect(project.experienceIds).toEqual([])
-      expect('technologies' in project).toBe(false)
-      expect('responsibility' in project).toBe(false)
-      expect('result' in project).toBe(false)
+      expect('category' in project).toBe(false)
+      expect(project.technologies.length).toBeGreaterThan(0)
+      expect(project.tasks.es.length).toBeGreaterThan(0)
+      expect(project.responsibility.es).toBeTruthy()
+      expect(project.result.es).toBeTruthy()
     }
   })
 
@@ -106,15 +105,18 @@ describe('portfolio projects', () => {
       'https://tvradar.sgmr.es/',
       'https://duellum.vercel.app/',
       'https://uploadimg.vercel.app/',
-      'https://github.com/SergioGMR/uploadimg-desktop',
+      'https://github.com/SergioGMR/uploadimg-desktop/releases',
     ])
   })
 
   test('renders one safe responsive loop with the current card design', () => {
     expect(projectsSource).toContain('projects.map')
-    expect(projectsSource).toContain("project.kind === 'showcase'")
-    expect(projectsSource).toContain("project.kind === 'showcase' ? '_blank'")
-    expect(projectsSource).toContain('rel="noreferrer noopener"')
+    expect(projectsSource).not.toContain('showcase')
+    expect(projectsSource).not.toContain('_blank')
+    expect(projectsSource).not.toContain('project.evidenceUrl')
+    expect(projectsSource).toContain('Leer caso →')
+    expect(projectsSource).toContain('Read case →')
+    expect(projectsSource).toContain('project.technologies.map')
     expect(projectsSource).toContain('sm:grid-cols-2')
 
     for (const asset of [

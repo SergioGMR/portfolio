@@ -27,14 +27,15 @@ const locale = getLanguage(Astro.url.pathname)
       </span>
     </div>
 
-    <p class="text-primary mt-6 text-lg font-semibold sm:text-xl">
-      {PROFESSIONAL_PROFILE.person.name}
-    </p>
-    <h1 class="text-foreground mt-3 text-[clamp(2.35rem,10vw,4.5rem)] leading-[1.03] font-semibold tracking-[-0.055em] sm:mt-4">
-      <LangText
-        es="Tech Lead Full Stack. Arquitectura y desarrollo web con Laravel."
-        en="Full Stack Tech Lead. Web architecture and development with Laravel."
-      />
+    <h1 class="text-foreground">
+      {/* prettier-ignore */}
+      <span class="text-primary mt-6 block text-lg font-semibold sm:text-xl">{PROFESSIONAL_PROFILE.person.name}<span class="sr-only">, </span></span>
+      <span class="mt-3 block text-[clamp(2.35rem,10vw,4.5rem)] leading-[1.03] font-semibold tracking-[-0.055em] sm:mt-4">
+        <LangText
+          es="Tech Lead Full Stack. Arquitectura y desarrollo web con Laravel."
+          en="Full Stack Tech Lead. Web architecture and development with Laravel."
+        />
+      </span>
     </h1>
 
     <p class="text-muted-foreground mx-auto mt-5 max-w-2xl text-base leading-relaxed sm:mt-6 sm:text-lg">

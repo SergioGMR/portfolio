@@ -27,9 +27,9 @@ const renderFixture = (pageMetadata: LanguageMetadata) => {
       <meta property="og:description" content="${pageMetadata.es.description}">
       <meta property="og:locale" content="es_ES">
       <meta property="og:image:alt" content="${pageMetadata.es.imageAlt}">
-      <meta property="twitter:title" content="${pageMetadata.es.title}">
-      <meta property="twitter:description" content="${pageMetadata.es.description}">
-      <meta property="twitter:image:alt" content="${pageMetadata.es.imageAlt}">
+      <meta name="twitter:title" content="${pageMetadata.es.title}">
+      <meta name="twitter:description" content="${pageMetadata.es.description}">
+      <meta name="twitter:image:alt" content="${pageMetadata.es.imageAlt}">
       <script type="application/ld+json">${serializeJsonForScript(pageMetadata.es.schema)}</script>
     </head>
     <body>

@@ -17,23 +17,27 @@ describe('crawler policy', () => {
       'ChatGPT-User',
       'Claude-SearchBot',
       'Claude-User',
+      'Google-Extended',
     ]) {
       expect(robots).toContain(
         `User-agent: ${agent}\nAllow: /\nDisallow: /api/`,
       )
     }
-    expect(robots).toContain('User-agent: ClaudeBot\nDisallow: /')
     expect(robots).not.toContain('Crawl-delay')
     expect(robots).toMatch(/User-agent: \*\nAllow: \/\nDisallow: \/api\//)
     for (const agent of [
       'GPTBot',
-      'ChatGPT-User',
-      'Google-Extended',
       'CCBot',
+      'ClaudeBot',
       'anthropic-ai',
       'Claude-Web',
+      'Omgilibot',
+      'FacebookBot',
     ]) {
-      expect(robots).toContain(`User-agent: ${agent}`)
+      expect(robots).toContain(`User-agent: ${agent}\nDisallow: /\n`)
     }
+    expect(robots).not.toContain('User-agent: Google-Extended\nDisallow: /\n')
+    const optOutBlock = robots.slice(robots.indexOf('# Training opt-outs'))
+    expect(optOutBlock).not.toContain('Google-Extended')
   })
 })
