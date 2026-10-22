@@ -315,6 +315,7 @@ interface Execution {
   signal?: AbortSignal
   startServer(): Promise<OwnedServer>
   launch(): Promise<OwnedBrowser>
+  warmUp(url: string, port: number): Promise<void>
   measure(url: string, port: number): Promise<Measurement | undefined>
   save(name: string, body: string): Promise<void>
 }
@@ -359,12 +360,16 @@ export async function runMeasurements(options: Execution) {
     browser = await options.launch()
     signal?.throwIfAborted()
     console.log(`Lighthouse serving ${server.url}`)
+    const url = new URL(config.collect.url[0], server.url).href
+    // PERF-01: one unmeasured navigation absorbs the browser cold start. It
+    // saves nothing, does not count as a run, and its failure is fatal.
+    signal?.throwIfAborted()
+    await options.warmUp(url, browser.port)
+    signal?.throwIfAborted()
+    console.log('Lighthouse warm-up done')
     for (let run = 1; run <= config.collect.numberOfRuns; run++) {
       signal?.throwIfAborted()
-      const result = await options.measure(
-        new URL(config.collect.url[0], server.url).href,
-        browser.port,
-      )
+      const result = await options.measure(url, browser.port)
       signal?.throwIfAborted()
       if (
         !result?.lhr ||
@@ -430,6 +435,74 @@ export async function runMeasurements(options: Execution) {
   }
 }
 
+const WARM_UP_TIMEOUT_MS = 30_000
+
+// Opens a throwaway tab in the owned Chrome through its DevTools endpoint,
+// navigates it to `url` and resolves once that navigation fires its load event.
+// The tab starts blank so the load event cannot fire before we are listening.
+export async function warmUpBrowser(
+  url: string,
+  port: number,
+  timeoutMs = WARM_UP_TIMEOUT_MS,
+): Promise<void> {
+  const endpoint = `http://127.0.0.1:${port}/json`
+  const response = await fetch(
+    `${endpoint}/new?${encodeURIComponent('about:blank')}`,
+    { method: 'PUT', signal: AbortSignal.timeout(timeoutMs) },
+  )
+  if (!response.ok) throw new Error(`Warm-up tab failed: ${response.status}`)
+  const { id, webSocketDebuggerUrl } = (await response.json()) as {
+    id: string
+    webSocketDebuggerUrl: string
+  }
+  const socket = new WebSocket(webSocketDebuggerUrl)
+  const send = (id: number, method: string, params?: object) =>
+    socket.send(JSON.stringify({ id, method, params }))
+  try {
+    await new Promise<void>((accept, reject) => {
+      let navigated = false
+      const timer = setTimeout(
+        () => reject(new Error(`Warm-up did not load within ${timeoutMs}ms`)),
+        timeoutMs,
+      )
+      const settle = (error?: Error) => {
+        clearTimeout(timer)
+        error ? reject(error) : accept()
+      }
+      socket.onerror = () => settle(new Error('Warm-up connection failed'))
+      socket.onclose = () => settle(new Error('Warm-up connection closed'))
+      socket.onopen = () => send(1, 'Page.enable')
+      socket.onmessage = (event) => {
+        let message
+        try {
+          message = JSON.parse(String(event.data))
+        } catch (error) {
+          settle(error as Error)
+          return
+        }
+        if (message.error)
+          settle(new Error(`Warm-up failed: ${message.error.message}`))
+        else if (message.id === 1) {
+          // about:blank has already loaded once Page.enable is answered, so
+          // any load event after this point belongs to the navigation.
+          navigated = true
+          send(2, 'Page.navigate', { url })
+        } else if (message.id === 2) {
+          if (message.result?.errorText)
+            settle(new Error(`Warm-up failed: ${message.result.errorText}`))
+        } else if (navigated && message.method === 'Page.loadEventFired')
+          settle()
+      }
+    })
+  } finally {
+    socket.onclose = null
+    socket.close()
+    await fetch(`${endpoint}/close/${id}`, {
+      signal: AbortSignal.timeout(timeoutMs),
+    }).catch(() => {})
+  }
+}
+
 async function main() {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
   const config: CIConfig = createRequire(import.meta.url)(
@@ -460,6 +533,7 @@ async function main() {
           }),
           signal,
         ),
+      warmUp: (url, port) => warmUpBrowser(url, port),
       measure: (url, port) =>
         lighthouse(url, {
           ...config.collect.settings,
