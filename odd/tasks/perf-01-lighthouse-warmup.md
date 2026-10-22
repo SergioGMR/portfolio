@@ -56,7 +56,13 @@ the user's confirmation.
   the fixes: **APPROVED**; the reviewer mutation-tested the fixes in a copy.
   The parent then replaced two vacuous `.toContain('')` assertions with
   `SyntaxError` / `TimeoutError` name checks (52/0 in 3 of 3 runs).
-- [/] **P3** — Parent: commit, push, open the PR, observe CI, report.
+- [x] **P3** — Parent: commit, push, open the PR, observe CI, report.
+  - Commit `008a5f1`, PR #4.
+  - CI run `39801614125`: all steps pass. Lighthouse: warm-up once; runs 1–5
+    performance 1; TBT 0 on all five; LCP median 1435.9 ms (the existing WARN).
+  - One green observation versus three earlier first-run failures; keep
+    watching later runs on `main`.
+  - Merge pending user confirmation.
 
 ## Acceptance
 
