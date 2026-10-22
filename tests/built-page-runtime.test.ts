@@ -8,6 +8,7 @@ import {
   hashCspSource,
 } from '../src/lib/csp'
 import { createProfileFaq } from '../src/lib/profile-faq'
+import { INDEXABLE_PATHS } from '../src/lib/site'
 import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
 
 const root = new URL('../', import.meta.url)
@@ -1183,7 +1184,14 @@ describe('compiled header logo', () => {
 
 describe('compiled content security policy', () => {
   const componentsRoot = new URL('src/components/', root)
-  const pages = globSync('**/*.html', { cwd: new URL('dist/', root) })
+  // Derived from the route list, not from dist/: test collection runs before
+  // beforeAll builds the site, so a dist/ glob here is empty on a clean CI.
+  const pages = [
+    ...INDEXABLE_PATHS.map((path) =>
+      path === '/' ? 'index.html' : `${path.slice(1)}/index.html`,
+    ),
+    '404.html',
+  ]
   const policyOf = (html: string) => {
     const metas = [
       ...html.matchAll(
@@ -1203,6 +1211,9 @@ describe('compiled content security policy', () => {
   test('covers all 23 emitted pages, the 404 included', () => {
     expect(pages).toHaveLength(23)
     expect(pages).toContain('404.html')
+    expect(
+      globSync('**/*.html', { cwd: new URL('dist/', root) }).sort(),
+    ).toEqual([...pages].sort())
   })
 
   for (const page of pages) {
