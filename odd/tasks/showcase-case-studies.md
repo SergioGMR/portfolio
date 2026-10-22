@@ -133,7 +133,14 @@ Basuraleza.
 
 ## Risks
 
-- Duellum public result links returned 500 for an unknown token in
-  production. The user has been told; if they report it as broken, remove that
-  claim.
+- Resolved 2026-10-22: Duellum public result links returned 500 because the
+  Vercel project had no env vars.
+  - Added `PUBLIC_RESULT_ORIGIN`, `PUBLIC_RESULT_ACTIVE_KID` and
+    `PUBLIC_RESULT_ACTIVE_KEY` (a generated 32-byte key, never printed) to
+    production, then redeployed.
+  - Verified: an unknown token returns 404; creating a result returns 201;
+    the result page and `og.png` return 200.
+  - The key is stored as `config` because Vercel rejects secrets named
+    `PUBLIC_*`. Duellum's Vite exposes only `VITE_` and its client code never
+    reads env, so the key stays server-side.
 - Translation drift: the reviewer compares ES and EN.
