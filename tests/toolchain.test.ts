@@ -55,7 +55,7 @@ describe('project toolchain', () => {
       astro: '7.3.5',
       sharp: '^0.35.5',
       tailwindcss: '^4.3.3',
-      vite: '^8.3.2',
+      vite: '^8.3.5',
     })
   })
 
