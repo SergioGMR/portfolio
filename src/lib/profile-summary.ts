@@ -30,3 +30,13 @@ export const EXPERIENCE: Record<Language, string> = {
   es: 'tiene experiencia coordinando equipos de desarrollo y DevOps',
   en: 'has experience coordinating development and DevOps teams',
 }
+
+/**
+ * Availability label shown in the footer and quoted by the "available for new
+ * work" FAQ answer, so both read the same. The code sample in the bento card
+ * keeps its own `"Available"` string: it is a code snippet, not site copy.
+ */
+export const AVAILABILITY: Record<Language, string> = {
+  es: 'Disponible para colaborar',
+  en: 'Open to collaborate',
+}

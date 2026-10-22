@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, test } from 'bun:test'
-import { existsSync, readFileSync } from 'node:fs'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import {
@@ -17,10 +17,27 @@ import {
 const projectRoot = new URL('../', import.meta.url)
 const temporaryRoots: string[] = []
 
+// `renderCvPdf` creates a `cv-chrome-*` profile directory under its `tempRoot`.
+// Every test gets a root of its own, so the guard below only looks at, and
+// cleans, directories this test created: it can never touch the live profile
+// of another run that shares the system temporary directory.
+let tempRoot = ''
+const chromeProfileDirectories = () =>
+  readdirSync(tempRoot).filter((name) => name.startsWith('cv-chrome-'))
+
+beforeEach(async () => {
+  tempRoot = await mkdtemp(join(tmpdir(), 'cv-temp-root-'))
+})
+
 afterEach(async () => {
   await Promise.all(
     temporaryRoots.splice(0).map((root) => rm(root, { recursive: true })),
   )
+  // A test must never leave a profile behind, even when it simulates a
+  // cleanup failure.
+  const leaked = chromeProfileDirectories()
+  await rm(tempRoot, { recursive: true, force: true })
+  expect(leaked).toEqual([])
 })
 
 const BROWSER_USER_AGENT_PATTERN = /HeadlessChrome|Mozilla\//
@@ -379,6 +396,104 @@ const chromeAvailable = (() => {
   }
 })()
 
+const cvHtmlPath = fileURLToPath(
+  new URL('docs/cv/sergio-morales-en.html', projectRoot),
+)
+
+/** True while the pid exists and is not a zombie waiting to be reaped. */
+function isAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0)
+  } catch {
+    return false
+  }
+  const state = Bun.spawnSync(['ps', '-o', 'stat=', '-p', String(pid)], {
+    stdout: 'pipe',
+    stderr: 'ignore',
+  })
+    .stdout.toString()
+    .trim()
+  return state !== '' && !state.startsWith('Z')
+}
+
+async function untilGone(pids: number[], timeoutMs = 1_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs
+  while (pids.some(isAlive) && Date.now() < deadline)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+}
+
+/** Safety net so a failing test never leaves a fake browser running. */
+function killRecordedProcesses(directory: string): void {
+  for (const name of ['main.pid', 'helper.pid']) {
+    try {
+      const pid = Number(readFileSync(join(directory, name), 'utf8'))
+      if (!Number.isInteger(pid) || pid <= 1) continue
+      // The browser leads its own process group; fall back to the bare pid.
+      for (const target of [-pid, pid]) {
+        try {
+          process.kill(target, 'SIGKILL')
+        } catch {}
+      }
+    } catch {}
+  }
+}
+
+/**
+ * Fake browser whose main process and a background helper both ignore SIGTERM
+ * and hang; each records its pid so a test can check that nothing survives.
+ */
+async function writeGroupHangBrowser(directory: string): Promise<string> {
+  const fakeBrowser = join(directory, 'fake browser')
+  await writeFile(
+    fakeBrowser,
+    [
+      '#!/bin/sh',
+      "trap '' TERM",
+      'dir=$(dirname "$0")',
+      '( while :; do sleep 0.2; done ) &',
+      'echo $! > "$dir/helper.pid"',
+      'echo $$ > "$dir/main.pid"',
+      'while :; do echo hung >&2; sleep 0.2; done',
+      '',
+    ].join('\n'),
+    { mode: 0o755 },
+  )
+  return fakeBrowser
+}
+
+function recordedPids(directory: string): number[] {
+  return ['main.pid', 'helper.pid'].map((name) =>
+    Number(readFileSync(join(directory, name), 'utf8')),
+  )
+}
+
+const signalNames = ['SIGINT', 'SIGTERM', 'SIGHUP'] as const
+
+function signalListenerCounts(): number[] {
+  return signalNames.map((name) => process.listenerCount(name))
+}
+
+/** Fake browser that honours `--print-to-pdf=` with a small valid PDF and exits 0. */
+async function writeFakePrintingBrowser(directory: string): Promise<string> {
+  const fixture = join(directory, 'fixture.pdf')
+  await writeFile(fixture, buildSkiaLikePdf())
+  const fakeBrowser = join(directory, 'fake browser')
+  await writeFile(
+    fakeBrowser,
+    [
+      '#!/bin/sh',
+      'dir=$(dirname "$0")',
+      'for arg in "$@"; do',
+      '  case "$arg" in --print-to-pdf=*) out=${arg#--print-to-pdf=} ;; esac',
+      'done',
+      'cp "$dir/fixture.pdf" "$out"',
+      '',
+    ].join('\n'),
+    { mode: 0o755 },
+  )
+  return fakeBrowser
+}
+
 describe('renderCvPdf', () => {
   test.skipIf(!chromeAvailable)(
     'renders an A4 PDF with the expected Info and no browser user agent',
@@ -388,6 +503,7 @@ describe('renderCvPdf', () => {
       const output = join(directory, 'cv.pdf')
 
       await renderCvPdf({
+        tempRoot,
         htmlPath: fileURLToPath(
           new URL('docs/cv/sergio-morales-en.html', projectRoot),
         ),
@@ -420,6 +536,7 @@ describe('renderCvPdf', () => {
     const startedAt = Date.now()
 
     const failure = await renderCvPdf({
+      tempRoot,
       htmlPath: fileURLToPath(
         new URL('docs/cv/sergio-morales-en.html', projectRoot),
       ),
@@ -438,4 +555,356 @@ describe('renderCvPdf', () => {
     expect(Date.now() - startedAt).toBeLessThan(5_000)
     expect(existsSync(output)).toBe(false)
   }, 15_000)
+
+  test('kills the whole browser process group on timeout, including helpers that ignore SIGTERM', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'cv group é-'))
+    temporaryRoots.push(directory)
+    const fakeBrowser = await writeGroupHangBrowser(directory)
+
+    try {
+      const failure = await renderCvPdf({
+        tempRoot,
+        htmlPath: cvHtmlPath,
+        outputPath: join(directory, 'cv.pdf'),
+        chromePath: fakeBrowser,
+        timeoutMs: 1_000,
+        killGraceMs: 300,
+      }).then(
+        () => undefined,
+        (error: unknown) => error,
+      )
+
+      expect((failure as Error).message).toMatch(/timed out after \d+ms/)
+      const mainPid = Number(readFileSync(join(directory, 'main.pid'), 'utf8'))
+      const helperPid = Number(
+        readFileSync(join(directory, 'helper.pid'), 'utf8'),
+      )
+      expect(Number.isInteger(mainPid) && mainPid > 1).toBe(true)
+      expect(Number.isInteger(helperPid) && helperPid > 1).toBe(true)
+      await untilGone([mainPid, helperPid])
+      expect(isAlive(mainPid)).toBe(false)
+      expect(isAlive(helperPid)).toBe(false)
+    } finally {
+      killRecordedProcesses(directory)
+    }
+  }, 15_000)
+
+  test('keeps the timeout error when removing the temporary directory also fails', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'cv hang é-'))
+    temporaryRoots.push(directory)
+    const fakeBrowser = join(directory, 'fake browser')
+    await writeFile(
+      fakeBrowser,
+      "#!/bin/sh\ntrap '' TERM\nwhile :; do echo hung >&2; sleep 0.2; done\n",
+      { mode: 0o755 },
+    )
+    const cleanupError = new Error('EBUSY: resource busy or locked')
+    const removed: string[] = []
+
+    const failure = await renderCvPdf({
+      tempRoot,
+      htmlPath: cvHtmlPath,
+      outputPath: join(directory, 'cv.pdf'),
+      chromePath: fakeBrowser,
+      timeoutMs: 300,
+      killGraceMs: 300,
+      removeDirectory: async (path) => {
+        removed.push(path)
+        try {
+          throw cleanupError
+        } finally {
+          await rm(path, { recursive: true, force: true })
+        }
+      },
+    }).then(
+      () => undefined,
+      (error: unknown) => error,
+    )
+
+    expect(removed).toHaveLength(1)
+    expect(failure).toBeInstanceOf(Error)
+    expect((failure as Error).message).toMatch(/timed out after \d+ms/)
+    expect((failure as Error).cause).toBe(cleanupError)
+  }, 15_000)
+
+  test('surfaces a cleanup failure when nothing else went wrong', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'cv ok é-'))
+    temporaryRoots.push(directory)
+    const fakeBrowser = await writeFakePrintingBrowser(directory)
+    const cleanupError = new Error('ENOTEMPTY: directory not empty')
+
+    const failure = await renderCvPdf({
+      tempRoot,
+      htmlPath: cvHtmlPath,
+      outputPath: join(directory, 'cv.pdf'),
+      chromePath: fakeBrowser,
+      removeDirectory: async (path) => {
+        try {
+          throw cleanupError
+        } finally {
+          await rm(path, { recursive: true, force: true })
+        }
+      },
+    }).then(
+      () => undefined,
+      (error: unknown) => error,
+    )
+
+    expect(failure).toBe(cleanupError)
+  }, 15_000)
+
+  test('clears the stderr drain timer when the browser exits first', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'cv drain é-'))
+    temporaryRoots.push(directory)
+    const fakeBrowser = await writeFakePrintingBrowser(directory)
+    const created = new Map<unknown, number>()
+    const cleared = new Set<unknown>()
+    const realSetTimeout = globalThis.setTimeout
+    const realClearTimeout = globalThis.clearTimeout
+    globalThis.setTimeout = ((
+      handler: (...args: unknown[]) => void,
+      delay?: number,
+      ...args: unknown[]
+    ) => {
+      const handle = realSetTimeout(handler, delay, ...args)
+      created.set(handle, delay ?? 0)
+      return handle
+    }) as typeof setTimeout
+    globalThis.clearTimeout = ((
+      handle?: Parameters<typeof clearTimeout>[0],
+    ) => {
+      cleared.add(handle)
+      return realClearTimeout(handle)
+    }) as typeof clearTimeout
+
+    try {
+      await renderCvPdf({
+        tempRoot,
+        htmlPath: cvHtmlPath,
+        outputPath: join(directory, 'cv.pdf'),
+        chromePath: fakeBrowser,
+      })
+    } finally {
+      globalThis.setTimeout = realSetTimeout
+      globalThis.clearTimeout = realClearTimeout
+    }
+
+    const drainTimers = [...created].filter(([, delay]) => delay === 1_000)
+    expect(drainTimers).toHaveLength(1)
+    for (const [handle] of drainTimers) expect(cleared.has(handle)).toBe(true)
+  }, 15_000)
+
+  test('creates the profile directory under the given tempRoot', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'cv root é-'))
+    temporaryRoots.push(directory)
+    const fakeBrowser = await writeFakePrintingBrowser(directory)
+    const removed: string[] = []
+
+    await renderCvPdf({
+      tempRoot,
+      htmlPath: cvHtmlPath,
+      outputPath: join(directory, 'cv.pdf'),
+      chromePath: fakeBrowser,
+      removeDirectory: async (path) => {
+        removed.push(path)
+        await rm(path, { recursive: true, force: true })
+      },
+    })
+
+    expect(removed).toHaveLength(1)
+    expect(dirname(removed[0]!)).toBe(tempRoot)
+    expect(basename(removed[0]!)).toStartWith('cv-chrome-')
+    expect(chromeProfileDirectories()).toEqual([])
+  }, 15_000)
+
+  test('does not leak process signal listeners after a normal render', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'cv leak é-'))
+    temporaryRoots.push(directory)
+    const fakeBrowser = await writeFakePrintingBrowser(directory)
+    const before = signalListenerCounts()
+
+    await renderCvPdf({
+      tempRoot,
+      htmlPath: cvHtmlPath,
+      outputPath: join(directory, 'cv.pdf'),
+      chromePath: fakeBrowser,
+    })
+
+    expect(signalListenerCounts()).toEqual(before)
+  }, 15_000)
+
+  test('routes a failure of the process group kill into the rejection instead of an unhandled rejection', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'cv eperm é-'))
+    temporaryRoots.push(directory)
+    const fakeBrowser = await writeGroupHangBrowser(directory)
+    const permissionError = Object.assign(new Error('EPERM: not permitted'), {
+      code: 'EPERM',
+    })
+    const unhandled: unknown[] = []
+    const onUnhandled = (reason: unknown) => unhandled.push(reason)
+    process.on('unhandledRejection', onUnhandled)
+    const before = signalListenerCounts()
+
+    try {
+      const failure = await renderCvPdf({
+        tempRoot,
+        htmlPath: cvHtmlPath,
+        outputPath: join(directory, 'cv.pdf'),
+        chromePath: fakeBrowser,
+        timeoutMs: 1_000,
+        killGraceMs: 300,
+        killProcessGroup: () => {
+          throw permissionError
+        },
+      }).then(
+        () => undefined,
+        (error: unknown) => error,
+      )
+      // Give a stray rejection the chance to surface.
+      await new Promise((resolve) => setTimeout(resolve, 50))
+
+      expect(failure).toBeInstanceOf(Error)
+      expect((failure as Error).message).toMatch(/timed out after \d+ms/)
+      expect((failure as Error).cause).toBe(permissionError)
+      expect(unhandled).toEqual([])
+      expect(signalListenerCounts()).toEqual(before)
+    } finally {
+      process.off('unhandledRejection', onUnhandled)
+      killRecordedProcesses(directory)
+    }
+  }, 15_000)
+
+  test('keeps forwarding SIGINT to the browser group while a timeout is still terminating it', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'cv window é-'))
+    temporaryRoots.push(directory)
+    // The main process dies on SIGTERM but its helper ignores it, so `exited`
+    // resolves while the group termination is still waiting out the grace period.
+    const fakeBrowser = join(directory, 'fake browser')
+    await writeFile(
+      fakeBrowser,
+      [
+        '#!/bin/sh',
+        'dir=$(dirname "$0")',
+        '( trap "" TERM; while :; do sleep 0.2; done ) &',
+        'echo $! > "$dir/helper.pid"',
+        'echo $$ > "$dir/main.pid"',
+        'while :; do echo hung >&2; sleep 0.2; done',
+        '',
+      ].join('\n'),
+      { mode: 0o755 },
+    )
+    const runner = [
+      `import { renderCvPdf } from ${JSON.stringify(fileURLToPath(new URL('./build-cv-pdfs.ts', import.meta.url)))}`,
+      'await renderCvPdf({',
+      '  htmlPath: process.env.CV_TEST_HTML!,',
+      '  outputPath: process.env.CV_TEST_OUTPUT!,',
+      '  chromePath: process.env.CV_TEST_BROWSER!,',
+      '  tempRoot: process.env.CV_TEST_TEMP_ROOT!,',
+      '  timeoutMs: 400,',
+      '  killGraceMs: 15_000,',
+      '})',
+    ].join('\n')
+    const runnerProcess = Bun.spawn([process.execPath, '-e', runner], {
+      env: {
+        ...process.env,
+        CV_TEST_HTML: cvHtmlPath,
+        CV_TEST_OUTPUT: join(directory, 'cv.pdf'),
+        CV_TEST_BROWSER: fakeBrowser,
+        CV_TEST_TEMP_ROOT: tempRoot,
+      },
+      stdout: 'ignore',
+      stderr: 'ignore',
+    })
+
+    try {
+      const deadline = Date.now() + 10_000
+      while (
+        !(
+          existsSync(join(directory, 'main.pid')) &&
+          existsSync(join(directory, 'helper.pid'))
+        ) &&
+        Date.now() < deadline
+      )
+        await new Promise((resolve) => setTimeout(resolve, 20))
+      const [mainPid, helperPid] = recordedPids(directory) as [number, number]
+      expect(Number.isInteger(mainPid) && mainPid > 1).toBe(true)
+      expect(Number.isInteger(helperPid) && helperPid > 1).toBe(true)
+
+      // Wait for the timeout's SIGTERM to take the main process down while
+      // the helper survives: the runner is now inside the termination wait.
+      await untilGone([mainPid], 5_000)
+      expect(isAlive(mainPid)).toBe(false)
+      expect(isAlive(helperPid)).toBe(true)
+
+      runnerProcess.kill('SIGINT')
+      await runnerProcess.exited
+
+      await untilGone([helperPid], 3_000)
+      expect(isAlive(helperPid)).toBe(false)
+    } finally {
+      runnerProcess.kill('SIGKILL')
+      killRecordedProcesses(directory)
+    }
+  }, 30_000)
+
+  for (const [signal, exitCode] of [
+    ['SIGINT', 130],
+    ['SIGTERM', 143],
+  ] as const) {
+    test(`kills the browser process group when the process receives ${signal}`, async () => {
+      const directory = await mkdtemp(join(tmpdir(), 'cv signal é-'))
+      temporaryRoots.push(directory)
+      const fakeBrowser = await writeGroupHangBrowser(directory)
+      const runner = [
+        `import { renderCvPdf } from ${JSON.stringify(fileURLToPath(new URL('./build-cv-pdfs.ts', import.meta.url)))}`,
+        'await renderCvPdf({',
+        '  htmlPath: process.env.CV_TEST_HTML!,',
+        '  outputPath: process.env.CV_TEST_OUTPUT!,',
+        '  chromePath: process.env.CV_TEST_BROWSER!,',
+        '  tempRoot: process.env.CV_TEST_TEMP_ROOT!,',
+        '  tempRoot: process.env.CV_TEST_TEMP_ROOT!,',
+        '})',
+      ].join('\n')
+      const runnerProcess = Bun.spawn([process.execPath, '-e', runner], {
+        env: {
+          ...process.env,
+          CV_TEST_HTML: cvHtmlPath,
+          CV_TEST_OUTPUT: join(directory, 'cv.pdf'),
+          CV_TEST_BROWSER: fakeBrowser,
+          CV_TEST_TEMP_ROOT: tempRoot,
+        },
+        stdout: 'ignore',
+        stderr: 'ignore',
+      })
+
+      try {
+        const deadline = Date.now() + 10_000
+        while (
+          !(
+            existsSync(join(directory, 'main.pid')) &&
+            existsSync(join(directory, 'helper.pid'))
+          ) &&
+          Date.now() < deadline
+        )
+          await new Promise((resolve) => setTimeout(resolve, 20))
+        const pids = recordedPids(directory)
+        expect(pids.every((pid) => Number.isInteger(pid) && pid > 1)).toBe(true)
+        expect(pids.every(isAlive)).toBe(true)
+
+        runnerProcess.kill(signal)
+        await runnerProcess.exited
+
+        // Terminated by the signal itself (re-raised) or with the conventional code.
+        expect(
+          runnerProcess.exitCode === exitCode ||
+            runnerProcess.signalCode === signal,
+        ).toBe(true)
+        await untilGone(pids)
+        expect(pids.some(isAlive)).toBe(false)
+      } finally {
+        runnerProcess.kill('SIGKILL')
+        killRecordedProcesses(directory)
+      }
+    }, 20_000)
+  }
 })

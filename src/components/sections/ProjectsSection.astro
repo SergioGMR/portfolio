@@ -44,13 +44,7 @@ const locale = getLanguage(Astro.url.pathname)
   <div class="grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2">
     {projects.map((project, index) => (
       <a
-        href={
-          project.kind === 'case-study'
-            ? getAlternatePaths(`/proyectos/${project.id}`)[locale]
-            : project.evidenceUrl
-        }
-        target={project.kind === 'showcase' ? '_blank' : undefined}
-        rel="noreferrer noopener"
+        href={getAlternatePaths(`/proyectos/${project.id}`)[locale]}
         data-animate="reveal-up"
         data-animate-delay={`${index * 80}ms`}
         class="bento-card group block min-w-0 rounded-2xl p-4 sm:p-5"
@@ -83,45 +77,23 @@ const locale = getLanguage(Astro.url.pathname)
             class="text-primary shrink-0 font-mono text-sm transition-transform duration-200 group-hover:translate-x-1"
             aria-hidden="true"
           >
-            {project.kind === 'case-study'
-              ? locale === 'es'
-                ? 'Leer caso →'
-                : 'Read case →'
-              : '↗'}
+            {locale === 'es' ? 'Leer caso →' : 'Read case →'}
           </span>
         </div>
 
-        {project.kind === 'showcase' ? (
-          <>
-            <p class="text-primary mt-2 font-mono text-[10px] tracking-widest uppercase">
-              <LangText es={project.category.es} en={project.category.en} />
-            </p>
-            <p class="text-muted-foreground mt-3 text-sm leading-relaxed">
-              {locale === 'es' && (
-                <span data-lang-content="es">{project.summary.es}</span>
-              )}
-              {locale === 'en' && (
-                <span data-lang-content="en">{project.summary.en}</span>
-              )}
-            </p>
-          </>
-        ) : (
-          <>
-            <p class="text-primary mt-2 font-mono text-[10px] tracking-widest uppercase">
-              <LangText es="Caso de estudio" en="Case study" />
-            </p>
+        <p class="text-primary mt-2 font-mono text-[10px] tracking-widest uppercase">
+          <LangText es="Caso de estudio" en="Case study" />
+        </p>
 
-            <p class="text-muted-foreground mt-3 text-sm leading-relaxed">
-              <LangText es={project.summary.es} en={project.summary.en} />
-            </p>
+        <p class="text-muted-foreground mt-3 text-sm leading-relaxed">
+          <LangText es={project.summary.es} en={project.summary.en} />
+        </p>
 
-            <div class="mt-4 flex flex-wrap gap-1.5 font-mono text-[10px] tracking-wider uppercase">
-              {project.technologies.map((technology) => (
-                <span class="tech-tag rounded-md px-2 py-1">{technology}</span>
-              ))}
-            </div>
-          </>
-        )}
+        <div class="mt-4 flex flex-wrap gap-1.5 font-mono text-[10px] tracking-wider uppercase">
+          {project.technologies.map((technology) => (
+            <span class="tech-tag rounded-md px-2 py-1">{technology}</span>
+          ))}
+        </div>
       </a>
     ))}
   </div>

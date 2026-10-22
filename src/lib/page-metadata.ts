@@ -150,7 +150,7 @@ export function createCaseStudyMetadata(
   project: CaseStudyProject,
 ): LanguageMetadata {
   const entry = (language: Language) => {
-    const title = `${project.title[language]} — ${language === 'es' ? 'Desarrollo con Laravel' : 'Laravel development'} | Sergio Morales Rodríguez`
+    const title = `${project.title[language]} — ${project.titleFocus[language]} | Sergio Morales Rodríguez`
     const description = `${project.title[language]}: ${project.summary[language]}`
     return {
       title,

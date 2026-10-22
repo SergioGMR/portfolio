@@ -147,6 +147,63 @@ describe('page schema dates and site', () => {
   })
 })
 
+describe('case-study titles', () => {
+  const expectedFocus = {
+    jauntjar: ['Desarrollo con Laravel', 'Laravel development'],
+    'todo-lux': ['Desarrollo con Laravel', 'Laravel development'],
+    basuraleza: ['Desarrollo con Laravel', 'Laravel development'],
+    tvradar: ['Desarrollo con Laravel', 'Laravel development'],
+    wattly: ['Aplicación web con Astro', 'Astro web application'],
+    duellum: ['Aplicación web con React', 'React web application'],
+    uploadimg: ['Servicio web con Astro', 'Astro web service'],
+    'uploadimg-desktop': ['App para macOS', 'macOS app'],
+  } as const
+
+  test('keeps every case-study title short enough to avoid truncation', () => {
+    for (const project of caseStudies) {
+      for (const language of languages) {
+        expect(
+          createCaseStudyMetadata(project)[language].title.length,
+        ).toBeLessThanOrEqual(65)
+      }
+    }
+  })
+
+  test('covers all eight case studies', () => {
+    expect(caseStudies.map(({ id }) => id).sort()).toEqual(
+      Object.keys(expectedFocus).sort(),
+    )
+  })
+
+  test('names the real stack of each project instead of a fixed one', () => {
+    for (const project of caseStudies) {
+      const [es, en] = expectedFocus[project.id as keyof typeof expectedFocus]
+      expect(project.titleFocus).toEqual({ es, en })
+      expect(createCaseStudyMetadata(project).es.title).toBe(
+        `${project.title.es} — ${es} | Sergio Morales Rodríguez`,
+      )
+      expect(createCaseStudyMetadata(project).en.title).toBe(
+        `${project.title.en} — ${en} | Sergio Morales Rodríguez`,
+      )
+    }
+  })
+
+  test('does not claim Laravel for projects that do not use it', () => {
+    for (const project of caseStudies) {
+      if (
+        ['wattly', 'duellum', 'uploadimg', 'uploadimg-desktop'].includes(
+          project.id,
+        )
+      ) {
+        for (const language of languages)
+          expect(
+            createCaseStudyMetadata(project)[language].title,
+          ).not.toContain('Laravel')
+      }
+    }
+  })
+})
+
 describe('case-study social card text', () => {
   test('describes the project screenshot in the page language', () => {
     for (const project of caseStudies) {

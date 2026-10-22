@@ -1,7 +1,16 @@
 import type { Language } from './language-client'
 
 export const SITE_URL = 'https://sgmr.dev'
-export const CASE_STUDY_IDS = ['jauntjar', 'todo-lux', 'basuraleza'] as const
+export const CASE_STUDY_IDS = [
+  'jauntjar',
+  'todo-lux',
+  'basuraleza',
+  'wattly',
+  'tvradar',
+  'duellum',
+  'uploadimg',
+  'uploadimg-desktop',
+] as const
 
 export const INDEXABLE_PATHS = [
   '/',
@@ -38,6 +47,16 @@ export const PAGE_LAST_MODIFIED: Record<IndexablePath, string> = {
   '/en/projects/todo-lux': '2026-10-22',
   '/proyectos/basuraleza': '2026-10-22',
   '/en/projects/basuraleza': '2026-10-22',
+  '/proyectos/wattly': '2026-10-22',
+  '/en/projects/wattly': '2026-10-22',
+  '/proyectos/tvradar': '2026-10-22',
+  '/en/projects/tvradar': '2026-10-22',
+  '/proyectos/duellum': '2026-10-22',
+  '/en/projects/duellum': '2026-10-22',
+  '/proyectos/uploadimg': '2026-10-22',
+  '/en/projects/uploadimg': '2026-10-22',
+  '/proyectos/uploadimg-desktop': '2026-10-22',
+  '/en/projects/uploadimg-desktop': '2026-10-22',
 }
 
 export function getLanguage(path: string): Language {

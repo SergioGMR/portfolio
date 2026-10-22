@@ -9,6 +9,18 @@ import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
 import jauntjarImg from '@/assets/experience/jauntjar.avif'
 import todoLuxImg from '@/assets/experience/todo-lux.avif'
 import basuralezaImg from '@/assets/experience/basuraleza.avif'
+import wattlyImg from '@/assets/projects/wattly.webp'
+import tvradarImg from '@/assets/projects/tvradar.webp'
+import duellumImg from '@/assets/projects/duellum.webp'
+import uploadimgImg from '@/assets/projects/uploadimg.webp'
+import uploadimgDesktopImg from '@/assets/projects/uploadimg-desktop.webp'
+import todoLuxSocial from '@/assets/social/todo-lux.png'
+import basuralezaSocial from '@/assets/social/basuraleza.png'
+import wattlySocial from '@/assets/social/wattly.png'
+import tvradarSocial from '@/assets/social/tvradar.png'
+import duellumSocial from '@/assets/social/duellum.png'
+import uploadimgSocial from '@/assets/social/uploadimg.png'
+import uploadimgDesktopSocial from '@/assets/social/uploadimg-desktop.png'
 
 interface Props {
   project: CaseStudyProject
@@ -20,24 +32,36 @@ const images = {
   jauntjar: jauntjarImg,
   'todo-lux': todoLuxImg,
   basuraleza: basuralezaImg,
+  wattly: wattlyImg,
+  tvradar: tvradarImg,
+  duellum: duellumImg,
+  uploadimg: uploadimgImg,
+  'uploadimg-desktop': uploadimgDesktopImg,
 }
 const image = images[project.imageKey as keyof typeof images]
-// Social cards are WebP. Astro never enlarges a source: when it is smaller than
-// 1200x630 in either dimension the card keeps the source size, so the head
-// declares that real size instead of the requested one. The output verifier
+// Social cards are 1200x630 WebP and use their own sources: every page image
+// except JauntJar's is 900x480 and Astro never enlarges a source (see
+// `bun run social:build`). JauntJar's page image is already 1200x640. Only the
+// og:image card uses these; the on-page image stays as is. The output verifier
 // checks the declared size against the emitted file.
+const socialSources = {
+  jauntjar: jauntjarImg,
+  'todo-lux': todoLuxSocial,
+  basuraleza: basuralezaSocial,
+  wattly: wattlySocial,
+  tvradar: tvradarSocial,
+  duellum: duellumSocial,
+  uploadimg: uploadimgSocial,
+  'uploadimg-desktop': uploadimgDesktopSocial,
+}
 const CARD = { width: 1200, height: 630 }
 const card = await getImage({
-  src: image,
+  src: socialSources[project.imageKey as keyof typeof socialSources],
   format: 'webp',
   ...CARD,
   fit: 'cover',
   quality: 80,
 })
-const cardSize =
-  image.width < CARD.width || image.height < CARD.height
-    ? { width: image.width, height: image.height }
-    : CARD
 const metadata = createCaseStudyMetadata(project)
 const sections = [
   { es: 'Contexto', en: 'Context', text: project.problem },
@@ -55,8 +79,8 @@ const sections = [
   localizedMetadata={metadata}
   ogImage={new URL(card.src, SITE_URL)}
   ogImageType="image/webp"
-  ogImageWidth={cardSize.width}
-  ogImageHeight={cardSize.height}
+  ogImageWidth={CARD.width}
+  ogImageHeight={CARD.height}
 >
   <article class="surface-panel mx-auto w-full max-w-4xl rounded-3xl p-5 sm:p-8 lg:p-10">
     <nav

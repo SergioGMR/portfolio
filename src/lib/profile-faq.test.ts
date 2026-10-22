@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { PAGE_METADATA } from './page-metadata'
 import { createProfileFaq } from './profile-faq'
 import {
+  AVAILABILITY,
   DEVELOPS,
   EXPERIENCE,
   HOME_LOCATION,
@@ -18,6 +19,7 @@ const questions = {
     '¿Con qué tecnologías trabaja?',
     '¿Qué proyectos ha desarrollado?',
     '¿Qué idiomas habla?',
+    '¿Está disponible para nuevos proyectos?',
     '¿Cómo contactar con Sergio?',
   ],
   en: [
@@ -25,27 +27,36 @@ const questions = {
     'Which technologies does he work with?',
     'What projects has he built?',
     'Which languages does he speak?',
+    'Is he available for new work?',
     'How can I contact Sergio?',
   ],
 } as const
 
+const earliestStartYear = PROFESSIONAL_PROFILE.experiences
+  .map((experience) => experience.startDate)
+  .sort()[0]!
+  .slice(0, 4)
+
 const caseStudies = PROFESSIONAL_PROFILE.projects.filter(
   (project) => project.kind === 'case-study',
 )
-const showcases = PROFESSIONAL_PROFILE.projects.filter(
-  (project) => project.kind === 'showcase',
-)
+
+const joinNames = (language: (typeof languages)[number]) => {
+  const names = caseStudies.map((project) => project.title[language])
+  const last = names.pop()!
+  return `${names.join(', ')}${language === 'es' ? ' y' : ', and'} ${last}`
+}
 
 describe('createProfileFaq', () => {
   for (const language of languages) {
     describe(language, () => {
       const faq = createProfileFaq(language)
 
-      test('returns the five questions in order', () => {
+      test('returns the six questions in order', () => {
         expect(faq.map((item) => item.question)).toEqual([
           ...questions[language],
         ])
-        expect(new Set(faq.map((item) => item.id)).size).toBe(5)
+        expect(new Set(faq.map((item) => item.id)).size).toBe(6)
       })
 
       test('has no empty or undefined text anywhere', () => {
@@ -76,6 +87,18 @@ describe('createProfileFaq', () => {
         expect(JSON.stringify(PAGE_METADATA.home[language].schema)).toContain(
           'Las Palmas de Gran Canaria',
         )
+      })
+
+      test('states when professional experience began, derived from the profile', () => {
+        expect(earliestStartYear).toBe('2020')
+        const answer = faq[0]!.answer
+        expect(answer).toContain(
+          language === 'es'
+            ? `Su trayectoria profesional comienza en ${earliestStartYear}.`
+            : `His professional experience goes back to ${earliestStartYear}.`,
+        )
+        // The history has gaps: only the start year is claimed, never a total.
+        expect(answer).not.toMatch(/\d+\+? (?:años|years)/i)
       })
 
       test('shares its person wording with the Person description', () => {
@@ -113,10 +136,11 @@ describe('createProfileFaq', () => {
         )
       })
 
-      test('uses the site spelling "portfolio" in Spanish', () => {
-        expect(faq[2]!.answer).not.toContain('portafolio')
-        if (language === 'es')
-          expect(faq[2]!.answer).toContain('En el portfolio')
+      test('never uses the spelling "portafolio" (the site spells it "portfolio")', () => {
+        for (const item of faq) {
+          expect(item.question).not.toContain('portafolio')
+          expect(item.answer).not.toContain('portafolio')
+        }
       })
 
       test('lists every capability label with its technologies', () => {
@@ -148,7 +172,19 @@ describe('createProfileFaq', () => {
         for (const [index, project] of caseStudies.entries()) {
           expect(item.links[index]!.label).toContain(project.title[language])
         }
-        expect(showcases.length).toBeGreaterThan(0)
+        expect(caseStudies).toHaveLength(8)
+        expect(item.links).toHaveLength(8)
+      })
+
+      test('has no other projects to mention, so it omits that sentence', () => {
+        expect(faq[2]!.answer).not.toMatch(
+          /otros proyectos|other projects|también muestra|also shows/,
+        )
+        expect(faq[2]!.answer).toBe(
+          language === 'es'
+            ? `Tiene casos de estudio documentados: ${joinNames(language)}.`
+            : `He has documented case studies: ${joinNames(language)}.`,
+        )
       })
 
       test('states the English levels precisely and never claims native', () => {
@@ -193,8 +229,33 @@ describe('createProfileFaq', () => {
         expect(answer.toLowerCase()).not.toMatch(/nativ|native|bilingüe|fluent/)
       })
 
-      test('offers email and LinkedIn from the profile for projects or careers', () => {
+      test('answers availability with the shared footer wording and links to contact', () => {
         const item = faq[4]!
+        expect(item.id).toBe('disponibilidad')
+        expect(item.answer).toContain(AVAILABILITY[language])
+        expect(item.answer).toStartWith(language === 'es' ? 'Sí. ' : 'Yes. ')
+        expect(item.answer).toContain(
+          language === 'es'
+            ? 'puedes proponerle un proyecto o hablar de una oportunidad profesional'
+            : 'you can propose a project or discuss a career opportunity',
+        )
+        expect(item.links).toEqual([
+          {
+            label:
+              language === 'es'
+                ? 'Ir a la sección de contacto'
+                : 'Go to the contact section',
+            href: language === 'es' ? '/#contacto' : '/en#contacto',
+            external: false,
+          },
+        ])
+        expect(faq.map((entry) => entry.id).indexOf('disponibilidad')).toBe(
+          faq.map((entry) => entry.id).indexOf('contacto') - 1,
+        )
+      })
+
+      test('offers email and LinkedIn from the profile for projects or careers', () => {
+        const item = faq[5]!
         expect(item.links.map((link) => link.href)).toEqual([
           PROFESSIONAL_PROFILE.links.mail,
           PROFESSIONAL_PROFILE.links.linkedin,
@@ -208,10 +269,14 @@ describe('createProfileFaq', () => {
         expect(item.answer).toContain('LinkedIn')
       })
 
-      test('invents no availability, rates, seniority years or claims', () => {
+      test('invents no rates, seniority years or claims, and availability only in its own item', () => {
+        const others = faq.filter((item) => item.id !== 'disponibilidad')
+        expect(others.map((item) => item.answer).join(' ')).not.toMatch(
+          /disponib|available|open to/i,
+        )
         const text = faq.map((item) => item.answer).join(' ')
         expect(text).not.toMatch(
-          /disponib|available|tarifa|\brates?\b|€|\$|años de experiencia|years of experience|\d+\+? (?:años|years)/i,
+          /tarifa|\brates?\b|€|\$|años de experiencia|years of experience|\d+\+? (?:años|years)/i,
         )
       })
     })

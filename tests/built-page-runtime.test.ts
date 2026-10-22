@@ -1,11 +1,18 @@
 import type { HTMLButtonElement, HTMLSelectElement } from 'happy-dom'
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
-import { existsSync, globSync, readFileSync } from 'node:fs'
+import { existsSync, globSync, readdirSync, readFileSync } from 'node:fs'
 import { Window } from 'happy-dom'
+import {
+  collectInlineScriptHashes,
+  extractInlineScripts,
+  hashCspSource,
+} from '../src/lib/csp'
 import { createProfileFaq } from '../src/lib/profile-faq'
+import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
 
 const root = new URL('../', import.meta.url)
 const windows: Window[] = []
+const caseStudyIds = PROFESSIONAL_PROFILE.projects.map(({ id }) => id)
 
 beforeAll(async () => {
   // Compile the composed pages: source-level function calls cannot detect an
@@ -117,7 +124,7 @@ function languageHref(browser: Window, language: string) {
 }
 
 describe('compiled apex origin', () => {
-  test('uses the independently confirmed apex in all 12 page identities and discovery URLs', () => {
+  test('uses the independently confirmed apex in all 22 page identities and discovery URLs', () => {
     const paths = [
       '/',
       '/en',
@@ -125,12 +132,12 @@ describe('compiled apex origin', () => {
       '/en/acezone/tos',
       '/wattly/tos',
       '/en/wattly/tos',
-      ...['jauntjar', 'todo-lux', 'basuraleza'].flatMap((id) => [
+      ...caseStudyIds.flatMap((id) => [
         `/proyectos/${id}`,
         `/en/projects/${id}`,
       ]),
     ]
-    expect(paths).toHaveLength(12)
+    expect(paths).toHaveLength(22)
     for (const path of paths) {
       const { browser, schema } = openBuiltPage(path, 'es')
       const document = browser.document
@@ -191,10 +198,7 @@ describe('compiled head metadata and structured data', () => {
     '/en/acezone/tos',
     '/wattly/tos',
     '/en/wattly/tos',
-    ...['jauntjar', 'todo-lux', 'basuraleza'].flatMap((id) => [
-      `/proyectos/${id}`,
-      `/en/projects/${id}`,
-    ]),
+    ...caseStudyIds.flatMap((id) => [`/proyectos/${id}`, `/en/projects/${id}`]),
   ]
   const meta = (
     document: ReturnType<typeof openBuiltPage>['browser']['document'],
@@ -254,10 +258,58 @@ describe('compiled head metadata and structured data', () => {
             : `Captura de la interfaz de ${title}`,
         )
         expect(card.url).not.toBe('https://sgmr.dev/og.jpg')
-        expect(card.width).toBeGreaterThan(0)
-        expect(card.height).toBeGreaterThan(0)
+        // Every case study declares, and really emits, a 1200x630 card.
+        expect(card.width).toBe(1200)
+        expect(card.height).toBe(630)
       }
     }
+  })
+
+  test('opens every head with the charset meta, then the viewport, within 1024 bytes', () => {
+    const files = [
+      ...pagePaths.map((path) =>
+        path === '/' ? 'dist/index.html' : `dist${path}/index.html`,
+      ),
+      'dist/404.html',
+    ]
+    for (const file of files) {
+      const html = readFileSync(new URL(file, root), 'utf8')
+      const opening =
+        /^<!doctype html>\s*<html[^>]*>\s*<head>\s*(<meta charset="utf-8">)\s*(<meta name="viewport" content="width=device-width, initial-scale=1">)/i.exec(
+          html,
+        )
+      expect(opening, file).not.toBeNull()
+      expect(opening![0].length, file).toBeLessThan(256)
+      expect(
+        Buffer.byteLength(html.slice(0, opening![0].length)),
+        file,
+      ).toBeLessThan(1024)
+      expect(html.match(/<meta charset=/gi), file).toHaveLength(1)
+      expect(html.match(/<meta name="viewport"/gi), file).toHaveLength(1)
+    }
+  })
+
+  test('allows images from self only and emits no data: image URIs', () => {
+    const files = [
+      ...pagePaths.map((path) =>
+        path === '/' ? 'dist/index.html' : `dist${path}/index.html`,
+      ),
+      'dist/404.html',
+    ]
+    for (const file of files) {
+      const html = readFileSync(new URL(file, root), 'utf8')
+      expect(html, file).toContain("img-src 'self';")
+      expect(html, file).not.toMatch(/img-src[^;"]*data:/)
+      expect(html, file).not.toMatch(
+        /<(?:img|source|image)\b[^>]*(?:src|srcset|href)=["']\s*data:/i,
+      )
+      expect(html, file).not.toMatch(/url\(\s*["']?data:/i)
+    }
+    const astroDir = new URL('dist/_astro/', root)
+    for (const name of readdirSync(astroDir).filter((n) => n.endsWith('.css')))
+      expect(readFileSync(new URL(name, astroDir), 'utf8'), name).not.toMatch(
+        /url\(\s*["']?data:/i,
+      )
   })
 
   test('links the icon set and emits each file in its declared format', () => {
@@ -385,19 +437,19 @@ describe('compiled Solutec removal and retained Tecandu experience', () => {
       ).not.toMatch(/solutec/i)
       expect(schema).not.toMatch(/solutec/i)
       expect(browser.document.querySelectorAll('#proyectos h3')).toHaveLength(8)
+      const desktopPath = `${locale === 'es' ? '/proyectos' : '/en/projects'}/uploadimg-desktop`
       const desktopCard = browser.document.querySelector(
-        '#proyectos a[href="https://github.com/SergioGMR/uploadimg-desktop"]',
+        `#proyectos a[href="${desktopPath}"]`,
       )
       expect(desktopCard).not.toBeNull()
       expect(desktopCard?.querySelector('h3')?.textContent.trim()).toBe(
         'UploadIMG - Desktop',
       )
-      expect(desktopCard?.getAttribute('href')).toBe(
-        'https://github.com/SergioGMR/uploadimg-desktop',
-      )
-      expect(desktopCard?.getAttribute('target')).toBe('_blank')
-      expect(desktopCard?.getAttribute('rel')).toContain('noopener')
-      expect(desktopCard?.getAttribute('rel')).toContain('noreferrer')
+      // Every project card is an internal link to its case study.
+      expect(desktopCard?.getAttribute('target')).toBeNull()
+      expect(
+        browser.document.querySelectorAll('#proyectos a[target="_blank"]'),
+      ).toHaveLength(0)
       expect(desktopCard?.querySelector('img')?.getAttribute('alt')).toBe(
         locale === 'es'
           ? 'Captura de la interfaz de UploadIMG - Desktop'
@@ -559,6 +611,20 @@ describe('compiled portfolio content and contact choices', () => {
       'Mobile application development with Quasar Framework',
       'Laravel backend and web and mobile applications developed for waste characterization.',
     ],
+    ...PROFESSIONAL_PROFILE.projects
+      .slice(3)
+      .flatMap((project) =>
+        (['es', 'en'] as const).map(
+          (locale) =>
+            [
+              project.id,
+              locale,
+              project.summary[locale],
+              project.tasks[locale][0]!,
+              project.result[locale],
+            ] as const,
+        ),
+      ),
   ] as const) {
     test(`adds documented detail beyond the ${id} card in ${locale}`, () => {
       const home = locale === 'es' ? '/' : '/en'
@@ -583,17 +649,19 @@ describe('compiled portfolio content and contact choices', () => {
       expect(article?.querySelectorAll('section ul li').length).toBeGreaterThan(
         3,
       )
-      expect(title).toContain('Laravel')
+      const project = PROFESSIONAL_PROFILE.projects.find(
+        (candidate) => candidate.id === id,
+      )!
+      expect(title).toContain(project.titleFocus[locale])
       expect(description).toContain(summary)
       expect(description).toContain(
         casePage.document.querySelector('h1')?.textContent ?? 'missing title',
       )
-      if (id === 'basuraleza')
-        expect(
-          article?.querySelector('a[target="_blank"]')?.getAttribute('href'),
-        ).toBe(
-          'https://proyectolibera.org/app-basuraleza-caracterizacion-residuos',
-        )
+      expect(
+        article?.querySelector('a[target="_blank"]')?.getAttribute('href'),
+      ).toBe(project.evidenceUrl)
+      for (const technology of project.technologies)
+        expect(normalize(article?.textContent)).toContain(technology)
     })
   }
 })
@@ -631,10 +699,7 @@ describe('compiled page language enhancement', () => {
   const equivalentPages = [
     ['/acezone/tos', '/en/acezone/tos'],
     ['/wattly/tos', '/en/wattly/tos'],
-    ...['jauntjar', 'todo-lux', 'basuraleza'].map((id) => [
-      `/proyectos/${id}`,
-      `/en/projects/${id}`,
-    ]),
+    ...caseStudyIds.map((id) => [`/proyectos/${id}`, `/en/projects/${id}`]),
   ]
   for (const [spanish, english] of equivalentPages) {
     for (const [path, locale, opposite] of [
@@ -881,7 +946,7 @@ describe('compiled legal content styles', () => {
 describe('compiled institution name', () => {
   test('spells «I.E.S. El Rincón» correctly in every emitted page', () => {
     const pages = globSync('**/*.html', { cwd: new URL('dist/', root) })
-    expect(pages.length).toBeGreaterThanOrEqual(13)
+    expect(pages.length).toBeGreaterThanOrEqual(23)
 
     let withInstitution = 0
     for (const page of pages) {
@@ -911,6 +976,7 @@ describe('compiled home headings and FAQ', () => {
         '¿Con qué tecnologías trabaja?',
         '¿Qué proyectos ha desarrollado?',
         '¿Qué idiomas habla?',
+        '¿Está disponible para nuevos proyectos?',
         '¿Cómo contactar con Sergio?',
       ],
       [
@@ -928,6 +994,7 @@ describe('compiled home headings and FAQ', () => {
         'Which technologies does he work with?',
         'What projects has he built?',
         'Which languages does he speak?',
+        'Is he available for new work?',
         'How can I contact Sergio?',
       ],
       [
@@ -1017,6 +1084,7 @@ describe('compiled home headings and FAQ', () => {
         'H3',
         'H3',
         'H3',
+        'H3',
       ])
       expect(normalize(headings[0]!.textContent)).toBe(faqTitle)
       expect(headings.slice(1).map((h) => normalize(h.textContent))).toEqual([
@@ -1027,7 +1095,7 @@ describe('compiled home headings and FAQ', () => {
       const items = Array.from(section!.querySelectorAll('h3')).map((heading) =>
         heading.closest('[data-faq-item]'),
       )
-      expect(items).toHaveLength(5)
+      expect(items).toHaveLength(6)
       for (const [index, item] of items.entries()) {
         expect(item).not.toBeNull()
         const answer = item!.querySelector('p')
@@ -1096,4 +1164,134 @@ describe('compiled home headings and FAQ', () => {
       }
     })
   }
+})
+
+describe('compiled header logo', () => {
+  for (const [path, locale] of [
+    ['/', 'es'],
+    ['/en', 'en'],
+  ] as const) {
+    test(`hides the decorative header logo from assistive tech at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const link = browser.document.querySelector('header a[href^="/"]')
+      const logo = link?.querySelector('img')
+      expect(logo?.getAttribute('alt')).toBe('')
+      expect(link?.textContent).toContain('SergioGMR')
+    })
+  }
+})
+
+describe('compiled content security policy', () => {
+  const componentsRoot = new URL('src/components/', root)
+  const pages = globSync('**/*.html', { cwd: new URL('dist/', root) })
+  const policyOf = (html: string) => {
+    const metas = [
+      ...html.matchAll(
+        /<meta http-equiv="content-security-policy" content="([^"]*)"/g,
+      ),
+    ]
+    expect(metas).toHaveLength(1)
+    return Object.fromEntries(
+      metas[0]![1]!
+        .split(';')
+        .map((part) => part.trim().split(/\s+/))
+        .filter(([name]) => name)
+        .map(([name, ...sources]) => [name, sources]),
+    ) as Record<string, string[]>
+  }
+
+  test('covers all 23 emitted pages, the 404 included', () => {
+    expect(pages).toHaveLength(23)
+    expect(pages).toContain('404.html')
+  })
+
+  for (const page of pages) {
+    test(`emits a strict hashed policy at ${page}`, () => {
+      const html = readFileSync(new URL(`dist/${page}`, root), 'utf8')
+      const policy = policyOf(html)
+      expect(policy['script-src']).toContain("'self'")
+      expect(policy['style-src']).toContain("'self'")
+      expect(policy['script-src']).not.toContain("'unsafe-inline'")
+      expect(policy['script-src']).not.toContain("'unsafe-eval'")
+      expect(policy['style-src']).not.toContain("'unsafe-inline'")
+      expect(policy['object-src']).toEqual(["'none'"])
+      expect(policy['base-uri']).toEqual(["'self'"])
+      expect(policy['form-action']).toEqual(["'self'"])
+      expect(policy['frame-ancestors']).toBeUndefined()
+      expect(html).not.toMatch(/\s(?:on[a-z]+|style)=/i)
+      expect(html).not.toMatch(/<script[^>]+src="(?:https?:)?\/\/(?!sgmr\.dev)/)
+    })
+
+    test(`lists only 'self', 'none' and hashes in every directive at ${page}`, () => {
+      const policy = policyOf(
+        readFileSync(new URL(`dist/${page}`, root), 'utf8'),
+      )
+      for (const [name, sources] of Object.entries(policy)) {
+        // `*-elem` and `*-attr` would override script-src/style-src.
+        expect(name).not.toMatch(/^(?:script|style)-src-(?:elem|attr)$/)
+        for (const source of sources)
+          expect(source).toMatch(
+            /^(?:'self'|'none'|'sha(?:256|384|512)-[A-Za-z0-9+/]+={0,2}')$/,
+          )
+      }
+    })
+
+    test(`keeps the policy meta inside the parsed head at ${page}`, () => {
+      const html = readFileSync(new URL(`dist/${page}`, root), 'utf8')
+      const browser = new Window({
+        url: new URL(
+          page === 'index.html' ? '/' : `/${page}`,
+          'https://sgmr.dev',
+        ).toString(),
+        settings: {
+          disableCSSFileLoading: true,
+          disableJavaScriptFileLoading: true,
+        },
+      })
+      windows.push(browser)
+      browser.document.write(html)
+      // happy-dom does not close head implicitly at a stray element, so this
+      // confirms the meta is present and parsed as a head child; the verifier
+      // (`verifyContentSecurityPolicy`) rejects the markup that would move it.
+      expect(
+        browser.document.querySelectorAll(
+          'meta[http-equiv="content-security-policy" i]',
+        ),
+      ).toHaveLength(1)
+      expect(
+        browser.document.querySelector(
+          'head > meta[http-equiv="content-security-policy" i]',
+        ),
+      ).not.toBeNull()
+    })
+
+    test(`allows every inline script that ${page} emits by hash`, () => {
+      const html = readFileSync(new URL(`dist/${page}`, root), 'utf8')
+      const scripts = policyOf(html)['script-src']!
+      const inline = [
+        ...html.matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/g),
+      ].filter(([, attributes]) => !/ld\+json/.test(attributes!))
+      expect(inline.length).toBeGreaterThanOrEqual(1)
+      for (const [, , body] of inline)
+        expect(scripts).toContain(`'${hashCspSource(body!)}'`)
+    })
+  }
+
+  test('emits each is:inline script byte for byte, so its source hash stays valid', () => {
+    const sources = globSync('**/*.astro', { cwd: componentsRoot }).flatMap(
+      (file) =>
+        extractInlineScripts(
+          readFileSync(new URL(file, componentsRoot), 'utf8'),
+        ),
+    )
+    expect(sources.length).toBeGreaterThanOrEqual(2)
+    const hashes = collectInlineScriptHashes(componentsRoot)
+    const home = readFileSync(new URL('dist/index.html', root), 'utf8')
+    const scripts = policyOf(home)['script-src']!
+    for (const body of sources) {
+      expect(home).toContain(`<script>${body}</script>`)
+      expect(hashes).toContain(hashCspSource(body))
+      expect(scripts).toContain(`'${hashCspSource(body)}'`)
+    }
+  })
 })

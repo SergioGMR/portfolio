@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, rmSync } from 'node:fs'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -24,6 +24,8 @@ const CHROME_TIMEOUT_MS = 60_000
 const CHROME_KILL_GRACE_MS = 2_000
 /** Upper bound for draining stderr once Chromium has exited. */
 const STDERR_DRAIN_MS = 1_000
+/** Upper bound for the browser's process group to disappear after SIGKILL. */
+const GROUP_REAP_WAIT_MS = 1_000
 
 const rootUrl = new URL('../', import.meta.url)
 
@@ -256,6 +258,95 @@ export interface RenderCvPdfOptions {
   timeoutMs?: number
   /** Wait this long after SIGTERM before SIGKILL (default 2s). */
   killGraceMs?: number
+  /** Directory that holds the temporary browser profile (default `os.tmpdir()`); a test seam. */
+  tempRoot?: string
+  /** Removes the temporary profile directory (default `rm -rf`); a test seam. */
+  removeDirectory?: (path: string) => Promise<void>
+  /** Signals the browser's process group (default `process.kill(-pid, signal)`); a test seam. */
+  killProcessGroup?: (pid: number, signal: NodeJS.Signals) => void
+}
+
+type KillProcessGroup = NonNullable<RenderCvPdfOptions['killProcessGroup']>
+
+interface BrowserProcess {
+  pid: number
+  kill: (signal: NodeJS.Signals) => void
+}
+
+/** Signals interrupted by the user or the system that must also stop the detached browser. */
+const FORWARDED_SIGNALS = ['SIGINT', 'SIGTERM', 'SIGHUP'] as const
+
+const defaultKillProcessGroup: KillProcessGroup = (pid, signal) => {
+  // The browser is spawned detached, so it leads a group whose id is its pid.
+  // Windows has no process groups: signal the process itself.
+  process.kill(process.platform === 'win32' ? pid : -pid, signal)
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/** True while at least one process of the group still exists (ESRCH otherwise). */
+function groupExists(groupId: number): boolean {
+  try {
+    process.kill(-groupId, 0)
+    return true
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === 'EPERM'
+  }
+}
+
+/**
+ * A process group id is a pid: once the group is gone the id can be handed to
+ * an unrelated process, so a late SIGKILL must first confirm the group exists.
+ * Windows has no process groups to probe, so it always signals.
+ */
+function groupStillExists(groupId: number): boolean {
+  return process.platform === 'win32' || groupExists(groupId)
+}
+
+/** Signals the browser's whole process group, tolerating a group that is already gone. */
+function signalGroup(
+  chrome: BrowserProcess,
+  signal: NodeJS.Signals,
+  killProcessGroup: KillProcessGroup,
+): void {
+  try {
+    killProcessGroup(chrome.pid, signal)
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error
+  }
+}
+
+/**
+ * SIGTERM to the whole group, then SIGKILL once the grace period passes (or
+ * as soon as nothing is left to wait for), but only while the group still
+ * exists so a recycled group id is never signalled, then a
+ * short wait so helpers stop writing before the profile directory is removed.
+ * If the group cannot be signalled, the main process is killed directly and
+ * the error is rethrown so the caller can report it.
+ */
+async function terminateGroup(
+  chrome: BrowserProcess,
+  killGraceMs: number,
+  killProcessGroup: KillProcessGroup,
+): Promise<void> {
+  try {
+    signalGroup(chrome, 'SIGTERM', killProcessGroup)
+    const graceDeadline = Date.now() + killGraceMs
+    while (groupExists(chrome.pid) && Date.now() < graceDeadline)
+      await sleep(20)
+    if (groupStillExists(chrome.pid))
+      signalGroup(chrome, 'SIGKILL', killProcessGroup)
+    const reapDeadline = Date.now() + GROUP_REAP_WAIT_MS
+    while (groupExists(chrome.pid) && Date.now() < reapDeadline) await sleep(20)
+  } catch (error) {
+    // Best effort: at least stop the main process so the render can settle.
+    try {
+      chrome.kill('SIGKILL')
+    } catch {}
+    throw error
+  }
 }
 
 export async function renderCvPdf({
@@ -264,12 +355,22 @@ export async function renderCvPdf({
   chromePath,
   timeoutMs = CHROME_TIMEOUT_MS,
   killGraceMs = CHROME_KILL_GRACE_MS,
+  tempRoot = tmpdir(),
+  removeDirectory = (path) => rm(path, { recursive: true, force: true }),
+  killProcessGroup = defaultKillProcessGroup,
 }: RenderCvPdfOptions): Promise<void> {
   const title = extractHtmlTitle(await readFile(htmlPath, 'utf8'))
-  const profileDirectory = await mkdtemp(join(tmpdir(), 'cv-chrome-'))
+  const profileDirectory = await mkdtemp(join(tempRoot, 'cv-chrome-'))
   const rawPath = join(profileDirectory, 'raw.pdf')
 
+  let failed = false
+  let failure: unknown
+  // Stays installed until every path that can still touch the browser or the
+  // output has finished, so an interruption is never left to the default action.
+  let removeForwarders = (): void => {}
   try {
+    // Detached: Chromium leads its own process group, so a timeout can stop
+    // its helper processes too instead of only the main one.
     const chrome = Bun.spawn(
       [
         chromePath,
@@ -282,35 +383,66 @@ export async function renderCvPdf({
         `--print-to-pdf=${rawPath}`,
         Bun.pathToFileURL(htmlPath).toString(),
       ],
-      { stdout: 'ignore', stderr: 'pipe' },
+      { stdout: 'ignore', stderr: 'pipe', detached: true },
     )
+    // The browser no longer shares the terminal's foreground group, so
+    // forward interruptions to it, then re-raise for the default behavior.
+    const forwarders = FORWARDED_SIGNALS.map((signal) => {
+      const forward = () => {
+        removeForwarders()
+        try {
+          if (groupStillExists(chrome.pid))
+            signalGroup(chrome, 'SIGKILL', killProcessGroup)
+        } catch {}
+        try {
+          rmSync(profileDirectory, { recursive: true, force: true })
+        } catch {}
+        process.kill(process.pid, signal)
+      }
+      process.on(signal, forward)
+      return [signal, forward] as const
+    })
+    removeForwarders = (): void => {
+      for (const [signal, forward] of forwarders) process.off(signal, forward)
+    }
     const stderrText = new Response(chrome.stderr).text().catch(() => '')
     const startedAt = Date.now()
     let timedOut = false
-    let killTimer: ReturnType<typeof setTimeout> | undefined
+    let termination: Promise<void> | undefined
+    let terminationError: unknown
     const timeout = setTimeout(() => {
       timedOut = true
-      chrome.kill('SIGTERM')
-      killTimer = setTimeout(() => chrome.kill('SIGKILL'), killGraceMs)
+      // Never leave this rejection unhandled: report it with the timeout.
+      termination = terminateGroup(chrome, killGraceMs, killProcessGroup).catch(
+        (error: unknown) => {
+          terminationError = error
+        },
+      )
     }, timeoutMs)
     let exitCode: number
     try {
       exitCode = await chrome.exited
     } finally {
       clearTimeout(timeout)
-      clearTimeout(killTimer)
     }
     // Never wait on stderr after a timeout: stray descendants may keep the pipe open.
-    if (timedOut)
+    if (timedOut) {
+      // Helpers can outlive the main process and keep writing to the profile.
+      await termination
       throw new Error(
         `Chromium timed out after ${Date.now() - startedAt}ms printing ${htmlPath} (${chromePath})`,
+        terminationError === undefined
+          ? undefined
+          : { cause: terminationError },
       )
+    }
+    let drainTimer: ReturnType<typeof setTimeout> | undefined
     const stderr = await Promise.race([
       stderrText,
-      new Promise<string>((resolve) =>
-        setTimeout(() => resolve(''), STDERR_DRAIN_MS).unref(),
-      ),
-    ])
+      new Promise<string>((resolve) => {
+        drainTimer = setTimeout(() => resolve(''), STDERR_DRAIN_MS)
+      }),
+    ]).finally(() => clearTimeout(drainTimer))
     if (exitCode !== 0 || !existsSync(rawPath))
       throw new Error(
         `Chromium failed to print ${htmlPath} (${exitCode}): ${stderr}`,
@@ -324,9 +456,21 @@ export async function renderCvPdf({
         creator: CV_AUTHOR,
       }),
     )
-  } finally {
-    await rm(profileDirectory, { recursive: true, force: true })
+  } catch (error) {
+    failed = true
+    failure = error
   }
+
+  removeForwarders()
+  try {
+    await removeDirectory(profileDirectory)
+  } catch (cleanupError) {
+    // A cleanup failure must never replace the error that is already in flight.
+    if (!failed) throw cleanupError
+    if (failure instanceof Error && failure.cause === undefined)
+      failure.cause = cleanupError
+  }
+  if (failed) throw failure
 }
 
 export async function buildCvPdfs(

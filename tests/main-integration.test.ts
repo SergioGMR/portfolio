@@ -3,98 +3,8 @@ import { readFile } from 'node:fs/promises'
 
 import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
 
-interface LocalizedText {
-  readonly es: string
-  readonly en: string
-}
-
-interface ShowcaseProject {
-  readonly id: string
-  readonly kind: 'showcase'
-  readonly title: LocalizedText
-  readonly category: LocalizedText
-  readonly summary: LocalizedText
-  readonly evidenceUrl: string
-  readonly imageKey: string
-  readonly experienceIds: readonly string[]
-}
-
-const expectedShowcases: readonly ShowcaseProject[] = [
-  {
-    id: 'wattly',
-    kind: 'showcase',
-    title: { es: 'Wattly', en: 'Wattly' },
-    category: {
-      es: 'Precios de la electricidad',
-      en: 'Electricity prices',
-    },
-    summary: {
-      es: 'Compara los precios horarios de la electricidad en España y encuentra las horas más económicas para usar tus electrodomésticos.',
-      en: 'Compare hourly electricity prices in Spain and find the most economical times to use your appliances.',
-    },
-    evidenceUrl: 'https://wattly-alpha.vercel.app/',
-    imageKey: 'wattly',
-    experienceIds: [],
-  },
-  {
-    id: 'tvradar',
-    kind: 'showcase',
-    title: { es: 'TVRadar', en: 'TVRadar' },
-    category: { es: 'Seguimiento de series', en: 'TV series tracking' },
-    summary: {
-      es: 'Organiza tus series, estrenos, pendientes y sesiones familiares en un solo lugar.',
-      en: 'Organize your series, premieres, watchlist, and family viewing in one place.',
-    },
-    evidenceUrl: 'https://tvradar.sgmr.es/',
-    imageKey: 'tvradar',
-    experienceIds: [],
-  },
-  {
-    id: 'duellum',
-    kind: 'showcase',
-    title: { es: 'Duellum', en: 'Duellum' },
-    category: { es: 'Cuadros de decisión', en: 'Decision brackets' },
-    summary: {
-      es: 'Compara opciones por parejas, gestiona pases automáticos y guarda los resultados localmente en tu dispositivo.',
-      en: 'Compare options pair by pair, manage automatic byes, and save results locally on your device.',
-    },
-    evidenceUrl: 'https://duellum.vercel.app/',
-    imageKey: 'duellum',
-    experienceIds: [],
-  },
-  {
-    id: 'uploadimg',
-    kind: 'showcase',
-    title: { es: 'Uploadimg', en: 'Uploadimg' },
-    category: { es: 'Imágenes temporales', en: 'Temporary images' },
-    summary: {
-      es: 'Selecciona o pega una imagen, revisa la vista previa y súbela para compartir un enlace temporal de 24 horas.',
-      en: 'Select or paste an image, review the preview, and upload it to share a temporary 24-hour link.',
-    },
-    evidenceUrl: 'https://uploadimg.vercel.app/',
-    imageKey: 'uploadimg',
-    experienceIds: [],
-  },
-  {
-    id: 'uploadimg-desktop',
-    kind: 'showcase',
-    title: { es: 'UploadIMG - Desktop', en: 'UploadIMG - Desktop' },
-    category: {
-      es: 'Aplicación de escritorio · beta',
-      en: 'Desktop application · beta',
-    },
-    summary: {
-      es: 'Pega una imagen en macOS Apple Silicon, revisa la vista previa y súbela para compartir un enlace temporal de 24 horas.',
-      en: 'Paste an image on macOS Apple Silicon, review the preview, and upload it to share a temporary 24-hour link.',
-    },
-    evidenceUrl: 'https://github.com/SergioGMR/uploadimg-desktop',
-    imageKey: 'uploadimg-desktop',
-    experienceIds: [],
-  },
-]
-
-describe('main integration project showcase', () => {
-  test('appends five truthful showcase records after current main projects', () => {
+describe('main integration project case studies', () => {
+  test('keeps the three original case studies first and the five former showcases after them', () => {
     expect(PROFESSIONAL_PROFILE.projects.map(({ id }) => id)).toEqual([
       'jauntjar',
       'todo-lux',
@@ -106,18 +16,16 @@ describe('main integration project showcase', () => {
       'uploadimg-desktop',
     ])
 
-    const showcases = PROFESSIONAL_PROFILE.projects.slice(3)
-    expect(showcases).toEqual([...expectedShowcases])
-
-    for (const project of showcases) {
-      expect(project.experienceIds).toEqual([])
-      expect('technologies' in project).toBe(false)
-      expect('responsibility' in project).toBe(false)
-      expect('result' in project).toBe(false)
+    for (const project of PROFESSIONAL_PROFILE.projects) {
+      expect(project.kind).toBe('case-study')
+      expect(project.imageKey).toBe(project.id)
+      expect(project.evidenceUrl).toMatch(/^https:\/\//)
     }
+    for (const project of PROFESSIONAL_PROFILE.projects.slice(3))
+      expect(project.experienceIds).toEqual([])
   })
 
-  test('renders showcase summaries with the genuine project captures', async () => {
+  test('renders every card from the genuine project captures and links it to its case', async () => {
     const source = await readFile(
       new URL(
         '../src/components/sections/ProjectsSection.astro',
@@ -126,7 +34,7 @@ describe('main integration project showcase', () => {
       'utf8',
     )
 
-    expect(source).toContain("project.kind === 'showcase'")
+    expect(source).not.toContain('showcase')
 
     for (const asset of [
       'wattly.webp',
@@ -137,5 +45,30 @@ describe('main integration project showcase', () => {
     ]) {
       expect(source).toContain(asset)
     }
+  })
+
+  test('shows the same project images on each case-study page', async () => {
+    const source = await readFile(
+      new URL('../src/components/pages/CaseStudyPage.astro', import.meta.url),
+      'utf8',
+    )
+
+    for (const asset of [
+      'wattly.webp',
+      'tvradar.webp',
+      'duellum.webp',
+      'uploadimg.webp',
+      'uploadimg-desktop.webp',
+    ]) {
+      expect(source).toContain(`@/assets/projects/${asset}`)
+    }
+    for (const id of [
+      'wattly',
+      'tvradar',
+      'duellum',
+      'uploadimg',
+      'uploadimg-desktop',
+    ])
+      expect(source).toContain(`@/assets/social/${id}.png`)
   })
 })

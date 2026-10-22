@@ -34,11 +34,21 @@ describe('production site discovery', () => {
     const xml = createSitemapXml(SITE_URL)
 
     expect(SITE_URL).toBe('https://sgmr.dev')
-    expect(INDEXABLE_PATHS).toHaveLength(12)
+    expect(INDEXABLE_PATHS).toHaveLength(22)
     expect(INDEXABLE_PATHS).toContain('/en')
     expect(INDEXABLE_PATHS).toContain('/en/acezone/tos')
     expect(INDEXABLE_PATHS).toContain('/proyectos/jauntjar')
     expect(INDEXABLE_PATHS).toContain('/en/projects/basuraleza')
+    for (const id of [
+      'wattly',
+      'tvradar',
+      'duellum',
+      'uploadimg',
+      'uploadimg-desktop',
+    ] as const) {
+      expect(INDEXABLE_PATHS).toContain(`/proyectos/${id}`)
+      expect(INDEXABLE_PATHS).toContain(`/en/projects/${id}`)
+    }
     expect(INDEXABLE_PATHS).not.toContain('/proyectos/solutec')
     expect(INDEXABLE_PATHS).not.toContain('/en/projects/solutec')
     expect(xml).not.toMatch(/solutec/i)
@@ -98,6 +108,16 @@ describe('production site discovery', () => {
       '/en/projects/todo-lux',
       '/proyectos/basuraleza',
       '/en/projects/basuraleza',
+      '/proyectos/wattly',
+      '/en/projects/wattly',
+      '/proyectos/tvradar',
+      '/en/projects/tvradar',
+      '/proyectos/duellum',
+      '/en/projects/duellum',
+      '/proyectos/uploadimg',
+      '/en/projects/uploadimg',
+      '/proyectos/uploadimg-desktop',
+      '/en/projects/uploadimg-desktop',
     ] as const) {
       expect(PAGE_LAST_MODIFIED[path]).toBe('2026-10-22')
     }

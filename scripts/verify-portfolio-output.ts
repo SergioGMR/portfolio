@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { access, readFile } from 'node:fs/promises'
 
 import {
@@ -861,15 +861,14 @@ export async function verifyPageOutput(
     : path.includes('/wattly/')
       ? 'wattly'
       : null
-  const project = PROFESSIONAL_PROFILE.projects.find(
-    (project) =>
-      project.kind === 'case-study' && path.endsWith(`/${project.id}`),
+  const project = PROFESSIONAL_PROFILE.projects.find((project) =>
+    path.endsWith(`/${project.id}`),
   )
   const metadata = isHome
     ? PAGE_METADATA.home[language]
     : app
       ? PAGE_METADATA[app][language]
-      : project?.kind === 'case-study'
+      : project
         ? createCaseStudyMetadata(project)[language]
         : null
   if (!metadata) throw new Error(`unknown indexable route: ${path}`)
@@ -887,7 +886,7 @@ export async function verifyPageOutput(
     width: '1200',
     height: '630',
   }
-  if (project?.kind === 'case-study') {
+  if (project) {
     const declared = snapshot.openGraphContents['og:image']?.[0] ?? ''
     if (!/^https:\/\/sgmr\.dev\/_astro\/[^/]+\.webp$/.test(declared))
       throw new Error(
@@ -909,6 +908,10 @@ export async function verifyPageOutput(
     )
       throw new Error(
         `social card dimensions: ${path} meta declares ${metaSize.join('x')} but the file is ${size.width}x${size.height}`,
+      )
+    if (size.width !== 1200 || size.height !== 630)
+      throw new Error(
+        `social card dimensions: ${path} must be 1200x630, got ${size.width}x${size.height}`,
       )
     card = {
       url: declared,
@@ -1001,10 +1004,7 @@ export async function verifyPageOutput(
   if (isHome) {
     await verifyHtmlOutput(html, language)
     for (const project of PROFESSIONAL_PROFILE.projects) {
-      const href =
-        project.kind === 'case-study'
-          ? getAlternatePaths(`/proyectos/${project.id}`)[language]
-          : project.evidenceUrl
+      const href = getAlternatePaths(`/proyectos/${project.id}`)[language]
       if (!snapshot.hrefs.includes(href))
         throw new Error(`project discovery link: ${path} ${project.id}`)
     }
@@ -1019,7 +1019,7 @@ export async function verifyPageOutput(
       'visible location',
     )
   }
-  if (project?.kind === 'case-study') {
+  if (project) {
     const text = snapshot.activeText.replace(/\s+/g, ' ')
     for (const field of [
       'problem',
@@ -1032,6 +1032,8 @@ export async function verifyPageOutput(
         project[field][language],
         `case-study ${field}: ${path}`,
       )
+    for (const task of project.tasks[language])
+      assertIncludes(text, task, `case-study task: ${path}`)
     for (const technology of project.technologies)
       assertIncludes(text, technology, `case-study technology: ${path}`)
     if (!snapshot.hrefs.includes(project.evidenceUrl))
@@ -1041,6 +1043,505 @@ export async function verifyPageOutput(
     throw new Error(`contact link: ${path}`)
   if (!JSON.stringify(metadata.schema).includes(PERSON_ID))
     throw new Error(`stable person identity: ${path}`)
+  await verifyHeadPreamble(html, path)
+  await verifyContentSecurityPolicy(html, path)
+}
+
+// The HTML spec needs the encoding declaration within the first 1024 bytes of
+// the document, and the preload and theme script ahead of it would push it out.
+const HEAD_PREAMBLE_LIMIT = 1024
+const HTML_NON_WHITESPACE = /[^ \t\n\f\r]/
+// What survives of everything before <head> once `sanitizingRewriter` has run:
+// HTML whitespace and, optionally, the bare <html> tag.
+const SANITIZED_PRELUDE = /^[ \t\n\f\r]*(?:<html\s*\/?>[ \t\n\f\r]*)?$/i
+const END_TAG = /<\/([a-z][^\s/>]*)/gi
+
+// Marks where lol-html sees the first <head> (and the end of the charset meta),
+// so what precedes it can be measured. Random, so the markup cannot forge it.
+const headMarker = `<!--head-verifier-${randomUUID()}-->`
+const charsetMarker = `<!--charset-verifier-${randomUUID()}-->`
+
+// lol-html tokenizes like a browser, which a regex over the markup does not:
+// abrupt comments (`<!-->`), `--!>`, `</style x>`, `</style/>`, and `<`, `>` or
+// `<!--` inside attribute values all trip one up. This rewriter drops the
+// parts that hide or fake markup (comments, the doctype, every attribute and
+// the body of raw text elements and templates), so that whatever tags remain
+// in the output are exactly the ones a browser would see.
+function sanitizingRewriter(onText?: (text: string) => void): HTMLRewriter {
+  return new HTMLRewriter()
+    .onDocument({
+      doctype(doctype) {
+        doctype.remove()
+      },
+      comments(comment) {
+        comment.remove()
+      },
+      text(chunk) {
+        onText?.(chunk.text)
+      },
+    })
+    .on('*', {
+      element(element) {
+        for (const [name] of [...element.attributes])
+          element.removeAttribute(name)
+      },
+    })
+    .on('script, style, title, template', {
+      element(element) {
+        element.setInnerContent('')
+      },
+    })
+}
+
+export async function verifyHeadPreamble(
+  html: string,
+  label: string,
+): Promise<void> {
+  const fail = (reason: string): never => {
+    throw new Error(`head preamble (${label}): ${reason}`)
+  }
+  // Pass 1: only whitespace, comments, the doctype and a bare <html> may come
+  // before <head>. Anything else (text, an element, a stray end tag, U+FEFF)
+  // makes a browser start the body early, so the later head, and the CSP meta
+  // in it, ends up ignored.
+  let headFound = false
+  let textBeforeHead = false
+  const sanitized = await sanitizingRewriter((text) => {
+    if (!headFound && HTML_NON_WHITESPACE.test(text)) textBeforeHead = true
+  })
+    .on('head', {
+      element(element) {
+        if (headFound) return
+        headFound = true
+        element.before(headMarker, { html: true })
+      },
+    })
+    .transform(new Response(html))
+    .text()
+  if (!headFound) return fail('missing <head>')
+  if (
+    textBeforeHead ||
+    !SANITIZED_PRELUDE.test(sanitized.slice(0, sanitized.indexOf(headMarker)))
+  )
+    return fail(
+      'only whitespace and comments may sit between the doctype, <html> and <head>',
+    )
+
+  // Pass 2, on the untouched markup: the first element in head, the byte
+  // offset of its end, and the charset and viewport metas in head.
+  let seenHead = false
+  let inHead = false
+  let textBeforeFirst = false
+  let first: { tag: string; attributes: [string, string][] } | undefined
+  let charsets = 0
+  let viewports = 0
+  const measured = await new HTMLRewriter()
+    .onDocument({
+      text(chunk) {
+        if (seenHead && !first && HTML_NON_WHITESPACE.test(chunk.text))
+          textBeforeFirst = true
+      },
+    })
+    .on('*', {
+      element(element) {
+        const tag = element.tagName.toLowerCase()
+        if (tag === 'head' && !seenHead) {
+          seenHead = true
+          inHead = true
+          element.onEndTag(() => {
+            inHead = false
+          })
+          return
+        }
+        if (!seenHead || first) return
+        first = { tag, attributes: [...element.attributes] }
+        if (tag === 'meta') element.after(charsetMarker, { html: true })
+      },
+    })
+    .on('meta', {
+      element(element) {
+        if (!inHead) return
+        if (element.hasAttribute('charset')) charsets += 1
+        if (element.getAttribute('name')?.toLowerCase() === 'viewport')
+          viewports += 1
+      },
+    })
+    .transform(new Response(html))
+    .text()
+  const [charsetAttribute] = first?.attributes ?? []
+  if (
+    textBeforeFirst ||
+    first?.tag !== 'meta' ||
+    first.attributes.length !== 1 ||
+    charsetAttribute?.[0].toLowerCase() !== 'charset' ||
+    charsetAttribute[1].toLowerCase() !== 'utf-8'
+  )
+    return fail('the first element in head must be <meta charset="utf-8">')
+  const end = Buffer.byteLength(
+    measured.slice(0, measured.indexOf(charsetMarker)),
+  )
+  if (end > HEAD_PREAMBLE_LIMIT)
+    fail(
+      `the charset meta must end within the first ${HEAD_PREAMBLE_LIMIT} bytes, it ends at byte ${end}`,
+    )
+  if (charsets !== 1) fail(`expected exactly one charset meta, got ${charsets}`)
+  if (viewports !== 1)
+    fail(`expected exactly one viewport meta, got ${viewports}`)
+}
+
+const CSP_REQUIRED_DIRECTIVES = [
+  ['default-src', "'self'"],
+  ['img-src', "'self'"],
+  ['object-src', "'none'"],
+  ['base-uri', "'self'"],
+  ['form-action', "'self'"],
+] as const
+const CSP_HASH_ALGORITHMS = ['sha256', 'sha384', 'sha512'] as const
+const CSP_HASH_SOURCE = /^'sha(?:256|384|512)-[A-Za-z0-9+/]+={0,2}'$/
+// The only sources any directive may list: the config uses nothing else.
+const CSP_SELF_OR_NONE = new Set(["'self'", "'none'"])
+// Not used by the config, so they are rejected outright instead of being held
+// to the same allowlist: a stray `*-elem`/`*-attr` overrides `script-src` and
+// `style-src` for elements or attributes.
+const CSP_FORBIDDEN_DIRECTIVES = new Set([
+  'script-src-elem',
+  'script-src-attr',
+  'style-src-elem',
+  'style-src-attr',
+])
+// What may precede the CSP meta in head. Any other start tag or text makes a
+// browser close head implicitly and move the meta into body, which ignores it.
+const HEAD_PRE_POLICY_ELEMENTS = new Set([
+  'meta',
+  'link',
+  'title',
+  'script',
+  'style',
+  'noscript',
+  'template',
+])
+// End tags a browser handles in head; any other one closes it early or is
+// reprocessed in body (`</body>`, `</html>`, `</br>`), so the CSP meta after it
+// would be ignored.
+const HEAD_PRE_POLICY_END_TAGS = new Set([
+  'title',
+  'script',
+  'style',
+  'noscript',
+  'template',
+])
+const VOID_ELEMENTS = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+])
+// Script types a browser executes: `module` and the HTML JavaScript MIME types.
+const EXECUTABLE_SCRIPT_TYPE =
+  /^(?:module|(?:text|application)\/(?:x-)?(?:java|ecma|j|live)script(?:1\.\d)?)$/
+// Data blocks that `script-src` still governs, so inline ones need a hash.
+const HASHED_DATA_SCRIPT_TYPES = new Set(['importmap', 'speculationrules'])
+
+type ScriptKind = 'executable' | 'hashed-data' | 'data'
+
+function classifyScriptType(type: string | null): ScriptKind {
+  // Trimming covers the HTML whitespace set; parameters are ignored so that
+  // `text/javascript; charset=utf-8` is never treated as inert data.
+  const essence = (type ?? '').split(';')[0]!.trim().toLowerCase()
+  if (essence === '' || EXECUTABLE_SCRIPT_TYPE.test(essence))
+    return 'executable'
+  return HASHED_DATA_SCRIPT_TYPES.has(essence) ? 'hashed-data' : 'data'
+}
+
+function cspHashes(content: string): string[] {
+  return CSP_HASH_ALGORITHMS.map(
+    (algorithm) =>
+      `'${algorithm}-${createHash(algorithm).update(content, 'utf8').digest('base64')}'`,
+  )
+}
+
+// Resolve like a browser: it strips tabs and newlines and reads `\` as `/`, so
+// `/\evil.com/x.js` is cross-origin even though it starts with a slash.
+function isSameOriginUrl(src: string): boolean {
+  try {
+    return new URL(src, EXPECTED_SITE_URL).origin === EXPECTED_SITE_URL
+  } catch {
+    return false
+  }
+}
+
+// Marks where lol-html sees the CSP meta, so what precedes it can be scanned.
+const policyMarker = `<!--csp-verifier-${randomUUID()}-->`
+
+// What is left of the head before the CSP meta, minus anything a browser reads
+// as comment or raw text, may hold only end tags that head itself handles.
+async function findStrayEndTag(
+  beforePolicy: string,
+): Promise<string | undefined> {
+  const sanitized = await sanitizingRewriter()
+    .transform(new Response(beforePolicy))
+    .text()
+  for (const match of sanitized.matchAll(END_TAG)) {
+    const tag = match[1]!.toLowerCase()
+    if (!HEAD_PRE_POLICY_END_TAGS.has(tag)) return tag
+  }
+  return undefined
+}
+
+// Astro emits the policy as a meta tag, so the browser enforces it only for
+// content that follows it. `is:inline` scripts are not hashed by Astro: this
+// check is what keeps the hashes in `astro.config.ts` aligned with the output.
+export async function verifyContentSecurityPolicy(
+  html: string,
+  label: string,
+): Promise<void> {
+  const fail = (reason: string): never => {
+    throw new Error(`CSP (${label}): ${reason}`)
+  }
+  const policies: { content: string; inHead: boolean }[] = []
+  const executableBeforePolicy: { inline: boolean }[] = []
+  const executableScripts: { inline: boolean }[] = []
+  const inlineScripts: string[] = []
+  const inlineStyles: string[] = []
+  const eventHandlers: string[] = []
+  const styleAttributes: string[] = []
+  const externalScripts: string[] = []
+  let inertDepth = 0
+  let headDepth = 0
+  // Open elements inside head, so text is judged only when it is head's own.
+  let headChildDepth = 0
+  // First thing before the CSP meta that makes a browser close head early.
+  let headViolation: string | undefined
+  let activeText: string[] | undefined
+
+  // An element keeps only one end-tag callback, so the `*` handler (registered
+  // first) owns it and the specific handlers below add theirs through `onEnd`.
+  let endCallbacks: (() => void)[] = []
+  const onEnd = (callback: () => void) => {
+    endCallbacks.push(callback)
+  }
+
+  const rewriter = new HTMLRewriter()
+    .on('*', {
+      element(element) {
+        const tag = element.tagName.toLowerCase()
+        const callbacks: (() => void)[] = []
+        endCallbacks = callbacks
+        if (!VOID_ELEMENTS.has(tag) && !element.selfClosing)
+          element.onEndTag(() => {
+            for (const callback of callbacks) callback()
+          })
+        // A <head> opening head is the document's own; one nested in it is not.
+        const nestedInHead = headDepth > 0
+        if (nestedInHead && inertDepth === 0 && policies.length === 0) {
+          if (!HEAD_PRE_POLICY_ELEMENTS.has(tag))
+            headViolation ??= `<${tag}> is not allowed in head before the CSP meta`
+          // `<title/>` is an empty element to lol-html but opens RCDATA in a
+          // browser, which then swallows the CSP meta as text.
+          else if (element.selfClosing && !VOID_ELEMENTS.has(tag))
+            headViolation ??= `<${tag}/> uses self-closing syntax on a non-void element before the CSP meta`
+          // Loaded before the policy applies, so it must stay on this origin.
+          else if (tag === 'link') {
+            const href = element.getAttribute('href')
+            // lol-html reads the value raw, a browser decodes `&#58;` and the like.
+            if (href?.includes('&'))
+              headViolation ??= `<link href> before the CSP meta must not contain '&' (character references): ${href}`
+            else if (href !== null && !isSameOriginUrl(href))
+              headViolation ??= `cross-origin <link> before the CSP meta: ${href}`
+          }
+        }
+        if (nestedInHead && !VOID_ELEMENTS.has(tag)) {
+          headChildDepth += 1
+          onEnd(() => {
+            headChildDepth -= 1
+          })
+        }
+        for (const [name] of element.attributes) {
+          if (/^on/i.test(name))
+            eventHandlers.push(`<${element.tagName} ${name}>`)
+          else if (name.toLowerCase() === 'style')
+            styleAttributes.push(`<${element.tagName}>`)
+        }
+      },
+    })
+    .on('template, noscript', {
+      element() {
+        inertDepth += 1
+        onEnd(() => {
+          inertDepth -= 1
+        })
+      },
+    })
+    .on('head', {
+      element() {
+        headDepth += 1
+        onEnd(() => {
+          headDepth -= 1
+        })
+      },
+    })
+    .on('img, source, image', {
+      element(element) {
+        for (const name of ['src', 'srcset', 'href'])
+          if (/(?:^|[\s,])data:/i.test(element.getAttribute(name) ?? ''))
+            fail(
+              `data: URI in <${element.tagName} ${name}> (img-src is 'self')`,
+            )
+      },
+    })
+    .on('head', {
+      text(chunk) {
+        if (
+          headDepth === 1 &&
+          headChildDepth === 0 &&
+          policies.length === 0 &&
+          HTML_NON_WHITESPACE.test(chunk.text)
+        )
+          headViolation ??= 'text in head before the CSP meta'
+      },
+    })
+    .on('meta', {
+      element(element) {
+        if (
+          element.getAttribute('http-equiv')?.toLowerCase() !==
+          'content-security-policy'
+        )
+          return
+        // A meta inside <template> or <noscript> is inert: no policy applies.
+        if (inertDepth > 0) return
+        policies.push({
+          content: element.getAttribute('content') ?? '',
+          inHead: headDepth > 0,
+        })
+        if (policies.length === 1) {
+          executableBeforePolicy.push(...executableScripts)
+          element.before(policyMarker, { html: true })
+        }
+      },
+    })
+    .on('script', {
+      element(element) {
+        const src = element.getAttribute('src')
+        if (src !== null && !isSameOriginUrl(src)) externalScripts.push(src)
+        if (inertDepth > 0) return
+        const kind = classifyScriptType(element.getAttribute('type'))
+        if (kind === 'data') return
+        if (kind === 'executable')
+          executableScripts.push({ inline: src === null })
+        if (src !== null) return
+        const chunks: string[] = []
+        activeText = chunks
+        onEnd(() => {
+          inlineScripts.push(chunks.join(''))
+          activeText = undefined
+        })
+      },
+      text(chunk) {
+        activeText?.push(chunk.text)
+      },
+    })
+    .on('style', {
+      element() {
+        if (inertDepth > 0) return
+        const chunks: string[] = []
+        activeText = chunks
+        onEnd(() => {
+          inlineStyles.push(chunks.join(''))
+          activeText = undefined
+        })
+      },
+      text(chunk) {
+        activeText?.push(chunk.text)
+      },
+    })
+  const rewritten = await rewriter.transform(new Response(html)).text()
+
+  if (policies.length !== 1)
+    fail(
+      `expected exactly one content-security-policy meta, got ${policies.length}`,
+    )
+  const policy = policies[0]!
+  if (!policy.inHead) fail('CSP meta must be in head')
+  if (headViolation) fail(headViolation)
+  const strayEndTag = await findStrayEndTag(
+    rewritten.slice(0, rewritten.indexOf(policyMarker)),
+  )
+  if (strayEndTag)
+    fail(`</${strayEndTag}> end tag before the CSP meta is not allowed in head`)
+  // lol-html reads attribute values raw, a browser decodes character references.
+  if (policy.content.includes('&'))
+    fail("the CSP content must not contain '&' (character references)")
+  const beforePolicy = executableBeforePolicy
+  if (
+    beforePolicy.length > 1 ||
+    (beforePolicy.length === 1 && !beforePolicy[0]!.inline)
+  )
+    fail(
+      'executable scripts other than the first inline theme script run before the CSP meta',
+    )
+
+  const directives = new Map<string, string[]>()
+  for (const part of policy.content.split(';')) {
+    const [rawName, ...sources] = part.trim().split(/\s+/)
+    if (!rawName) continue
+    const name = rawName.toLowerCase()
+    // Browsers read only the first copy of a directive; a repeat is a mistake.
+    if (directives.has(name)) fail(`duplicate directive ${name}`)
+    directives.set(name, sources)
+  }
+  if (directives.has('frame-ancestors'))
+    fail('frame-ancestors is ignored in a meta tag; use a response header')
+  for (const [name, source] of CSP_REQUIRED_DIRECTIVES) {
+    if (directives.get(name)?.join(' ') !== source)
+      fail(`${name} must be exactly ${source}`)
+  }
+  for (const [name, sources] of directives) {
+    if (CSP_FORBIDDEN_DIRECTIVES.has(name))
+      fail(
+        `${name} is not allowed; it overrides ${name.replace(/-(?:elem|attr)$/, '')} and the config does not use it`,
+      )
+    for (const source of sources)
+      if (!CSP_SELF_OR_NONE.has(source) && !CSP_HASH_SOURCE.test(source))
+        fail(
+          `${name} may only list 'self', 'none' and hashes, got ${source} (no unsafe-inline, unsafe-eval, unsafe-hashes, wasm-unsafe-eval, wildcards, schemes or hosts)`,
+        )
+  }
+
+  const allowed = new Map<string, Set<string>>()
+  for (const name of ['script-src', 'style-src'] as const) {
+    const sources = directives.get(name)
+    if (!sources) return fail(`${name} is missing`)
+    if (!sources.includes("'self'")) fail(`${name} must allow 'self'`)
+    allowed.set(name, new Set(sources))
+  }
+  for (const body of inlineScripts)
+    if (!cspHashes(body).some((hash) => allowed.get('script-src')!.has(hash)))
+      fail(
+        `inline script hash missing from script-src: ${body.trim().slice(0, 60)}`,
+      )
+  for (const body of inlineStyles)
+    if (!cspHashes(body).some((hash) => allowed.get('style-src')!.has(hash)))
+      fail(
+        `inline style hash missing from style-src: ${body.trim().slice(0, 60)}`,
+      )
+  if (eventHandlers.length)
+    fail(
+      `inline event handler attribute is blocked: ${eventHandlers.join(', ')}`,
+    )
+  if (styleAttributes.length)
+    fail(`inline style attribute is blocked: ${styleAttributes.join(', ')}`)
+  if (externalScripts.length)
+    fail(`external script source: ${externalScripts.join(', ')}`)
 }
 
 export async function verifyNotFoundOutput(html: string): Promise<void> {
@@ -1056,6 +1557,8 @@ export async function verifyNotFoundOutput(html: string): Promise<void> {
     throw new Error(
       '404 discovery metadata: canonical, alternates and schema must be absent',
     )
+  await verifyHeadPreamble(html, '404')
+  await verifyContentSecurityPolicy(html, '404')
 }
 
 function sitemapError(reason: string, locations: string[] = []): never {

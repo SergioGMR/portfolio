@@ -4,6 +4,7 @@ import {
   type LanguageProficiency,
 } from './professional-profile'
 import {
+  AVAILABILITY,
   DEVELOPS,
   EXPERIENCE,
   HOME_LOCATION_WITH_COUNTRY,
@@ -52,6 +53,7 @@ const TEXT = {
       '¿Con qué tecnologías trabaja?',
       '¿Qué proyectos ha desarrollado?',
       '¿Qué idiomas habla?',
+      '¿Está disponible para nuevos proyectos?',
       '¿Cómo contactar con Sergio?',
     ],
     in: 'en',
@@ -62,6 +64,7 @@ const TEXT = {
       'Which technologies does he work with?',
       'What projects has he built?',
       'Which languages does he speak?',
+      'Is he available for new work?',
       'How can I contact Sergio?',
     ],
     in: 'in',
@@ -104,27 +107,35 @@ function describeEnglishLevels(
     .join(language === 'es' ? ', y ' : ', and ')
 }
 
+/** Year of the earliest experience in the profile; never a total of years. */
+function firstExperienceYear(): string {
+  const [earliest] = PROFESSIONAL_PROFILE.experiences
+    .map((experience) => experience.startDate)
+    .sort()
+  if (!earliest) throw new Error('The profile has no experience entries')
+  return earliest.slice(0, 4)
+}
+
 /**
  * Builds the visible FAQ for one language. Every fact comes from
- * `PROFESSIONAL_PROFILE` or from wording the site already shows; nothing about
- * availability, rates, seniority or native-level claims is added.
+ * `PROFESSIONAL_PROFILE` or from wording the site already shows (availability
+ * is the footer's `AVAILABILITY`); nothing about rates, seniority or
+ * native-level claims is added.
  */
 export function createProfileFaq(language: Language): ProfileFaqItem[] {
   const profile = PROFESSIONAL_PROFILE
-  const [who, technologies, projects, languages, contact] =
+  const [who, technologies, projects, languages, availability, contact] =
     TEXT[language].questions
-  const caseStudies = profile.projects.filter(
-    (project) => project.kind === 'case-study',
-  )
-  const showcases = profile.projects.filter(
-    (project) => project.kind === 'showcase',
-  )
+  // Every project is a case study with its own page.
+  const caseStudies = profile.projects
   const english = profile.languages[0]!
   const names = (list: readonly { title: Record<Language, string> }[]) =>
     joinList(
       list.map((project) => project.title[language]),
       language,
     )
+  const since = firstExperienceYear()
+  const homePath = getAlternatePaths('/')[language]
   const capabilities = profile.capabilities
     .map(
       (capability) =>
@@ -135,18 +146,20 @@ export function createProfileFaq(language: Language): ProfileFaqItem[] {
   const answers =
     language === 'es'
       ? {
-          who: `${profile.person.name} es ${ROLE_TITLE.es} con base en ${HOME_LOCATION_WITH_COUNTRY.es}. Desarrolla ${DEVELOPS.es} y ${EXPERIENCE.es}.`,
+          who: `${profile.person.name} es ${ROLE_TITLE.es} con base en ${HOME_LOCATION_WITH_COUNTRY.es}. Desarrolla ${DEVELOPS.es} y ${EXPERIENCE.es}. Su trayectoria profesional comienza en ${since}.`,
           technologies: `Sus áreas de trabajo y las tecnologías que usa en cada una: ${capabilities}.`,
-          projects: `Tiene casos de estudio documentados: ${names(caseStudies)}. En el portfolio también muestra otros proyectos: ${names(showcases)}.`,
+          projects: `Tiene casos de estudio documentados: ${names(caseStudies)}.`,
           languages: `Habla español e ${english.name.es.toLowerCase()}. Su nivel de ${english.name.es.toLowerCase()} es ${describeEnglishLevels(english.levels, 'es')}.`,
+          availability: `Sí. ${AVAILABILITY.es}: puedes proponerle un proyecto o hablar de una oportunidad profesional.`,
           contact:
             'Puedes escribirle por email o por LinkedIn para proponerle un proyecto o hablar de una oportunidad profesional.',
         }
       : {
-          who: `${profile.person.name} is a ${ROLE_TITLE.en} based in ${HOME_LOCATION_WITH_COUNTRY.en}. He develops ${DEVELOPS.en} and ${EXPERIENCE.en}.`,
+          who: `${profile.person.name} is a ${ROLE_TITLE.en} based in ${HOME_LOCATION_WITH_COUNTRY.en}. He develops ${DEVELOPS.en} and ${EXPERIENCE.en}. His professional experience goes back to ${since}.`,
           technologies: `His areas of work and the technologies he uses in each: ${capabilities}.`,
-          projects: `He has documented case studies: ${names(caseStudies)}. The portfolio also shows other projects: ${names(showcases)}.`,
+          projects: `He has documented case studies: ${names(caseStudies)}.`,
           languages: `He speaks Spanish and ${english.name.en}. His ${english.name.en} level is ${describeEnglishLevels(english.levels, 'en')}.`,
+          availability: `Yes. ${AVAILABILITY.en}: you can propose a project or discuss a career opportunity.`,
           contact:
             'You can email him or message him on LinkedIn to propose a project or discuss a career opportunity.',
         }
@@ -177,6 +190,21 @@ export function createProfileFaq(language: Language): ProfileFaqItem[] {
       question: languages!,
       answer: answers.languages,
       links: [],
+    },
+    {
+      id: 'disponibilidad',
+      question: availability!,
+      answer: answers.availability,
+      links: [
+        {
+          label:
+            language === 'es'
+              ? 'Ir a la sección de contacto'
+              : 'Go to the contact section',
+          href: `${homePath}#contacto`,
+          external: false,
+        },
+      ],
     },
     {
       id: 'contacto',
