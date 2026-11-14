@@ -23,98 +23,89 @@ const contactOptions = [
     },
   },
 ]
+const profiles = [
+  { name: 'LinkedIn', href: LINKS.linkedin },
+  { name: 'GitHub', href: LINKS.github },
+]
 ---
 
-<section
-  id="contacto"
-  class="surface-panel text-foreground grid gap-6 rounded-3xl p-5 sm:p-7 lg:grid-cols-[1.1fr_1fr] lg:p-8"
->
-  <div data-animate="reveal" class="space-y-4">
-    <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-      <LangText es="Sobre mí" en="About" />
-    </p>
-    <h2 class="text-foreground text-2xl font-semibold sm:text-3xl">
-      <LangText
-        es="Hablemos de tu equipo o de tu producto."
-        en="Let’s talk about your team or your product."
-      />
-    </h2>
-    <p class="text-muted-foreground">
-      <LangText
-        es="¿Buscas un perfil técnico para tu equipo o apoyo para desarrollar un producto? Cuéntame qué necesitas."
-        en="Looking for a technical professional for your team or help developing a product? Tell me what you need."
-      />
-    </p>
-    <div
-      data-animate="reveal"
-      data-animate-delay="150ms"
-      class="bento-card text-muted-foreground rounded-2xl p-4 text-sm"
-    >
-      <LangText
-        es="Ubicado en Las Palmas, España. Experiencia freelance en backend, frontend y aplicaciones web y móviles."
-        en="Based in Las Palmas, Spain. Freelance experience across backend, frontend, and web and mobile applications."
-      />
-    </div>
-  </div>
-  <div
-    data-animate="reveal"
-    class="bento-card text-foreground rounded-2xl p-5 sm:p-6"
-  >
-    <p class="text-muted-foreground text-xs tracking-[0.25em] uppercase">
+<section id="contacto" class="min-w-0">
+  <div data-animate="reveal" class="pb-4 sm:pb-6">
+    <h2 class="font-display text-foreground flex items-baseline gap-3 text-[2.125rem] leading-none font-bold tracking-[-0.04em] sm:gap-[1.125rem] sm:text-[clamp(2.25rem,4vw,3.5rem)]">
+      <span
+        data-section-number
+        class="text-primary font-mono text-[0.8125rem] font-normal tracking-normal sm:text-sm"
+        aria-hidden="true"
+      >
+        05
+      </span>
       <LangText es="Contacto" en="Contact" />
-    </p>
-    <div class="mt-4 grid gap-3 sm:grid-cols-2">
-      {contactOptions.map((option) => (
-        <a
-          href={`${LINKS.mail}?subject=${encodeURIComponent(option.subject[locale])}`}
-          class="border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 inline-flex min-h-12 items-center justify-center rounded-xl border px-4 py-3 text-center text-sm font-semibold transition"
-        >
-          <LangText es={option.label.es} en={option.label.en} />
-        </a>
-      ))}
-    </div>
-    <div class="mt-4 space-y-3">
-      <div
-        data-animate="reveal"
-        data-animate-delay="0ms"
-        class="border-border bg-muted/30 text-foreground flex min-h-12 flex-col items-start justify-center gap-1 rounded-xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-      >
-        <span class="text-sm">
-          <LangText es="Email" en="Email" />
-        </span>
-        <a class="font-semibold break-all hover:underline" href={LINKS.mail}>
-          sergiogmr@icloud.com
-        </a>
+    </h2>
+  </div>
+
+  <div class="border-foreground min-w-0 border-t pt-6 sm:pt-10">
+    <a
+      data-animate="reveal"
+      data-contact-email
+      href={LINKS.mail}
+      class="font-display text-foreground hover:text-primary inline-flex min-h-11 max-w-full items-center text-[clamp(1.75rem,6.4vw,4.75rem)] leading-[1.05] font-bold tracking-[-0.04em] underline decoration-1 underline-offset-[0.14em] transition-colors"
+    >
+      sergiogmr@icloud.com
+    </a>
+
+    <div class="mt-8 grid min-w-0 gap-x-12 gap-y-8 sm:mt-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <div data-animate="reveal" class="min-w-0">
+        <p class="font-display text-foreground max-w-xl text-2xl leading-[1.15] font-semibold tracking-[-0.03em] sm:text-[1.75rem]">
+          <LangText
+            es="Hablemos de tu equipo o de tu producto."
+            en="Let’s talk about your team or your product."
+          />
+        </p>
+        <p class="text-foreground/85 mt-4 max-w-xl text-base leading-relaxed">
+          <LangText
+            es="¿Buscas un perfil técnico para tu equipo o apoyo para desarrollar un producto? Cuéntame qué necesitas."
+            en="Looking for a technical professional for your team or help developing a product? Tell me what you need."
+          />
+        </p>
+        <p class="text-muted-foreground mt-4 max-w-xl font-mono text-xs leading-relaxed sm:text-[0.8125rem]">
+          <LangText
+            es="Ubicado en Las Palmas, España. Experiencia freelance en backend, frontend y aplicaciones web y móviles."
+            en="Based in Las Palmas, Spain. Freelance experience across backend, frontend, and web and mobile applications."
+          />
+        </p>
       </div>
-      <div
-        data-animate="reveal"
-        data-animate-delay="80ms"
-        class="border-border bg-muted/30 text-foreground flex min-h-12 items-center justify-between rounded-xl border px-4 py-3"
-      >
-        <span class="text-sm">LinkedIn</span>
-        <a
-          class="font-semibold hover:underline"
-          href={LINKS.linkedin}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          @sergiogmr
-        </a>
-      </div>
-      <div
-        data-animate="reveal"
-        data-animate-delay="160ms"
-        class="border-border bg-muted/30 text-foreground flex min-h-12 items-center justify-between rounded-xl border px-4 py-3"
-      >
-        <span class="text-sm">GitHub</span>
-        <a
-          class="font-semibold hover:underline"
-          href={LINKS.github}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          @sergiogmr
-        </a>
+
+      <div data-animate="reveal" data-animate-delay="80ms" class="min-w-0">
+        <div class="grid gap-2.5">
+          {contactOptions.map((option) => (
+            <a
+              href={`${LINKS.mail}?subject=${encodeURIComponent(option.subject[locale])}`}
+              class="border-foreground text-foreground hover:bg-foreground hover:text-background inline-flex min-h-13 items-center justify-between gap-4 border px-5 text-base font-semibold transition-colors after:content-['→'_/_'']"
+            >
+              <LangText es={option.label.es} en={option.label.en} />
+            </a>
+          ))}
+        </div>
+
+        <ul role="list" class="border-foreground mt-6 border-y">
+          {profiles.map((profile) => (
+            <li class="border-border not-first:border-t">
+              <a
+                href={profile.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group flex min-h-12 items-center justify-between gap-4 py-2"
+              >
+                <span class="text-muted-foreground font-mono text-xs tracking-wider uppercase">
+                  {profile.name}
+                </span>
+                <span class="text-foreground group-hover:text-primary font-semibold underline underline-offset-4 transition-colors group-hover:no-underline">
+                  @sergiogmr <span aria-hidden="true">↗</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   </div>

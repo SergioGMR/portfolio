@@ -4,7 +4,7 @@ import PageShell from '@/components/layout/PageShell.astro'
 import LangText from '@/components/LangText.astro'
 import { Image, getImage } from 'astro:assets'
 import { createCaseStudyMetadata } from '@/lib/page-metadata'
-import { getLanguage, SITE_URL } from '@/lib/site'
+import { getAlternatePaths, getLanguage, SITE_URL } from '@/lib/site'
 import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
 import jauntjarImg from '@/assets/experience/jauntjar.avif'
 import todoLuxImg from '@/assets/experience/todo-lux.avif'
@@ -63,6 +63,20 @@ const card = await getImage({
   quality: 80,
 })
 const metadata = createCaseStudyMetadata(project)
+const projects = PROFESSIONAL_PROFILE.projects
+const position = projects.findIndex(({ id }) => id === project.id)
+const total = projects.length
+const pad = (value: number) => String(value).padStart(2, '0')
+// Neighbours follow the order of the home list. The ends have no wrap-around:
+// the first case has no previous link and the last has no next link.
+const neighbours = [
+  { direction: 'prev', project: projects[position - 1] },
+  { direction: 'next', project: projects[position + 1] },
+] as const
+const neighbourLabels = {
+  prev: { es: 'Proyecto anterior', en: 'Previous project' },
+  next: { es: 'Siguiente proyecto', en: 'Next project' },
+} as const
 const sections = [
   { es: 'Contexto', en: 'Context', text: project.problem },
   {
@@ -82,105 +96,184 @@ const sections = [
   ogImageWidth={CARD.width}
   ogImageHeight={CARD.height}
 >
-  <article class="surface-panel mx-auto w-full max-w-4xl rounded-3xl p-5 sm:p-8 lg:p-10">
+  <article class="min-w-0">
     <nav
       aria-label={locale === 'es' ? 'Ruta de navegación' : 'Breadcrumb'}
-      class="text-muted-foreground text-sm"
+      class="text-muted-foreground flex flex-wrap items-center gap-x-2 font-mono text-xs tracking-wider uppercase"
     >
       <a
         href={`${home}#proyectos`}
-        class="hover:text-primary underline underline-offset-4"
+        class="text-primary inline-flex min-h-11 items-center underline underline-offset-4 hover:no-underline"
       >
         <LangText es="Proyectos" en="Projects" />
       </a>
-      <span aria-hidden="true"> / </span>
+      <span aria-hidden="true">/</span>
       <span aria-current="page">{project.title[locale]}</span>
     </nav>
-    <p class="text-primary mt-8 text-xs tracking-[0.2em] uppercase">
-      <LangText es="Caso de estudio" en="Case study" />
-    </p>
-    <h1 class="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
-      {project.title[locale]}
-    </h1>
-    <p class="text-muted-foreground mt-4">
-      <LangText
-        es="Por Sergio Morales Rodríguez"
-        en="By Sergio Morales Rodríguez"
+
+    <div class="mt-2 sm:mt-6">
+      <p class="text-primary font-mono text-xs font-medium tracking-wider uppercase">
+        <LangText es="Caso de estudio" en="Case study" />
+      </p>
+      <h1 class="font-display [font-variation-settings:'opsz'_96] text-foreground mt-4 max-w-[75rem] text-[clamp(2.5rem,6.4vw,5.5rem)] leading-[0.98] font-bold tracking-[-0.045em] text-balance">
+        {project.title[locale]}
+      </h1>
+    </div>
+
+    <div class="mt-8 grid min-w-0 gap-x-8 gap-y-4 sm:mt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <div class="text-muted-foreground font-mono text-xs leading-relaxed sm:text-[0.8125rem]">
+        <p>
+          <LangText
+            es="Por Sergio Morales Rodríguez"
+            en="By Sergio Morales Rodríguez"
+          />
+        </p>
+        <p data-case-position class="mt-1">
+          <LangText
+            es={`Proyecto ${pad(position + 1)} de ${pad(total)}`}
+            en={`Project ${pad(position + 1)} of ${pad(total)}`}
+          />
+        </p>
+      </div>
+      <Image
+        src={image}
+        alt={
+          locale === 'es'
+            ? `Captura de la interfaz de ${project.title.es}`
+            : `${project.title.en} interface screenshot`
+        }
+        width={1200}
+        height={640}
+        widths={[480, 800, 1200]}
+        sizes="(min-width: 1280px) 800px, (min-width: 1024px) 60vw, calc(100vw - 2rem)"
+        format="avif"
+        quality={80}
+        loading="eager"
+        decoding="async"
+        class="border-border h-auto w-full min-w-0 border"
       />
-    </p>
-    <Image
-      src={image}
-      alt={
-        locale === 'es'
-          ? `Captura de la interfaz de ${project.title.es}`
-          : `${project.title.en} interface screenshot`
-      }
-      width={1200}
-      height={640}
-      widths={[480, 800, 1200]}
-      sizes="(min-width: 1024px) 800px, calc(100vw - 4rem)"
-      format="avif"
-      quality={80}
-      loading="eager"
-      decoding="async"
-      class="media-frame mt-8 h-auto w-full rounded-2xl"
-    />
-    <div class="mt-8 grid gap-8">
-      {sections.map((section) => (
-        <section>
-          <h2 class="text-xl font-semibold">{section[locale]}</h2>
-          <p class="text-muted-foreground mt-3 leading-relaxed">
+    </div>
+
+    <div class="border-foreground mt-10 border-y sm:mt-14">
+      {sections.map((section, index) => (
+        <section class="border-border grid min-w-0 gap-x-8 gap-y-3 py-6 not-first:border-t sm:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          <h2 class="font-display text-foreground flex items-baseline gap-3 text-[1.625rem] leading-[1.1] font-semibold tracking-[-0.03em] sm:text-[1.75rem]">
+            <span
+              data-section-number
+              class="text-primary font-mono text-xs font-normal tracking-normal sm:text-sm"
+              aria-hidden="true"
+            >
+              {pad(index + 1)}
+            </span>
+            {section[locale]}
+          </h2>
+          <p
+            data-case-prose
+            class="text-foreground/85 max-w-[48ch] text-base leading-relaxed sm:text-[1.0625rem]"
+          >
             {section.text[locale]}
           </p>
         </section>
       ))}
-      <section>
-        <h2 class="text-xl font-semibold">
+      <section class="border-border grid min-w-0 gap-x-8 gap-y-3 border-t py-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <h2 class="font-display text-foreground flex items-baseline gap-3 text-[1.625rem] leading-[1.1] font-semibold tracking-[-0.03em] sm:text-[1.75rem]">
+          <span
+            data-section-number
+            class="text-primary font-mono text-xs font-normal tracking-normal sm:text-sm"
+            aria-hidden="true"
+          >
+            {pad(sections.length + 1)}
+          </span>
           <LangText es="Tareas concretas" en="Concrete tasks" />
         </h2>
-        <ul class="text-muted-foreground mt-3 list-disc space-y-2 pl-5 leading-relaxed">
+        <ul
+          data-case-prose
+          class="text-foreground/85 max-w-[48ch] list-disc space-y-2 pl-5 text-base leading-relaxed sm:text-[1.0625rem]"
+        >
           {project.tasks[locale].map((task) => (
             <li>{task}</li>
           ))}
         </ul>
       </section>
-      <section>
-        <h2 class="text-xl font-semibold">
+      <section class="border-border grid min-w-0 gap-x-8 gap-y-3 border-t py-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <h2 class="font-display text-foreground flex items-baseline gap-3 text-[1.625rem] leading-[1.1] font-semibold tracking-[-0.03em] sm:text-[1.75rem]">
+          <span
+            data-section-number
+            class="text-primary font-mono text-xs font-normal tracking-normal sm:text-sm"
+            aria-hidden="true"
+          >
+            {pad(sections.length + 2)}
+          </span>
           <LangText es="Tecnologías" en="Technologies" />
         </h2>
-        <ul class="mt-3 flex flex-wrap gap-2">
+        <ul
+          role="list"
+          class="text-muted-foreground flex max-w-[48ch] flex-wrap gap-x-6 gap-y-1.5 font-mono text-xs sm:text-[0.8125rem]"
+        >
           {project.technologies.map((technology) => (
-            <li class="tech-tag rounded-md px-3 py-1 font-mono text-xs">
-              {technology}
-            </li>
+            <li>{technology}</li>
           ))}
         </ul>
       </section>
     </div>
-    <div class="border-border mt-10 flex flex-wrap gap-3 border-t pt-6">
+
+    <div
+      data-case-actions
+      class="mt-8 flex flex-col gap-2.5 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-3"
+    >
       <a
         href={project.evidenceUrl}
         target="_blank"
         rel="noopener noreferrer"
-        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex min-h-11 items-center rounded-full px-5 py-2 text-sm font-semibold"
+        class="bg-foreground text-background hover:bg-primary hover:text-primary-foreground inline-flex min-h-12 items-center justify-center gap-2.5 px-6 text-base font-semibold transition-colors"
       >
-        <LangText es="Ver proyecto" en="View project" />{' '}
-        <span class="ml-2" aria-hidden="true">
-          ↗
-        </span>
+        <LangText es="Ver proyecto" en="View project" />
+        <span aria-hidden="true">↗</span>
       </a>
       <a
         href={PROFESSIONAL_PROFILE.links.mail}
-        class="border-border hover:border-primary inline-flex min-h-11 items-center rounded-full border px-5 py-2 text-sm font-medium"
+        class="border-foreground text-foreground hover:bg-foreground hover:text-background inline-flex min-h-12 items-center justify-center border px-6 text-base font-semibold transition-colors"
       >
         <LangText es="Contactar con Sergio" en="Contact Sergio" />
       </a>
       <a
         href={`${home}#proyectos`}
-        class="text-primary inline-flex min-h-11 items-center px-2 text-sm underline underline-offset-4"
+        class="text-primary inline-flex min-h-11 items-center justify-center text-base underline underline-offset-4 hover:no-underline"
       >
         <LangText es="Ver todos los proyectos" en="View all projects" />
       </a>
     </div>
+
+    <nav
+      data-case-nav
+      aria-label={locale === 'es' ? 'Más proyectos' : 'More projects'}
+      class="border-foreground mt-10 grid border-y sm:mt-14 sm:grid-cols-2"
+    >
+      {neighbours.map(({ direction, project: neighbour }) =>
+        neighbour ? (
+          <a
+            data-case-nav-link={direction}
+            href={getAlternatePaths(`/proyectos/${neighbour.id}`)[locale]}
+            class:list={[
+              'group flex min-h-11 min-w-0 flex-col gap-2 py-5 sm:py-7',
+              direction === 'prev' && 'sm:pr-8',
+              direction === 'next' && 'sm:col-start-2 sm:pl-8 sm:text-right',
+              direction === 'next' &&
+                position > 0 &&
+                'border-border border-t sm:border-t-0 sm:border-l',
+            ]}
+          >
+            <span class="text-muted-foreground font-mono text-xs tracking-wider uppercase">
+              {direction === 'prev' && <span aria-hidden="true">← </span>}
+              {neighbourLabels[direction][locale]}:
+              {direction === 'next' && <span aria-hidden="true"> →</span>}
+            </span>{' '}
+            <span class="font-display text-foreground group-hover:text-primary text-2xl leading-[1.1] font-semibold tracking-[-0.03em] transition-colors sm:text-[1.75rem]">
+              {neighbour.title[locale]}
+            </span>
+          </a>
+        ) : null,
+      )}
+    </nav>
   </article>
 </PageShell>

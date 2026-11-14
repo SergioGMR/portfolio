@@ -13,10 +13,10 @@ const options = (['light', 'dark', 'system'] as const).map((value) => ({
 ---
 
 <div class="flex items-center">
-  <label class="inline-flex items-center text-xs sm:hidden">
+  <label class="inline-flex items-center sm:hidden">
     <span class="sr-only">{locale === 'es' ? 'Tema' : 'Theme'}</span>
     <select
-      class="border-border bg-background text-foreground focus:ring-primary/50 min-h-10 max-w-[5.25rem] rounded-lg border px-2 text-xs focus:ring-2 focus:outline-none"
+      class="border-border bg-background text-foreground focus-visible:outline-ring min-h-11 max-w-[5.5rem] border px-2 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-2"
       aria-label={locale === 'es' ? 'Seleccionar tema' : 'Select theme'}
       data-theme-select
     >
@@ -26,11 +26,11 @@ const options = (['light', 'dark', 'system'] as const).map((value) => ({
     </select>
   </label>
 
-  <div class="border-border bg-surface/60 hidden items-center gap-1 rounded-full border p-1 text-xs sm:inline-flex">
+  <div class="border-border divide-border hidden items-center divide-x border font-mono text-xs sm:inline-flex">
     {options.map((opt) => (
       <button
         type="button"
-        class="hover:bg-muted focus-visible:outline-primary/70 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:border-primary min-h-8 cursor-pointer rounded-full px-2.5 py-1 transition focus-visible:outline focus-visible:outline-2 data-[active=true]:border data-[active=true]:shadow-sm"
+        class="hover:bg-muted focus-visible:outline-ring data-[active=true]:bg-foreground data-[active=true]:text-background min-h-11 cursor-pointer px-3 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2"
         data-theme-option={opt.value}
         aria-pressed="false"
         aria-label={
@@ -50,9 +50,9 @@ const options = (['light', 'dark', 'system'] as const).map((value) => ({
 
   const THEME_KEY = 'theme'
   const normalizeTheme = (value: string | null): ThemePreference =>
-    value === 'light' || value === 'system' ? value : 'dark'
+    value === 'light' || value === 'dark' ? value : 'system'
 
-  let preference: ThemePreference = 'dark'
+  let preference: ThemePreference = 'system'
   try {
     preference = normalizeTheme(localStorage.getItem(THEME_KEY))
   } catch {

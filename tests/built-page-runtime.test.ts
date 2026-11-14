@@ -1,4 +1,8 @@
-import type { HTMLButtonElement, HTMLSelectElement } from 'happy-dom'
+import type {
+  Element as HappyElement,
+  HTMLButtonElement,
+  HTMLSelectElement,
+} from 'happy-dom'
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { existsSync, globSync, readdirSync, readFileSync } from 'node:fs'
 import { Window } from 'happy-dom'
@@ -9,7 +13,10 @@ import {
 } from '../src/lib/csp'
 import { createProfileFaq } from '../src/lib/profile-faq'
 import { INDEXABLE_PATHS } from '../src/lib/site'
-import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
+import {
+  PROFESSIONAL_PROFILE,
+  sortExperiencesByStartDate,
+} from '../src/lib/professional-profile'
 
 const root = new URL('../', import.meta.url)
 const windows: Window[] = []
@@ -53,7 +60,11 @@ function openBuiltPage(
   browser.localStorage.setItem('language', preferredLanguage)
   configureBrowser?.(browser)
   const artifact =
-    url.pathname === '/' ? 'dist/index.html' : `dist${url.pathname}/index.html`
+    url.pathname === '/'
+      ? 'dist/index.html'
+      : url.pathname.endsWith('.html')
+        ? `dist${url.pathname}`
+        : `dist${url.pathname}/index.html`
   browser.document.write(readFileSync(new URL(artifact, root), 'utf8'))
   const title = browser.document.title
   const description = browser.document
@@ -423,7 +434,9 @@ describe('compiled Solutec removal and retained Tecandu experience', () => {
       expect(experience).toBeDefined()
       expect(experience?.querySelectorAll('a').length).toBe(0)
       expect(
-        experience?.querySelector('p.text-primary')?.textContent.trim(),
+        experience
+          ?.querySelector('[data-experience-company]')
+          ?.textContent.trim(),
       ).toBe(company)
       expect(experience?.textContent).toContain(dates)
       expect(experience?.textContent).toContain(responsibility)
@@ -451,11 +464,8 @@ describe('compiled Solutec removal and retained Tecandu experience', () => {
       expect(
         browser.document.querySelectorAll('#proyectos a[target="_blank"]'),
       ).toHaveLength(0)
-      expect(desktopCard?.querySelector('img')?.getAttribute('alt')).toBe(
-        locale === 'es'
-          ? 'Captura de la interfaz de UploadIMG - Desktop'
-          : 'UploadIMG - Desktop interface screenshot',
-      )
+      // The thumbnail is decorative: the heading in the same link names it.
+      expect(desktopCard?.querySelector('img')?.getAttribute('alt')).toBe('')
     })
   }
 })
@@ -463,7 +473,15 @@ describe('compiled Solutec removal and retained Tecandu experience', () => {
 describe('compiled portfolio content and contact choices', () => {
   const normalize = (text: string | undefined | null) =>
     text?.replace(/\s+/g, ' ').trim()
-  for (const [path, locale, headline, intro, choices, subjects, footer] of [
+  for (const [
+    path,
+    locale,
+    headline,
+    intro,
+    choices,
+    subjects,
+    retiredFooterCopy,
+  ] of [
     [
       '/',
       'es',
@@ -520,21 +538,40 @@ describe('compiled portfolio content and contact choices', () => {
           return href.searchParams.get('subject')
         }),
       ).toEqual([...subjects])
+      // The footer is minimal now: the call to action lives in the contact section.
       expect(
         normalize(document.querySelector('footer')?.textContent),
-      ).toContain(footer)
+      ).not.toContain(retiredFooterCopy)
       expect(document.body.textContent).not.toMatch(
         /10\+ Years|Clean Hexagonal|Hexagonal/,
       )
-      const specialty = document.querySelector(
-        '.code-panel > div:last-child > div:first-child',
+      // The three facts of the retired code bento live in the hero facts strip.
+      const facts = Array.from(
+        document.querySelectorAll('#inicio dl > div'),
+      ).map((fact) => [
+        normalize(fact.querySelector('dt')?.textContent),
+        normalize(fact.querySelector('dd')?.textContent),
+      ])
+      expect(facts).toEqual(
+        locale === 'es'
+          ? [
+              ['Especialidad', 'Laravel'],
+              ['Enfoque', 'APIs & CI/CD'],
+              ['Ubicación', 'Las Palmas, España'],
+            ]
+          : [
+              ['Specialty', 'Laravel'],
+              ['Focus', 'APIs & CI/CD'],
+              ['Location', 'Las Palmas, Spain'],
+            ],
       )
-      expect(specialty?.querySelector('span.block')?.textContent.trim()).toBe(
-        locale === 'es' ? 'ESPECIALIDAD' : 'SPECIALTY',
+      expect(document.querySelector('.code-panel')).toBeNull()
+      const cv = document.querySelector(
+        `#inicio a[href="/sergio-morales-${locale}.pdf"]`,
       )
-      expect(specialty?.querySelector('.font-semibold')?.textContent).toBe(
-        'Laravel',
-      )
+      expect(cv?.getAttribute('target')).toBe('_blank')
+      expect(cv?.getAttribute('rel')).toBe('noopener noreferrer')
+      expect(document.body.textContent).not.toContain('TechLeadProfile')
     })
 
     test(`links capabilities to named cases and the stable Tecandu anchor at ${path}`, () => {
@@ -631,14 +668,21 @@ describe('compiled portfolio content and contact choices', () => {
       const home = locale === 'es' ? '/' : '/en'
       const path = `${locale === 'es' ? '/proyectos' : '/en/projects'}/${id}`
       const { browser: homepage } = openBuiltPage(home, locale)
-      const card = homepage.document.querySelector(
+      const row = homepage.document.querySelector(
         `#proyectos a[href="${path}"]`,
       )
-      expect(card?.querySelectorAll('p').length).toBe(2)
-      expect(normalize(card?.querySelectorAll('p')[1]?.textContent)).toBe(
+      // A row is the summary and a plain-text line of at most four technologies.
+      expect(row?.querySelectorAll('p').length).toBe(2)
+      expect(normalize(row?.querySelectorAll('p')[0]?.textContent)).toBe(
         summary,
       )
-      expect(normalize(card?.textContent)?.includes(detail)).toBe(false)
+      const project = PROFESSIONAL_PROFILE.projects.find(
+        (candidate) => candidate.id === id,
+      )!
+      expect(normalize(row?.querySelectorAll('p')[1]?.textContent)).toBe(
+        project.technologies.slice(0, 4).join(' · '),
+      )
+      expect(normalize(row?.textContent)?.includes(detail)).toBe(false)
       const {
         browser: casePage,
         title,
@@ -650,9 +694,6 @@ describe('compiled portfolio content and contact choices', () => {
       expect(article?.querySelectorAll('section ul li').length).toBeGreaterThan(
         3,
       )
-      const project = PROFESSIONAL_PROFILE.projects.find(
-        (candidate) => candidate.id === id,
-      )!
       expect(title).toContain(project.titleFocus[locale])
       expect(description).toContain(summary)
       expect(description).toContain(
@@ -823,7 +864,7 @@ describe('compiled localized theme controls', () => {
             dark ? 'dark' : 'light',
           )
         }
-        expectMode(failure === 'read' ? 'dark' : saved)
+        expectMode(failure === 'read' ? 'system' : saved)
         document
           .querySelector<HTMLButtonElement>('[data-theme-option="system"]')
           ?.click()
@@ -1023,7 +1064,12 @@ describe('compiled home headings and FAQ', () => {
         ', ',
       )
       expect(spans[1]?.className).toContain('block')
-      expect(spans[1]?.className).toContain('font-semibold')
+      expect(spans[1]?.className).toContain('font-display')
+      // Optical size is pinned so the headline width does not depend on the
+      // font size and the metric-matched fallback stays valid at every width.
+      expect(spans[1]?.className).toContain(
+        "[font-variation-settings:'opsz'_96]",
+      )
       // The separator is only for assistive technology and must not add spaces.
       expect(h1.textContent).toContain('Rodríguez, ')
       expect(h1.textContent).not.toMatch(/Rodríguez\s+,/)
@@ -1035,34 +1081,38 @@ describe('compiled home headings and FAQ', () => {
     test(`labels Education and Languages with h2 and their values with h3 at ${path}`, () => {
       const { browser } = openBuiltPage(path, locale)
       const document = browser.document
-      const cards = Array.from(document.querySelectorAll('.bento-card')).filter(
-        (card) =>
-          [education[0], languageLabel[0]].some(
-            (label) =>
-              label === normalize(card.querySelector('h2')?.textContent),
-          ),
+      const section = document.querySelector('main > section:not([id])')!
+      const blocks = Array.from(
+        section.querySelectorAll('[data-compact-block]'),
       )
-      expect(cards).toHaveLength(2)
       expect(
-        cards.map((card) => [
-          normalize(card.querySelector('h2')?.textContent),
-          normalize(card.querySelector('h3')?.textContent),
-          card.querySelector('h2')?.className,
-          card.querySelector('h3')?.className,
+        blocks.map((block) => [
+          normalize(block.querySelector('h2')?.textContent),
+          normalize(block.querySelector('h3')?.textContent),
         ]),
       ).toEqual([
-        [
-          education[0],
-          education[1],
-          'text-muted-foreground text-xs tracking-[0.3em] uppercase',
-          'text-foreground mt-2 text-lg font-semibold tracking-tight sm:text-xl',
-        ],
-        [
-          languageLabel[0],
-          languageLabel[1],
-          'text-muted-foreground text-xs tracking-[0.3em] uppercase',
-          'text-foreground mt-2 text-lg font-semibold tracking-tight sm:text-xl',
-        ],
+        [education[0], education[1]],
+        [languageLabel[0], languageLabel[1]],
+      ])
+      // Mono uppercase labels like the rest of the index, no cards.
+      for (const block of blocks) {
+        expect(block.querySelector('h2')?.className).toContain('font-mono')
+        expect(block.querySelector('h2')?.className).toContain('uppercase')
+        expect(block.querySelector('h3')?.className).toContain('font-display')
+      }
+      expect(section.querySelector('.bento-card')).toBeNull()
+      // The five CEFR levels are a definition list, not boxed tiles.
+      const language = PROFESSIONAL_PROFILE.languages[0]!
+      expect(
+        Array.from(section.querySelectorAll('dl dd')).map((dd) =>
+          normalize(dd.textContent),
+        ),
+      ).toEqual([
+        language.levels.listening,
+        language.levels.reading,
+        language.levels.writing,
+        language.levels.spokenProduction,
+        language.levels.spokenInteraction,
       ])
     })
 
@@ -1087,7 +1137,12 @@ describe('compiled home headings and FAQ', () => {
         'H3',
         'H3',
       ])
-      expect(normalize(headings[0]!.textContent)).toBe(faqTitle)
+      // The decorative number precedes the title inside the h2.
+      expect(
+        normalize(
+          headings[0]!.querySelector('[data-lang-content]')?.textContent,
+        ),
+      ).toBe(faqTitle)
       expect(headings.slice(1).map((h) => normalize(h.textContent))).toEqual([
         ...questions,
       ])
@@ -1120,7 +1175,12 @@ describe('compiled home headings and FAQ', () => {
 
       // Answers are always visible text: no disclosure widget, no hidden node.
       expect(section!.querySelector('details, summary, [hidden]')).toBeNull()
-      expect(section!.querySelector('[aria-hidden="true"]')).toBeNull()
+      // Exactly one aria-hidden node: the decorative number inside the h2.
+      const hidden = Array.from(section!.querySelectorAll('[aria-hidden]'))
+      expect(hidden).toHaveLength(1)
+      expect(hidden[0]?.getAttribute('aria-hidden')).toBe('true')
+      expect(hidden[0]?.matches('h2 > [data-section-number]')).toBe(true)
+      expect(normalize(hidden[0]?.textContent)).toBe('04')
       expect(
         Array.from(section!.querySelectorAll('[data-lang-content]')).every(
           (node) => node.getAttribute('data-lang-content') === locale,
@@ -1141,19 +1201,89 @@ describe('compiled home headings and FAQ', () => {
       expect(document.documentElement.innerHTML).not.toContain('FAQPage')
     })
 
-    test(`orders the FAQ between the cards and contact on the grid at ${path}`, () => {
+    test(`stacks the home sections in one column in nav order at ${path}`, () => {
       const { browser } = openBuiltPage(path, locale)
       const document = browser.document
-      const faqRow = document.querySelector(
-        '#preguntas-frecuentes',
-      )?.parentElement
-      const contactRow = document.querySelector('#contacto')?.parentElement
-      expect(faqRow?.className).toContain('order-5')
-      expect(faqRow?.className).toContain('lg:col-span-12')
-      expect(faqRow?.className).toContain('lg:row-start-3')
-      expect(contactRow?.className).toContain('order-6')
-      expect(contactRow?.className).toContain('lg:col-span-12')
-      expect(contactRow?.className).toContain('lg:row-start-4')
+      const sections = Array.from(document.querySelector('main')!.children)
+      // Hero, Projects, Experience, Education/Languages (no id), Stack, FAQ,
+      // Contact: DOM order is nav order, with no wrapper grid or reordering.
+      expect(sections.map((section) => section.tagName)).toEqual(
+        Array(7).fill('SECTION'),
+      )
+      expect(sections.map((section) => section.id)).toEqual([
+        'inicio',
+        'proyectos',
+        'experiencia',
+        '',
+        'habilidades',
+        'preguntas-frecuentes',
+        'contacto',
+      ])
+      expect(normalize(sections[3]?.querySelector('h2')?.textContent)).toBe(
+        locale === 'es' ? 'Formación' : 'Education',
+      )
+      for (const section of sections)
+        expect(section.className).not.toMatch(
+          /(^|\s)(lg:)?(order|col-span|col-start|row-start)-\d/,
+        )
+      const navIds = Array.from(
+        document.querySelectorAll('[data-section-link]'),
+      ).map((link) => link.getAttribute('href')?.split('#')[1])
+      expect(navIds).toEqual(
+        sections
+          .map((section) => section.id)
+          .filter((id) => id && id !== 'inicio'),
+      )
+    })
+
+    test(`lists eight numbered project rows with at most four technologies at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const rows = Array.from(
+        browser.document.querySelectorAll('#proyectos ol > li'),
+      )
+      expect(rows).toHaveLength(8)
+      const prefix = locale === 'es' ? '/proyectos' : '/en/projects'
+      for (const [index, row] of rows.entries()) {
+        const project = PROFESSIONAL_PROFILE.projects[index]!
+        const link = row.querySelector('a')!
+        expect(link.getAttribute('href')).toBe(`${prefix}/${project.id}`)
+        expect(
+          normalize(link.querySelector('[data-row-number]')?.textContent),
+        ).toBe(String(index + 1).padStart(2, '0'))
+        expect(normalize(link.querySelector('h3')?.textContent)).toBe(
+          project.title[locale],
+        )
+        const technologies = (
+          normalize(link.querySelectorAll('p')[1]?.textContent) ?? ''
+        ).split(' · ')
+        expect(technologies.length).toBeGreaterThan(0)
+        expect(technologies.length).toBeLessThanOrEqual(4)
+        expect(technologies).toEqual(
+          project.technologies.slice(0, technologies.length),
+        )
+        expect(link.querySelector('.tech-tag')).toBeNull()
+        expect(link.getAttribute('class')).toContain('min-h-11')
+        // Number and arrow are decorative; the separator never starts a line.
+        expect(
+          link.querySelector('[data-row-number]')?.getAttribute('aria-hidden'),
+        ).toBe('true')
+        expect(
+          link.querySelector('[data-row-arrow]')?.getAttribute('aria-hidden'),
+        ).toBe('true')
+        expect(link.querySelector('[data-row-arrow]')?.textContent.trim()).toBe(
+          '→',
+        )
+        expect(link.querySelector('img')?.getAttribute('alt')).toBe('')
+        const techLine = link.querySelectorAll('p')[1]!.textContent
+        expect(techLine).toBe(project.technologies.slice(0, 4).join('\u00a0· '))
+      }
+      const heading = browser.document.querySelector('#proyectos h2')
+      expect(
+        normalize(heading?.querySelector('[data-section-number]')?.textContent),
+      ).toBe('01')
+      expect(
+        normalize(heading?.querySelector('[data-lang-content]')?.textContent),
+      ).toBe(locale === 'es' ? 'Proyectos' : 'Projects')
     })
 
     test(`does not skip heading levels at ${path}`, () => {
@@ -1167,17 +1297,656 @@ describe('compiled home headings and FAQ', () => {
   }
 })
 
-describe('compiled header logo', () => {
+describe('compiled lower home sections', () => {
+  const normalize = (text: string | undefined | null) =>
+    text?.replace(/\s+/g, ' ').trim()
+  const numberOf = (section: ReturnType<Window['document']['querySelector']>) =>
+    normalize(section?.querySelector('h2 [data-section-number]')?.textContent)
+  const titleOf = (section: ReturnType<Window['document']['querySelector']>) =>
+    normalize(section?.querySelector('h2 [data-lang-content]')?.textContent)
+
+  for (const [path, locale, titles, contactLinks] of [
+    [
+      '/',
+      'es',
+      { experience: 'Experiencia', stack: 'Stack', contact: 'Contacto' },
+      ['Proponer un proyecto', 'Hablar de una oportunidad'],
+    ],
+    [
+      '/en',
+      'en',
+      { experience: 'Experience', stack: 'Stack', contact: 'Contact' },
+      ['Propose a project', 'Discuss a career opportunity'],
+    ],
+  ] as const) {
+    test(`numbers the section headers like the nav at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const document = browser.document
+      const numbered = [
+        ['#experiencia', '02', titles.experience],
+        ['#habilidades', '03', titles.stack],
+        [
+          '#preguntas-frecuentes',
+          '04',
+          locale === 'es'
+            ? 'Preguntas frecuentes'
+            : 'Frequently asked questions',
+        ],
+        ['#contacto', '05', titles.contact],
+      ] as const
+      for (const [selector, number, title] of numbered) {
+        const section = document.querySelector(`section${selector}`)
+        expect(numberOf(section), selector).toBe(number)
+        expect(titleOf(section), selector).toBe(title)
+        expect(
+          section
+            ?.querySelector('h2 [data-section-number]')
+            ?.getAttribute('aria-hidden'),
+        ).toBe('true')
+        expect(section?.querySelector('h2')?.className).toContain(
+          'font-display',
+        )
+      }
+      // Education and Languages are not nav sections: no number.
+      expect(
+        document.querySelector(
+          'main > section:not([id]) [data-section-number]',
+        ),
+      ).toBeNull()
+      // The numbers match the nav links.
+      expect(
+        Array.from(document.querySelectorAll('[data-section-link]'))
+          .slice(1)
+          .map((link) => link.querySelector('[aria-hidden]')?.textContent),
+      ).toEqual(['02', '03', '04', '05'])
+    })
+
+    test(`lists experience as ledger rows with the Tecandu anchor at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const section = browser.document.querySelector('section#experiencia')!
+      const experiences = sortExperiencesByStartDate(
+        PROFESSIONAL_PROFILE.experiences,
+      )
+      const rows = Array.from(
+        section.querySelectorAll('ol > li > article[data-experience-row]'),
+      )
+      expect(rows.map((row) => row.id)).toEqual(
+        experiences.map((experience) => `experiencia-${experience.id}`),
+      )
+      expect(section.querySelectorAll('#experiencia-tecandu')).toHaveLength(1)
+      for (const [index, row] of rows.entries()) {
+        const experience = experiences[index]!
+        expect(row.className).not.toMatch(/rounded|bento-card|surface-panel/)
+        expect(
+          normalize(row.querySelector('[data-experience-period]')?.textContent),
+        ).toMatch(
+          /^\d{2}\/\d{2}\/\d{4} — (\d{2}\/\d{2}\/\d{4}|Actualidad|Current)/,
+        )
+        expect(normalize(row.querySelector('h3')?.textContent)).toBe(
+          experience.title[locale],
+        )
+        expect(row.querySelector('h3')?.className).toContain('font-display')
+        expect(
+          normalize(
+            row.querySelector('[data-experience-company]')?.textContent,
+          ),
+        ).toStartWith(
+          `${experience.company[locale]} · ${experience.location[locale]}`,
+        )
+        const links = Array.from(row.querySelectorAll('a'))
+        expect(links).toHaveLength(experience.evidenceUrl ? 1 : 0)
+        for (const link of links) {
+          expect(link.getAttribute('href')).toBe(experience.evidenceUrl ?? null)
+          expect(link.getAttribute('target')).toBe('_blank')
+          expect(link.getAttribute('rel')).toBe('noopener noreferrer')
+          expect(link.className).toContain('min-h-11')
+        }
+        expect(
+          Array.from(row.querySelectorAll('ul > li')).map((item) =>
+            normalize(item.textContent),
+          ),
+        ).toEqual(experience.responsibilities[locale].slice(0, 3))
+        expect(
+          normalize(
+            row.querySelector('[data-experience-outcome]')?.textContent,
+          ),
+        ).toContain(experience.outcomes[locale][0]!)
+        // Technologies are plain mono text, never pills.
+        expect(
+          normalize(row.querySelector('[data-experience-tech]')?.textContent),
+        ).toBe(experience.technologies.join(' · '))
+        expect(row.querySelector('.tech-tag')).toBeNull()
+      }
+      const linkedin = section.querySelector(
+        `a[href="${PROFESSIONAL_PROFILE.links.linkedin}"]`,
+      )
+      expect(linkedin?.className).toContain('min-h-11')
+    })
+
+    test(`shows four capability columns with 44px evidence links at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const section = browser.document.querySelector('section#habilidades')!
+      const columns = Array.from(section.querySelectorAll('article'))
+      const capabilities = PROFESSIONAL_PROFILE.capabilities
+      expect(columns).toHaveLength(4)
+      expect(columns[0]?.closest('ol')?.className).toContain('lg:grid-cols-4')
+      expect(section.querySelector('.tech-tag, .bento-card')).toBeNull()
+      for (const [index, column] of columns.entries()) {
+        const capability = capabilities[index]!
+        expect(normalize(column.querySelector('h3')?.textContent)).toBe(
+          capability.label[locale],
+        )
+        expect(
+          normalize(
+            column.querySelector('[data-capability-tech]')?.textContent,
+          ),
+        ).toBe(capability.technologies.join(' · '))
+        expect(
+          normalize(
+            column.querySelector('p:not([data-capability-tech])')?.textContent,
+          ),
+        ).toBe(capability.summary[locale])
+        const links = Array.from(column.querySelectorAll('ul a'))
+        expect(links).toHaveLength(capability.evidenceIds.length)
+        for (const link of links) {
+          expect(link.className).toContain('min-h-11')
+          expect(link.className).toContain('inline-flex')
+        }
+      }
+    })
+
+    test(`renders six FAQ rows before contact with 44px links at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const section = browser.document.querySelector(
+        'section#preguntas-frecuentes',
+      )!
+      const items = Array.from(section.querySelectorAll('[data-faq-item]'))
+      expect(items).toHaveLength(6)
+      expect(items.every((item) => item.tagName === 'LI')).toBe(true)
+      expect(items[0]?.parentElement?.tagName).toBe('UL')
+      for (const item of items) {
+        expect(item.className).toContain('border-t')
+        expect(item.className).not.toMatch(/rounded|bento-card/)
+        expect(item.querySelector('h3')?.className).toContain('font-display')
+        for (const link of item.querySelectorAll('a'))
+          expect(link.className).toContain('min-h-11')
+      }
+      expect(
+        section.compareDocumentPosition(
+          browser.document.querySelector('#contacto')!,
+        ) & 4,
+      ).toBeTruthy()
+    })
+
+    test(`leads contact with a large email link and the equal choices at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const section = browser.document.querySelector('section#contacto')!
+      const email = section.querySelector(
+        `a[href="${PROFESSIONAL_PROFILE.links.mail}"]`,
+      )
+      expect(normalize(email?.textContent)).toBe('sergiogmr@icloud.com')
+      expect(email?.getAttribute('data-contact-email')).not.toBeNull()
+      expect(email?.className).toContain('font-display')
+      expect(email?.className).toContain('min-h-11')
+      expect(email?.className).toMatch(/text-\[clamp\(/)
+      const choices = Array.from(
+        section.querySelectorAll('a[href*="?subject="]'),
+      )
+      expect(choices.map((link) => normalize(link.textContent))).toEqual([
+        ...contactLinks,
+      ])
+      expect(choices[0]?.className).toBe(choices[1]?.className)
+      for (const [name, href] of [
+        ['LinkedIn', PROFESSIONAL_PROFILE.links.linkedin],
+        ['GitHub', PROFESSIONAL_PROFILE.links.github],
+      ] as const) {
+        const link = section.querySelector(`a[href="${href}"]`)
+        expect(link, name).not.toBeNull()
+        expect(link?.getAttribute('target')).toBe('_blank')
+        expect(link?.getAttribute('rel')).toBe('noopener noreferrer')
+      }
+      const cv = PROFESSIONAL_PROFILE.cvUrls[locale]
+      expect(browser.document.querySelector(`a[href="${cv}"]`)).not.toBeNull()
+      for (const link of section.querySelectorAll('a'))
+        expect(link.className, link.getAttribute('href') ?? '').toMatch(
+          /min-h-1[123]/,
+        )
+      expect(section.querySelector('.bento-card, .surface-panel')).toBeNull()
+      // The decorative arrows stay out of the accessible names: the choice
+      // arrow is CSS content with an empty alternative text, the profile arrow
+      // is aria-hidden.
+      for (const choice of choices)
+        expect(choice.className.split(/\s+/)).toContain(
+          "after:content-['→'_/_'']",
+        )
+      for (const [name, href] of [
+        ['LinkedIn', PROFESSIONAL_PROFILE.links.linkedin],
+        ['GitHub', PROFESSIONAL_PROFILE.links.github],
+      ] as const) {
+        const link = section.querySelector(`a[href="${href}"]`)!
+        const arrows = Array.from(link.querySelectorAll('[aria-hidden="true"]'))
+        expect(arrows.map((arrow) => arrow.textContent.trim())).toEqual(['↗'])
+        const clone = link.cloneNode(true) as typeof link
+        for (const arrow of clone.querySelectorAll('[aria-hidden="true"]'))
+          arrow.remove()
+        // The label and handle are separate flex items, so no space text node.
+        expect(clone.textContent.replace(/\s+/g, ''), name).toBe(
+          `${name}@sergiogmr`,
+        )
+      }
+    })
+
+    test(`drops the hero desktop top padding at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const hero = browser.document.querySelector('#inicio')!
+      expect(hero.className).not.toContain('lg:pt-16')
+      // main already pads 40px under the header: the hero adds none from lg up.
+      expect(hero.className.split(/\s+/)).toContain('lg:pt-0')
+    })
+  }
+})
+
+describe('compiled stylesheet scope and tokens', () => {
+  const stylesheet = () =>
+    readdirSync(new URL('dist/_astro/', root))
+      .filter((name) => name.endsWith('.css'))
+      .map((name) => readFileSync(new URL(`dist/_astro/${name}`, root), 'utf8'))
+      .join('\n')
+
+  test('emits classes from src/ but not from test files', () => {
+    const css = stylesheet()
+    expect(css).toContain('.min-h-11')
+    // This arbitrary value appears only in tests/: Tailwind must not scan it.
+    const probe = 'hue-rotate-[37.25deg]'
+    expect(
+      readFileSync(new URL(import.meta.path, import.meta.url), 'utf8'),
+    ).toContain(probe)
+    expect(css).not.toContain('37.25deg')
+  })
+
+  test('removes the unused card utilities and zeroes every radius token', () => {
+    const css = stylesheet()
+    for (const removed of [
+      '.bento-card',
+      '.code-panel',
+      '.hero-glow',
+      '.status-dot',
+      '.result-card',
+    ])
+      expect(css).not.toContain(removed)
+    // Tailwind only emits the theme tokens a utility uses. With no rounded-*
+    // class left in src/, none is emitted; any that is must still be zero.
+    expect(css).not.toMatch(/\.rounded/)
+    const radii = [...css.matchAll(/--radius-([a-z0-9]+):\s*([^;}]+)/g)]
+    for (const [, size, value] of radii)
+      expect(value!.trim(), `--radius-${size}`).toMatch(/^0(?:px|rem)?$/)
+  })
+
+  test('compiles the contact arrow as CSS content with empty alternative text', () => {
+    expect(stylesheet()).toMatch(/content:\s*"→"\s*\/\s*""/)
+  })
+
+  test('compiles the mobile nav mask into the stylesheet without inline styles', () => {
+    const css = stylesheet()
+    const gradient =
+      /linear-gradient\((?:to right|90deg),#000 calc\(100% - 3rem\),(?:#0000|transparent)\)/
+        .source
+    expect(css).toMatch(new RegExp(`[{;]mask-image:${gradient}`))
+    expect(css).toMatch(new RegExp(`-webkit-mask-image:${gradient}`))
+    expect(css).toMatch(
+      /\.lg\\:\\\[mask-image\\:none\\\]\{[^}]*mask-image:none/,
+    )
+    for (const file of ['dist/index.html', 'dist/en/index.html'])
+      expect(readFileSync(new URL(file, root), 'utf8')).not.toMatch(
+        /<style|\sstyle=/,
+      )
+  })
+})
+
+describe('compiled header identity', () => {
   for (const [path, locale] of [
     ['/', 'es'],
     ['/en', 'en'],
   ] as const) {
-    test(`hides the decorative header logo from assistive tech at ${path}`, () => {
+    test(`links the home anchor with the name and role as text, without a logo image at ${path}`, () => {
       const { browser } = openBuiltPage(path, locale)
       const link = browser.document.querySelector('header a[href^="/"]')
-      const logo = link?.querySelector('img')
-      expect(logo?.getAttribute('alt')).toBe('')
+      expect(link?.querySelector('img')).toBeNull()
       expect(link?.textContent).toContain('SergioGMR')
+      expect(link?.textContent).toContain('Tech Lead')
+      expect(link?.getAttribute('href')).toBe(
+        locale === 'es' ? '/#inicio' : '/en#inicio',
+      )
+    })
+
+    test(`shows the identity strip with name, role, location and availability at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const strip = browser.document.querySelector('[data-identity-strip]')
+      const text = strip?.textContent.replace(/\s+/g, ' ') ?? ''
+      expect(text).toContain(PROFESSIONAL_PROFILE.person.name)
+      expect(text).toContain(PROFESSIONAL_PROFILE.person.location[locale])
+      expect(text).toContain('UTC+0/+1')
+      expect(text).toContain(
+        locale === 'es' ? 'Disponible para colaborar' : 'Open to collaborate',
+      )
+      expect(strip?.closest('header')).toBeNull()
+    })
+
+    test(`keeps a minimal footer with the mail and profile links and no call to action at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const footer = browser.document.querySelector('footer')
+      const hrefs = Array.from(footer?.querySelectorAll('a') ?? []).map(
+        (link) => link.getAttribute('href'),
+      )
+      // The verifier requires the plain mail link on every page, legal ones included.
+      expect(hrefs).toEqual([
+        'mailto:sergiogmr+portfolio@icloud.com',
+        'https://x.com/sergiogmr',
+        'https://www.linkedin.com/in/sergiogmr',
+        'https://github.com/sergiogmr',
+        'https://github.com/sergiogmr/portfolio',
+      ])
+      expect(footer?.querySelector('[data-animate]')).toBeNull()
+      for (const link of footer?.querySelectorAll('a') ?? []) {
+        expect(link.className).toContain('min-h-11')
+        // WCAG 2.5.3: the accessible name contains the visible label.
+        const visible = link.textContent.replace(/\s+/g, ' ').trim()
+        expect(visible).not.toBe('')
+        expect(link.getAttribute('aria-label')).toContain(visible)
+      }
+    })
+  }
+})
+
+describe('compiled section navigation', () => {
+  const pagesByLocale = [
+    ['/', 'es', 'Navegación principal', '/'],
+    ['/en', 'en', 'Primary navigation', '/en'],
+  ] as const
+  const sections = [
+    'proyectos',
+    'experiencia',
+    'habilidades',
+    'preguntas-frecuentes',
+    'contacto',
+  ]
+  const labels = {
+    es: ['Proyectos', 'Experiencia', 'Stack', 'FAQ', 'Contacto'],
+    en: ['Projects', 'Experience', 'Stack', 'FAQ', 'Contact'],
+  }
+
+  for (const [path, locale, label, home] of pagesByLocale) {
+    test(`lists the numbered sections in page order, FAQ included, at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const nav = browser.document.querySelector(
+        `header nav[aria-label="${label}"]`,
+      )
+      expect(nav).not.toBeNull()
+      const links = Array.from(nav!.querySelectorAll('a'))
+      expect(links.map((link) => link.getAttribute('href'))).toEqual(
+        sections.map((id) => `${home}#${id}`),
+      )
+      expect(
+        links.map(
+          (link) => link.querySelector('[aria-hidden="true"]')?.textContent,
+        ),
+      ).toEqual(labels[locale].map((_, index) => `0${index + 1}`))
+      expect(
+        links.map((link) =>
+          link
+            .querySelector('[data-lang-content]')
+            ?.textContent.replace(/\s+/g, ' ')
+            .trim(),
+        ),
+      ).toEqual([...labels[locale]])
+      // The nav order is the order of the sections in the compiled DOM.
+      expect(
+        Array.from(browser.document.querySelectorAll('main section[id]'))
+          .map((section) => section.id)
+          .filter((id) => sections.includes(id)),
+      ).toEqual(sections)
+    })
+
+    test(`keeps the section nav visible and scrollable on mobile at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const header = browser.document.querySelector('header')!
+      expect(header.className).toContain('sticky')
+      expect(header.className).toContain('top-0')
+      const nav = header.querySelector(`nav[aria-label="${label}"]`)!
+      expect(nav.closest('.hidden') === null).toBe(true)
+      expect(nav.className).toContain('overflow-x-auto')
+      for (const link of nav.querySelectorAll('a')) {
+        expect(link.className).toContain('min-h-11')
+        expect(link.className).toContain('whitespace-nowrap')
+        // The nav scrolls (overflow-x-auto), which would clip the global +3px
+        // focus ring, so the ring is drawn inside the link.
+        expect(link.className).toContain('focus-visible:-outline-offset-2')
+        expect(link.className).toContain('focus-visible:outline-2')
+        expect(link.className).toContain('focus-visible:outline-ring')
+      }
+    })
+
+    test(`spaces, pads and fades the mobile section nav only below lg at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const nav = browser.document.querySelector(
+        `header nav[aria-label="${label}"]`,
+      )!
+      const classes = nav.className.split(/\s+/)
+      for (const expected of [
+        'gap-5',
+        'lg:gap-6',
+        'pr-12',
+        'lg:pr-0',
+        'has-[a:focus-visible]:[mask-image:none]',
+        '[mask-image:linear-gradient(to_right,#000_calc(100%-3rem),transparent)]',
+        'lg:[mask-image:none]',
+      ])
+        expect(classes, expected).toContain(expected)
+      expect(classes).not.toContain('gap-6')
+      expect(nav.getAttribute('style')).toBeNull()
+    })
+
+    test(`marks the section in view with aria-current from the observer at ${path}`, () => {
+      const observers: {
+        callback: (entries: unknown[]) => void
+        observed: { id: string }[]
+      }[] = []
+      const { browser } = openBuiltPage(path, locale, (browser) => {
+        ;(browser as unknown as Record<string, unknown>).IntersectionObserver =
+          class {
+            observed: { id: string }[] = []
+            constructor(callback: (entries: unknown[]) => void) {
+              observers.push({ callback, observed: this.observed })
+            }
+            observe(element: { id: string }) {
+              this.observed.push(element)
+            }
+            unobserve() {}
+            disconnect() {}
+          } as never
+      })
+      const document = browser.document
+      // happy-dom does not run inline classic scripts from document.write.
+      const script = Array.from(document.querySelectorAll('script')).find(
+        (candidate) => candidate.textContent.includes('trackSection'),
+      )
+      expect(script, 'the shell script is inlined').toBeDefined()
+      browser.eval(script!.textContent)
+      const current = () =>
+        Array.from(
+          document.querySelectorAll('[data-section-link][aria-current]'),
+        ).map((link) => link.getAttribute('href')?.split('#')[1])
+      const spy = observers.find(({ observed }) =>
+        observed.some((element) => element.id === 'proyectos'),
+      )
+      expect(spy, 'a section observer is registered').toBeDefined()
+      expect(current()).toEqual([])
+      const report = (id: string, isIntersecting: boolean) =>
+        spy!.callback([{ target: document.getElementById(id), isIntersecting }])
+      report('experiencia', true)
+      expect(current()).toEqual(['experiencia'])
+      report('habilidades', true)
+      expect(current()).toEqual(['experiencia'])
+      report('experiencia', false)
+      expect(current()).toEqual(['habilidades'])
+      report('preguntas-frecuentes', true)
+      report('habilidades', false)
+      expect(current()).toEqual(['preguntas-frecuentes'])
+      report('inicio', true)
+      expect(current()).toEqual([])
+    })
+  }
+
+  test('lists the same sections on a case-study page without marking any as current', () => {
+    const { browser } = openBuiltPage('/proyectos/jauntjar', 'es')
+    const links = Array.from(
+      browser.document.querySelectorAll('header nav[aria-label] a'),
+    ).filter((link) => link.getAttribute('href')?.startsWith('/#'))
+    expect(links.map((link) => link.getAttribute('href'))).toEqual(
+      sections.map((id) => `/#${id}`),
+    )
+    expect(
+      browser.document.querySelector('[data-section-link][aria-current]'),
+    ).toBeNull()
+  })
+})
+
+describe('compiled font loading', () => {
+  const homes = ['dist/index.html', 'dist/en/index.html']
+  const stylesheet = () =>
+    readdirSync(new URL('dist/_astro/', root))
+      .filter((name) => name.endsWith('.css'))
+      .map((name) => readFileSync(new URL(`dist/_astro/${name}`, root), 'utf8'))
+      .join('\n')
+
+  for (const file of homes) {
+    test(`preloads exactly the two Latin variable fonts after the viewport at ${file}`, () => {
+      const html = readFileSync(new URL(file, root), 'utf8')
+      const preloads = [...html.matchAll(/<link rel="preload"[^>]*>/g)].map(
+        ([tag]) => tag,
+      )
+      expect(preloads).toHaveLength(2)
+      expect(preloads.join('')).toMatch(
+        /\/_astro\/bricolage-grotesque-latin-opsz-normal\.[\w-]+\.woff2/,
+      )
+      expect(preloads.join('')).toMatch(
+        /\/_astro\/instrument-sans-latin-wght-normal\.[\w-]+\.woff2/,
+      )
+      for (const tag of preloads) {
+        expect(tag).toContain('as="font"')
+        expect(tag).toContain('type="font/woff2"')
+        expect(tag).toContain('crossorigin')
+      }
+      expect(html.indexOf('name="viewport"')).toBeGreaterThan(-1)
+      expect(html.indexOf(preloads[0]!)).toBeGreaterThan(
+        html.indexOf('name="viewport"'),
+      )
+      expect(html).not.toContain('space-grotesk')
+    })
+  }
+
+  test('emits the self-hosted faces and both metric-matched fallbacks', () => {
+    const css = stylesheet()
+    expect(css).not.toMatch(/space-grotesk|Space Grotesk/i)
+    expect(css).toMatch(/font-family:\s*["']?Bricolage Grotesque Variable["']?/)
+    expect(css).toMatch(/font-family:\s*["']?Instrument Sans Variable["']?/)
+    for (const family of ['Bricolage Grotesque', 'Instrument Sans']) {
+      const fallback = new RegExp(
+        `@font-face\\s*\\{[^}]*${family} Fallback[^}]*\\}`,
+      ).exec(css)?.[0]
+      expect(fallback, family).toBeDefined()
+      for (const descriptor of [
+        'size-adjust',
+        'ascent-override',
+        'descent-override',
+        'line-gap-override',
+      ])
+        expect(fallback, `${family} ${descriptor}`).toContain(`${descriptor}:`)
+    }
+    for (const font of readdirSync(new URL('dist/_astro/', root)).filter(
+      (name) => name.endsWith('.woff2'),
+    ))
+      expect(font).toMatch(/^(?:bricolage-grotesque|instrument-sans)-latin-/)
+  })
+})
+
+describe('compiled default theme', () => {
+  for (const [path, locale] of [
+    ['/', 'es'],
+    ['/en', 'en'],
+  ] as const) {
+    for (const systemDark of [true, false]) {
+      test(`follows the system when nothing is stored (system ${systemDark ? 'dark' : 'light'}) at ${path}`, () => {
+        const { browser } = openBuiltPage(path, locale, (browser) => {
+          const query = browser.matchMedia('(prefers-color-scheme: dark)')
+          Object.defineProperty(query, 'matches', { get: () => systemDark })
+          browser.matchMedia = () => query
+        })
+        const root = browser.document.documentElement
+        expect(root.classList.contains('dark')).toBe(systemDark)
+        expect(root.style.colorScheme).toBe(systemDark ? 'dark' : 'light')
+        expect(
+          browser.document.querySelector<HTMLSelectElement>(
+            '[data-theme-select]',
+          )?.value,
+        ).toBe('system')
+        expect(
+          browser.document
+            .querySelector('[data-theme-option="system"]')
+            ?.getAttribute('aria-pressed'),
+        ).toBe('true')
+      })
+    }
+  }
+})
+
+describe('compiled default theme fallbacks', () => {
+  const headScript = (document: Window['document']) =>
+    Array.from(document.querySelectorAll('script')).find((candidate) =>
+      candidate.textContent.includes('storedTheme'),
+    )!.textContent
+
+  for (const [path, locale] of [
+    ['/', 'es'],
+    ['/en', 'en'],
+  ] as const) {
+    test(`treats an invalid stored theme as system at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale, (browser) => {
+        browser.localStorage.setItem('theme', 'blue')
+        const query = browser.matchMedia('(prefers-color-scheme: dark)')
+        Object.defineProperty(query, 'matches', { get: () => true })
+        browser.matchMedia = () => query
+      })
+      const document = browser.document
+      expect(
+        document.querySelector<HTMLSelectElement>('[data-theme-select]')?.value,
+      ).toBe('system')
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+      // The head script resolves the same way before the toggle module runs.
+      document.documentElement.classList.remove('dark')
+      browser.eval(headScript(document))
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+    })
+
+    test(`paints the system theme from the head script when storage reads fail at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale, (browser) => {
+        Object.defineProperty(browser.localStorage, 'getItem', {
+          value: () => {
+            throw new Error('Storage blocked')
+          },
+        })
+        const query = browser.matchMedia('(prefers-color-scheme: dark)')
+        Object.defineProperty(query, 'matches', { get: () => true })
+        browser.matchMedia = () => query
+      })
+      const document = browser.document
+      // Only the head script runs before first paint, so it must not leave the
+      // light theme behind when a dark system cannot be overridden by storage.
+      document.documentElement.classList.remove('dark')
+      document.documentElement.style.colorScheme = ''
+      browser.eval(headScript(document))
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+      expect(document.documentElement.style.colorScheme).toBe('dark')
     })
   }
 })
@@ -1305,4 +2074,231 @@ describe('compiled content security policy', () => {
       expect(scripts).toContain(`'${hashCspSource(body)}'`)
     }
   })
+})
+
+describe('compiled case-study, legal and 404 pages', () => {
+  const projects = PROFESSIONAL_PROFILE.projects
+  const normalize = (text: string | undefined | null) =>
+    text?.replace(/\s+/g, ' ').trim() ?? ''
+  /** Text a screen reader announces: decorative (aria-hidden) nodes removed. */
+  const accessibleText = (element: HappyElement) => {
+    const copy = element.cloneNode(true) as HappyElement
+    for (const hidden of copy.querySelectorAll('[aria-hidden="true"]'))
+      hidden.remove()
+    return normalize(copy.textContent)
+  }
+  const projectPath = (id: string, locale: 'es' | 'en') =>
+    locale === 'es' ? `/proyectos/${id}` : `/en/projects/${id}`
+  const artifact = (path: string) =>
+    readFileSync(
+      new URL(
+        path === '/404' ? 'dist/404.html' : `dist${path}/index.html`,
+        root,
+      ),
+      'utf8',
+    )
+
+  for (const locale of ['es', 'en'] as const) {
+    const labels =
+      locale === 'es'
+        ? {
+            group: 'Más proyectos',
+            prev: 'Proyecto anterior',
+            next: 'Siguiente proyecto',
+            evidence: 'Ver proyecto',
+            all: 'Ver todos los proyectos',
+          }
+        : {
+            group: 'More projects',
+            prev: 'Previous project',
+            next: 'Next project',
+            evidence: 'View project',
+            all: 'View all projects',
+          }
+
+    for (const [index, project] of projects.entries()) {
+      const path = projectPath(project.id, locale)
+
+      test(`links the neighbouring projects, omitting the missing end, at ${path}`, () => {
+        const { browser } = openBuiltPage(path, locale)
+        const navigation = browser.document.querySelector(
+          `article nav[data-case-nav][aria-label="${labels.group}"]`,
+        )
+        expect(navigation).not.toBeNull()
+        const links = Array.from(navigation!.querySelectorAll('a'))
+        const expected = [
+          [projects[index - 1], 'prev', labels.prev],
+          [projects[index + 1], 'next', labels.next],
+        ] as const
+        const present = expected.filter(([neighbour]) => neighbour)
+        expect(links).toHaveLength(present.length)
+        expect(present.length).toBeGreaterThan(0)
+        for (const [neighbour, direction, label] of present) {
+          const link = navigation!.querySelector(
+            `a[data-case-nav-link="${direction}"]`,
+          )!
+          expect(link.getAttribute('href')).toBe(
+            projectPath(neighbour!.id, locale),
+          )
+          expect(accessibleText(link)).toBe(
+            `${label}: ${neighbour!.title[locale]}`,
+          )
+          expect(link.className).toContain('min-h-11')
+          // The colon is part of the label's own text node. A separate sr-only
+          // span makes Chrome compute "Label : Title" (absolutely positioned
+          // content gets a space around it).
+          expect(link.querySelector('.sr-only')).toBeNull()
+          const own = Array.from(link.querySelector('span')!.childNodes)
+            .filter((node) => node.nodeType === 3)
+            .map((node) => normalize(node.textContent))
+          expect(own).toEqual([`${label}:`])
+        }
+        // The first project has no previous link and the last has no next.
+        expect(
+          navigation!.querySelector('a[data-case-nav-link="prev"]') !== null,
+        ).toBe(index !== 0)
+        expect(
+          navigation!.querySelector('a[data-case-nav-link="next"]') !== null,
+        ).toBe(index !== projects.length - 1)
+      })
+
+      test(`keeps the case contracts and caps the prose at ${path}`, () => {
+        const { browser } = openBuiltPage(path, locale)
+        const document = browser.document
+        const articles = document.querySelectorAll('main article')
+        expect(articles).toHaveLength(1)
+        const article = articles[0]!
+        // One H1, then only H2: no skipped level.
+        expect(document.querySelectorAll('h1')).toHaveLength(1)
+        expect(normalize(document.querySelector('h1')?.textContent)).toBe(
+          project.title[locale],
+        )
+        expect(
+          Array.from(document.querySelectorAll('main h1, main h2, main h3'))
+            .map((heading) => heading.tagName)
+            .filter((tag, position) => (position === 0 ? true : tag !== 'H2')),
+        ).toEqual(['H1'])
+        // Prose is capped near 70 characters per line.
+        const prose = Array.from(article.querySelectorAll('[data-case-prose]'))
+        expect(prose).toHaveLength(5)
+        for (const element of prose)
+          expect(element.className).toContain('max-w-[48ch]')
+        const text = normalize(article.textContent)
+        for (const field of [
+          project.problem,
+          project.responsibility,
+          project.solution,
+          project.result,
+        ])
+          expect(text).toContain(field[locale])
+        for (const task of project.tasks[locale]) expect(text).toContain(task)
+        for (const technology of project.technologies)
+          expect(text).toContain(technology)
+        // The evidence link keeps its target and its decorative arrow.
+        const evidence = article.querySelector(
+          `a[href="${project.evidenceUrl}"]`,
+        )!
+        expect(evidence.getAttribute('target')).toBe('_blank')
+        expect(evidence.getAttribute('rel')).toBe('noopener noreferrer')
+        expect(accessibleText(evidence)).toBe(labels.evidence)
+        expect(
+          normalize(
+            article.querySelector(`[data-case-actions] a[href$="#proyectos"]`)
+              ?.textContent,
+          ),
+        ).toBe(labels.all)
+        // Every control in the article is at least 44px tall.
+        for (const link of article.querySelectorAll('a'))
+          expect(link.className, link.getAttribute('href') ?? '').toMatch(
+            /\bmin-h-(?:11|12|13)\b/,
+          )
+      })
+    }
+  }
+
+  const caseArtifacts = projects.flatMap(({ id }) => [
+    `/proyectos/${id}`,
+    `/en/projects/${id}`,
+  ])
+  for (const path of [
+    ...caseArtifacts,
+    '/acezone/tos',
+    '/en/acezone/tos',
+    '/wattly/tos',
+    '/en/wattly/tos',
+    '/404',
+  ]) {
+    test(`ships no panels, frames, pills or unhashed styles at ${path}`, () => {
+      const html = artifact(path)
+      const classes = [...html.matchAll(/\bclass="([^"]*)"/g)].flatMap(
+        ([, value]) => value!.split(/\s+/),
+      )
+      for (const old of ['surface-panel', 'media-frame', 'tech-tag'])
+        expect(classes, `${old} at ${path}`).not.toContain(old)
+      expect(
+        classes.filter((name) => /^(?:sm:|lg:|dark:)?rounded/.test(name)),
+        `rounded at ${path}`,
+      ).toEqual([])
+      expect(html).not.toMatch(/\sstyle=/)
+      // Astro inlines the small legal stylesheet; its hash must be in style-src.
+      const policy = /style-src ([^;"]*)/.exec(html)?.[1] ?? ''
+      for (const [, content] of html.matchAll(
+        /<style[^>]*>([\s\S]*?)<\/style>/g,
+      ))
+        expect(policy, `style hash at ${path}`).toContain(
+          hashCspSource(content!),
+        )
+    })
+  }
+
+  test('keeps the 404 content and gives its link a 44px target', () => {
+    const { browser } = openBuiltPage('/404.html', 'en')
+    expect(normalize(browser.document.querySelector('h1')?.textContent)).toBe(
+      'Page not found',
+    )
+    const link = browser.document.querySelector('main a[href="/"]')!
+    expect(normalize(link.textContent)).toBe('Go back home')
+    expect(link.className).toMatch(/\bmin-h-(?:11|12|13)\b/)
+    expect(browser.document.querySelectorAll('h1')).toHaveLength(1)
+  })
+
+  test('uses the display face for the legal headings and keeps one H1', () => {
+    for (const path of ['/acezone/tos', '/en/wattly/tos']) {
+      const html = artifact(path)
+      expect(html).toMatch(
+        /\.prose-tos h1\{[^}]*font-family:var\(--font-display\)/,
+      )
+      expect(html).toMatch(
+        /\.prose-tos h2\{[^}]*font-family:var\(--font-display\)/,
+      )
+      const { browser } = openBuiltPage(path, 'es')
+      expect(browser.document.querySelectorAll('h1')).toHaveLength(1)
+    }
+  })
+
+  for (const [path, locale] of [
+    ['/', 'es'],
+    ['/en', 'en'],
+  ] as const) {
+    test(`excludes the decorative arrows from the experience link names at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const section = browser.document.querySelector('section#experiencia')!
+      const linkedin = section.querySelector(
+        `a[href="${PROFESSIONAL_PROFILE.links.linkedin}"]`,
+      )!
+      expect(normalize(linkedin.textContent)).toBe('LinkedIn ↗')
+      expect(accessibleText(linkedin)).toBe('LinkedIn')
+      const company = Array.from(
+        section.querySelectorAll('[data-experience-company] a'),
+      )
+      expect(company.length).toBeGreaterThan(0)
+      for (const link of company) {
+        expect(normalize(link.textContent)).toEndWith(' ↗')
+        expect(accessibleText(link)).not.toContain('↗')
+        expect(accessibleText(link)).toMatch(/ · /)
+      }
+      for (const arrow of section.querySelectorAll('a [aria-hidden="true"]'))
+        expect(arrow.textContent).toBe('↗')
+    })
+  }
 })

@@ -6,98 +6,73 @@ import { PROFESSIONAL_PROFILE } from '@/lib/professional-profile'
 const education = PROFESSIONAL_PROFILE.education[0]
 const language = PROFESSIONAL_PROFILE.languages[0]
 const locale = getLanguage(Astro.url.pathname)
+const levels = [
+  {
+    label: { es: 'Comprensión auditiva', en: 'Listening' },
+    value: language.levels.listening,
+  },
+  {
+    label: { es: 'Comprensión lectora', en: 'Reading' },
+    value: language.levels.reading,
+  },
+  {
+    label: { es: 'Expresión escrita', en: 'Writing' },
+    value: language.levels.writing,
+  },
+  {
+    label: { es: 'Producción oral', en: 'Spoken production' },
+    value: language.levels.spokenProduction,
+  },
+  {
+    label: { es: 'Interacción oral', en: 'Spoken interaction' },
+    value: language.levels.spokenInteraction,
+  },
+]
 ---
 
-<section class="surface-panel grid gap-4 rounded-3xl p-5 sm:p-7 lg:p-6">
-  <div data-animate="reveal" class="bento-card rounded-2xl p-4">
-    <h2 class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
+{/* Not a nav section: it continues 02, so it has no number and its two blocks carry the mono uppercase label. */}
+<section class="border-foreground grid min-w-0 gap-x-12 gap-y-8 border-y py-6 sm:py-8 lg:grid-cols-2">
+  <div data-animate="reveal" data-compact-block class="min-w-0">
+    <h2 class="text-muted-foreground font-mono text-xs tracking-wider uppercase">
       <LangText es="Formación" en="Education" />
     </h2>
-    <h3 class="text-foreground mt-2 text-lg font-semibold tracking-tight sm:text-xl">
-      {locale === 'es' && (
-        <span data-lang-content="es">{education.qualification.es}</span>
-      )}
-      {locale === 'en' && (
-        <span data-lang-content="en">{education.qualification.en}</span>
-      )}
+    <h3 class="font-display text-foreground mt-2 text-2xl leading-[1.1] font-semibold tracking-[-0.03em] sm:text-[1.75rem]">
+      <span data-lang-content={locale}>{education.qualification[locale]}</span>
     </h3>
-    <p class="text-muted-foreground text-sm">
-      {locale === 'es' && (
-        <span data-lang-content="es">
-          {education.institution.es}
-          {' · '}
-          {education.startDate.slice(0, 4)}
-          {' — '}
-          {education.endDate.slice(0, 4)}
-          {' · '}
-          {education.level}
-        </span>
-      )}
-      {locale === 'en' && (
-        <span data-lang-content="en">
-          {education.institution.en}
-          {' · '}
-          {education.startDate.slice(0, 4)}
-          {' — '}
-          {education.endDate.slice(0, 4)}
-          {' · '}
-          {education.level}
-        </span>
-      )}
+    <p class="text-muted-foreground mt-2 text-base">
+      <span data-lang-content={locale}>
+        {education.institution[locale]}
+        {' · '}
+        {education.startDate.slice(0, 4)}
+        {' — '}
+        {education.endDate.slice(0, 4)}
+        {' · '}
+        {education.level}
+      </span>
     </p>
-    <p class="text-muted-foreground text-sm">
-      {locale === 'es' && (
-        <span data-lang-content="es">{education.location.es}</span>
-      )}
-      {locale === 'en' && (
-        <span data-lang-content="en">{education.location.en}</span>
-      )}
+    <p class="text-muted-foreground font-mono text-xs sm:text-[0.8125rem]">
+      <span data-lang-content={locale}>{education.location[locale]}</span>
     </p>
   </div>
 
-  <div data-animate="reveal" class="bento-card rounded-2xl p-4">
-    <h2 class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
+  <div data-animate="reveal" data-compact-block class="min-w-0">
+    <h2 class="text-muted-foreground font-mono text-xs tracking-wider uppercase">
       <LangText es="Idiomas" en="Languages" />
     </h2>
-    <h3 class="text-foreground mt-2 text-lg font-semibold tracking-tight sm:text-xl">
-      {locale === 'es' && (
-        <span data-lang-content="es">{language.name.es}</span>
-      )}
-      {locale === 'en' && (
-        <span data-lang-content="en">{language.name.en}</span>
-      )}
+    <h3 class="font-display text-foreground mt-2 text-2xl leading-[1.1] font-semibold tracking-[-0.03em] sm:text-[1.75rem]">
+      <span data-lang-content={locale}>{language.name[locale]}</span>
     </h3>
-    <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
-      <div class="border-border bg-muted/30 rounded-xl border p-2.5">
-        <span class="text-muted-foreground block text-xs uppercase">
-          <LangText es="Comprensión auditiva" en="Listening" />
-        </span>
-        {language.levels.listening}
-      </div>
-      <div class="border-border bg-muted/30 rounded-xl border p-2.5">
-        <span class="text-muted-foreground block text-xs uppercase">
-          <LangText es="Comprensión lectora" en="Reading" />
-        </span>
-        {language.levels.reading}
-      </div>
-      <div class="border-border bg-muted/30 rounded-xl border p-2.5">
-        <span class="text-muted-foreground block text-xs uppercase">
-          <LangText es="Expresión escrita" en="Writing" />
-        </span>
-        {language.levels.writing}
-      </div>
-      <div class="border-border bg-muted/30 rounded-xl border p-2.5">
-        <span class="text-muted-foreground block text-xs uppercase">
-          <LangText es="Producción oral" en="Spoken production" />
-        </span>
-        {language.levels.spokenProduction}
-      </div>
-      <div class="border-border bg-muted/30 rounded-xl border p-2.5">
-        <span class="text-muted-foreground block text-xs uppercase">
-          <LangText es="Interacción oral" en="Spoken interaction" />
-        </span>
-        {language.levels.spokenInteraction}
-      </div>
-    </div>
+    <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-5">
+      {levels.map((level) => (
+        <div>
+          <dt class="text-muted-foreground font-mono text-xs tracking-wider uppercase">
+            <span data-lang-content={locale}>{level.label[locale]}</span>
+          </dt>
+          <dd class="font-display text-foreground text-xl font-semibold">
+            {level.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
   </div>
 </section>

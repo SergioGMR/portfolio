@@ -682,7 +682,11 @@ describe('unmeasured warm-up navigation', () => {
 describe('warm-up browser navigation', () => {
   type Handler = (
     ws: ServerWebSocket<undefined>,
-    message: { id: number; method: string; params?: { url?: string } },
+    message: {
+      id: number
+      method: string
+      params?: { url?: string; expression?: string } & Record<string, unknown>
+    },
   ) => void
   const reply = (ws: ServerWebSocket<undefined>, id: number, result = {}) =>
     ws.send(JSON.stringify({ id, result }))
@@ -750,9 +754,13 @@ describe('warm-up browser navigation', () => {
 
   test('resolves on the load event after Page.navigate and closes the tab', async () => {
     await withFakeDevTools(loadsAfterReply, async (port, seen) => {
-      await warmUpBrowser('http://127.0.0.1:1234/index.html', port, 2000)
+      await warmUpBrowser('http://127.0.0.1:1234/index.html', port, 2000, 0)
       expect(seen.requests[0]).toBe('PUT /json/new?about%3Ablank')
-      expect(seen.methods).toEqual(['Page.enable', 'Page.navigate'])
+      expect(seen.methods).toEqual([
+        'Page.enable',
+        'Page.navigate',
+        'Runtime.evaluate',
+      ])
       expect(seen.navigated).toEqual(['http://127.0.0.1:1234/index.html'])
       expect(closes(seen)).toEqual(['GET /json/close/tab-1'])
     })
@@ -767,7 +775,7 @@ describe('warm-up browser navigation', () => {
         } else reply(ws, message.id)
       },
       async (port, seen) => {
-        await warmUpBrowser('http://127.0.0.1:1234/', port, 2000)
+        await warmUpBrowser('http://127.0.0.1:1234/', port, 2000, 0)
         expect(closes(seen)).toHaveLength(1)
       },
     )
@@ -785,8 +793,11 @@ describe('warm-up browser navigation', () => {
         ),
       async (port, seen) => {
         expect(
-          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 2000)))
-            .message,
+          (
+            await rejection(
+              warmUpBrowser('http://127.0.0.1:1234/', port, 2000, 0),
+            )
+          ).message,
         ).toContain('net::ERR_CONNECTION_REFUSED')
         expect(closes(seen)).toHaveLength(1)
       },
@@ -799,8 +810,11 @@ describe('warm-up browser navigation', () => {
         ws.send(JSON.stringify({ id: message.id, error: { message: 'boom' } })),
       async (port, seen) => {
         expect(
-          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 2000)))
-            .message,
+          (
+            await rejection(
+              warmUpBrowser('http://127.0.0.1:1234/', port, 2000, 0),
+            )
+          ).message,
         ).toContain('boom')
         expect(closes(seen)).toHaveLength(1)
       },
@@ -815,8 +829,11 @@ describe('warm-up browser navigation', () => {
       },
       async (port, seen) => {
         expect(
-          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 2000)))
-            .message,
+          (
+            await rejection(
+              warmUpBrowser('http://127.0.0.1:1234/', port, 2000, 0),
+            )
+          ).message,
         ).toContain('Warm-up connection closed')
         expect(closes(seen)).toHaveLength(1)
       },
@@ -828,9 +845,13 @@ describe('warm-up browser navigation', () => {
       (ws, message) => reply(ws, message.id),
       async (port, seen) => {
         expect(
-          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 100)))
-            .message,
+          (
+            await rejection(
+              warmUpBrowser('http://127.0.0.1:1234/', port, 100, 0),
+            )
+          ).message,
         ).toContain('Warm-up did not load within 100ms')
+        expect(seen.methods).toEqual(['Page.enable', 'Page.navigate'])
         expect(closes(seen)).toHaveLength(1)
       },
     )
@@ -841,8 +862,11 @@ describe('warm-up browser navigation', () => {
       (ws) => ws.send('not json'),
       async (port, seen) => {
         expect(
-          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 2000)))
-            .name,
+          (
+            await rejection(
+              warmUpBrowser('http://127.0.0.1:1234/', port, 2000, 0),
+            )
+          ).name,
         ).toBe('SyntaxError')
         expect(closes(seen)).toHaveLength(1)
       },
@@ -854,8 +878,11 @@ describe('warm-up browser navigation', () => {
       loadsAfterReply,
       async (port, seen) => {
         expect(
-          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 100)))
-            .name,
+          (
+            await rejection(
+              warmUpBrowser('http://127.0.0.1:1234/', port, 100, 0),
+            )
+          ).name,
         ).toBe('TimeoutError')
         expect(seen.methods).toEqual([])
       },
@@ -868,12 +895,185 @@ describe('warm-up browser navigation', () => {
       loadsAfterReply,
       async (port, seen) => {
         expect(
-          (await rejection(warmUpBrowser('http://127.0.0.1:1234/', port, 2000)))
-            .message,
+          (
+            await rejection(
+              warmUpBrowser('http://127.0.0.1:1234/', port, 2000, 0),
+            )
+          ).message,
         ).toContain('Warm-up tab failed: 500')
         expect(seen.methods).toEqual([])
       },
       { failNew: true },
     )
+  })
+
+  describe('settle step', () => {
+    const warm = (port: number, timeoutMs = 2000, settleMs = 0) =>
+      warmUpBrowser('http://127.0.0.1:1234/', port, timeoutMs, settleMs)
+
+    test('evaluates the settle script only after Page.navigate and the load event', async () => {
+      const order: string[] = []
+      let evaluate: { expression?: string } & Record<string, unknown> = {}
+      await withFakeDevTools(
+        (ws, message) => {
+          reply(ws, message.id)
+          if (message.method === 'Page.navigate') {
+            order.push('navigate-reply')
+            setTimeout(() => {
+              order.push('load')
+              loaded(ws)
+            }, 50)
+          }
+          if (message.method === 'Runtime.evaluate') {
+            order.push('evaluate')
+            evaluate = message.params ?? {}
+          }
+        },
+        async (port, seen) => {
+          await warm(port)
+          expect(order).toEqual(['navigate-reply', 'load', 'evaluate'])
+          expect(seen.methods.filter((m) => m === 'Runtime.evaluate')).toEqual([
+            'Runtime.evaluate',
+          ])
+          expect(evaluate.awaitPromise).toBe(true)
+          expect(evaluate.returnByValue).toBe(true)
+          const expression = String(evaluate.expression)
+          expect(expression).toContain('document.fonts.ready')
+          expect(expression).toContain('Promise.allSettled')
+          expect(expression).toContain('.decode()')
+          expect(expression).toContain('requestAnimationFrame')
+          // The in-page script must at least be valid JavaScript.
+          expect(() => new Function(`return ${expression}`)).not.toThrow()
+          expect(closes(seen)).toHaveLength(1)
+        },
+      )
+    })
+
+    test('evaluates once even if the load event fires again', async () => {
+      await withFakeDevTools(
+        (ws, message) => {
+          reply(ws, message.id)
+          if (message.method === 'Page.navigate') {
+            loaded(ws)
+            loaded(ws)
+          }
+        },
+        async (port, seen) => {
+          await warm(port, 2000, 50)
+          expect(seen.methods.filter((m) => m === 'Runtime.evaluate')).toEqual([
+            'Runtime.evaluate',
+          ])
+        },
+      )
+    })
+
+    test('resolves only after the evaluate result and the settle delay, keeping the tab open meanwhile', async () => {
+      const settleMs = 300
+      let evaluateStart = 0
+      let evaluateDone = 0
+      let closesDuringSettle = -1
+      await withFakeDevTools(
+        (ws, message) => {
+          if (message.method !== 'Runtime.evaluate') {
+            loadsAfterReply(ws, message)
+            return
+          }
+          evaluateStart = performance.now()
+          setTimeout(() => {
+            evaluateDone = performance.now()
+            reply(ws, message.id, { result: { type: 'undefined' } })
+          }, 100)
+        },
+        async (port, seen) => {
+          setTimeout(() => {
+            closesDuringSettle = closes(seen).length
+          }, 250)
+          await warm(port, 5000, settleMs)
+          const finished = performance.now()
+          expect(evaluateDone - evaluateStart).toBeGreaterThanOrEqual(90)
+          expect(finished - evaluateDone).toBeGreaterThanOrEqual(settleMs - 20)
+          expect(closesDuringSettle).toBe(0)
+          expect(closes(seen)).toHaveLength(1)
+        },
+      )
+    })
+
+    test('rejects on evaluate exceptionDetails and closes the tab', async () => {
+      await withFakeDevTools(
+        (ws, message) =>
+          message.method === 'Runtime.evaluate'
+            ? reply(ws, message.id, {
+                result: { type: 'object' },
+                exceptionDetails: {
+                  text: 'Uncaught (in promise)',
+                  exception: { description: 'Error: decode exploded' },
+                },
+              })
+            : loadsAfterReply(ws, message),
+        async (port, seen) => {
+          const error = await rejection(warm(port, 2000, 0))
+          expect(error.message).toContain('Warm-up settle failed')
+          expect(error.message).toContain('decode exploded')
+          expect(closes(seen)).toHaveLength(1)
+        },
+      )
+    })
+
+    test('rejects when evaluate returns a protocol error and closes the tab', async () => {
+      await withFakeDevTools(
+        (ws, message) =>
+          message.method === 'Runtime.evaluate'
+            ? ws.send(
+                JSON.stringify({ id: message.id, error: { message: 'boom' } }),
+              )
+            : loadsAfterReply(ws, message),
+        async (port, seen) => {
+          expect((await rejection(warm(port, 2000, 0))).message).toContain(
+            'boom',
+          )
+          expect(closes(seen)).toHaveLength(1)
+        },
+      )
+    })
+
+    test('rejects when the socket closes while the page settles and closes the tab', async () => {
+      await withFakeDevTools(
+        (ws, message) =>
+          message.method === 'Runtime.evaluate'
+            ? ws.close()
+            : loadsAfterReply(ws, message),
+        async (port, seen) => {
+          expect((await rejection(warm(port, 2000, 0))).message).toContain(
+            'Warm-up connection closed',
+          )
+          expect(closes(seen)).toHaveLength(1)
+        },
+      )
+    })
+
+    test('rejects when the settle delay exceeds the overall timeout and closes the tab', async () => {
+      await withFakeDevTools(loadsAfterReply, async (port, seen) => {
+        const started = performance.now()
+        const error = await rejection(warm(port, 300, 5000))
+        expect(error.message).toContain('Warm-up did not settle within 300ms')
+        expect(performance.now() - started).toBeLessThan(2000)
+        expect(closes(seen)).toHaveLength(1)
+      })
+    })
+
+    test('rejects when the evaluate never answers within the overall timeout and closes the tab', async () => {
+      await withFakeDevTools(
+        (ws, message) => {
+          if (message.method !== 'Runtime.evaluate')
+            loadsAfterReply(ws, message)
+        },
+        async (port, seen) => {
+          expect((await rejection(warm(port, 200, 0))).message).toContain(
+            'Warm-up did not settle within 200ms',
+          )
+          expect(closes(seen)).toHaveLength(1)
+        },
+      )
+    })
   })
 })

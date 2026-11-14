@@ -7,7 +7,7 @@ const paths = getAlternatePaths(Astro.url.pathname)
 
 <nav
   aria-label={locale === 'es' ? 'Idioma' : 'Language'}
-  class="border-border bg-surface/60 inline-flex items-center gap-1 rounded-full border p-1 text-xs"
+  class="inline-flex items-center gap-0.5 font-mono text-xs"
 >
   {(['es', 'en'] as const).map((language) => (
     <a
@@ -18,8 +18,11 @@ const paths = getAlternatePaths(Astro.url.pathname)
       aria-current={language === locale ? 'page' : undefined}
       aria-label={language === 'es' ? 'Español' : 'English'}
       class:list={[
-        'hover:bg-muted focus-visible:outline-primary/70 inline-flex min-h-9 min-w-9 items-center justify-center rounded-full px-2 py-1 transition-colors focus-visible:outline focus-visible:outline-2',
-        { 'bg-foreground text-background': language === locale },
+        'border-border hover:bg-muted focus-visible:outline-ring inline-flex min-h-11 min-w-11 items-center justify-center border px-2 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2',
+        {
+          'bg-foreground text-background border-foreground hover:bg-foreground':
+            language === locale,
+        },
       ]}
     >
       {language.toUpperCase()}

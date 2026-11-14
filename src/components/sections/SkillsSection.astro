@@ -40,84 +40,79 @@ const evidenceLinks = new Map([
 ])
 ---
 
-<section
-  id="habilidades"
-  class="surface-panel grid gap-6 rounded-3xl p-5 sm:p-7 lg:p-8"
->
-  <div data-animate="reveal" class="space-y-3">
-    <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-      <LangText es="Capacidades" en="Capabilities" />
-    </p>
-    <h2 class="text-foreground text-2xl font-semibold tracking-tight sm:text-3xl">
-      <LangText es="Stack y enfoque" en="Stack and focus" />
+<section id="habilidades" class="min-w-0">
+  <div
+    data-animate="reveal"
+    class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 pb-4 sm:pb-6"
+  >
+    <h2 class="font-display text-foreground flex items-baseline gap-3 text-[2.125rem] leading-none font-bold tracking-[-0.04em] sm:gap-[1.125rem] sm:text-[clamp(2.25rem,4vw,3.5rem)]">
+      <span
+        data-section-number
+        class="text-primary font-mono text-[0.8125rem] font-normal tracking-normal sm:text-sm"
+        aria-hidden="true"
+      >
+        03
+      </span>
+      <LangText es="Stack" en="Stack" />
     </h2>
-    <p class="text-muted-foreground text-sm leading-relaxed">
+    <p class="text-muted-foreground max-w-md text-sm sm:text-base">
       <LangText
         es="Capacidades conectadas con mi experiencia y con proyectos concretos."
         en="Capabilities connected to my experience and to specific projects."
       />
     </p>
-    <div class="flex flex-wrap gap-1.5 pt-1">
-      {[
-        ...new Set(capabilities.flatMap(({ technologies }) => technologies)),
-      ].map((technology) => (
-        <span class="tech-tag rounded-full px-2.5 py-1 text-xs">
-          {technology}
-        </span>
-      ))}
-    </div>
   </div>
 
-  <div class="grid min-w-0 gap-3">
+  <ol
+    role="list"
+    class="border-foreground grid min-w-0 border-y sm:grid-cols-2 lg:grid-cols-4"
+  >
     {capabilities.map((capability, index) => (
-      <article
+      <li
         data-animate="reveal-up"
         data-animate-delay={`${index * 70}ms`}
-        class="bento-card min-w-0 rounded-2xl p-4"
+        class="border-border min-w-0 py-5 not-first:border-t sm:py-6 sm:nth-2:border-t-0 sm:odd:pr-6 sm:even:border-l sm:even:pl-6 lg:nth-3:border-t-0 lg:nth-4:border-t-0 lg:border-l lg:px-6 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
       >
-        <p class="text-primary font-mono text-[10px] tracking-widest uppercase">
-          {locale === 'es' && (
-            <span data-lang-content="es">{capability.label.es}</span>
-          )}
-          {locale === 'en' && (
-            <span data-lang-content="en">{capability.label.en}</span>
-          )}
-        </p>
-        <p class="text-foreground mt-2 text-sm font-semibold tracking-tight">
-          {capability.technologies.join(' · ')}
-        </p>
-        <p class="text-muted-foreground mt-2 text-xs leading-relaxed">
-          {locale === 'es' && (
-            <span data-lang-content="es">{capability.summary.es}</span>
-          )}
-          {locale === 'en' && (
-            <span data-lang-content="en">{capability.summary.en}</span>
-          )}
-        </p>
-        <p class="text-muted-foreground border-border mt-3 border-t pt-2.5 font-mono text-[10px]">
-          <span data-lang-content={locale}>
-            <span class="text-foreground/70 tracking-wider uppercase">
-              {locale === 'es' ? 'Evidencia:' : 'Evidence:'}
-            </span>{' '}
-            {capability.evidenceIds.map((id, index) => {
-              const evidence = evidenceLinks.get(id)
-              if (!evidence)
-                throw new Error(`Missing capability evidence: ${id}`)
-              return (
-                <>
-                  {index > 0 && ' · '}
-                  <a
-                    href={evidence.href}
-                    class="text-primary underline underline-offset-4 hover:no-underline"
-                  >
-                    {evidence.label}
-                  </a>
-                </>
-              )
-            })}
-          </span>
-        </p>
-      </article>
+        <article class="flex h-full min-w-0 flex-col">
+          <h3 class="font-display text-foreground text-2xl leading-[1.1] font-semibold tracking-[-0.03em]">
+            <span data-lang-content={locale}>{capability.label[locale]}</span>
+          </h3>
+          <p
+            data-capability-tech
+            class="text-primary mt-3 font-mono text-xs sm:text-[0.8125rem]"
+          >
+            {capability.technologies.join(' · ')}
+          </p>
+          <p class="text-foreground/85 mt-3 text-[0.9375rem] leading-[1.45] sm:text-base sm:leading-normal">
+            <span data-lang-content={locale}>{capability.summary[locale]}</span>
+          </p>
+          <div class="mt-auto pt-4">
+            <p class="text-muted-foreground font-mono text-xs tracking-wider uppercase">
+              <span data-lang-content={locale}>
+                {locale === 'es' ? 'Evidencia:' : 'Evidence:'}
+              </span>
+            </p>
+            <ul class="mt-1">
+              {capability.evidenceIds.map((id) => {
+                const evidence = evidenceLinks.get(id)
+                if (!evidence)
+                  throw new Error(`Missing capability evidence: ${id}`)
+                return (
+                  <li>
+                    <a
+                      href={evidence.href}
+                      data-lang-content={locale}
+                      class="text-primary inline-flex min-h-11 items-center text-[0.9375rem] underline underline-offset-4 hover:no-underline"
+                    >
+                      {evidence.label}
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        </article>
+      </li>
     ))}
-  </div>
+  </ol>
 </section>
