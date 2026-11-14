@@ -5,15 +5,16 @@
 /*
  * Self-hosted variable fonts, Latin subset only. The face names match the
  * Fontsource ones so the preloaded files in BasePage.astro and these rules
- * resolve to the same hashed assets. Bricolage uses the wght file (41 KB), not
- * opsz (77 KB): the larger file dropped Lighthouse performance to 0.99.
+ * resolve to the same hashed assets. Bricolage uses the opsz file (77 KB) for
+ * the optical-size headline shape; with the first-paint fallback below it holds
+ * Lighthouse performance 100 and CLS 0 (the wght file is 41 KB).
  */
 @font-face {
   font-family: 'Bricolage Grotesque Variable';
   font-style: normal;
   font-display: swap;
   font-weight: 200 800;
-  src: url('@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2')
+  src: url('@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-opsz-normal.woff2')
     format('woff2-variations');
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
@@ -35,16 +36,30 @@
 }
 
 /*
- * Metric-matched fallbacks: Arial scaled and re-spaced to the width, ascent
- * and descent of each web font (average Latin advance and hhea/typo metrics),
- * so the swap does not move the layout.
+ * Metric-matched fallbacks: Arial scaled and re-spaced so the swap does not
+ * reflow the headline. Bricolage is measured for the H1 (weight 700, optical
+ * size pinned to 96 in HeroSection) and calibrated per language: the Spanish
+ * and English headlines break lines at different widths, and no single
+ * size-adjust keeps the line count equal at every viewport for both. Values
+ * come from a sweep of fallback vs loaded line counts in Chrome (4px steps from
+ * 320px to 560px plus 600 to 1920px). Spanish: 99.5%; English: 94.5%. Ascent and
+ * descent are the font's 930/270 per 1000 divided by size-adjust.
  */
 @font-face {
   font-family: 'Bricolage Grotesque Fallback';
   src: local('Arial');
-  size-adjust: 112.01%;
-  ascent-override: 83.03%;
-  descent-override: 24.11%;
+  size-adjust: 99.5%;
+  ascent-override: 93.47%;
+  descent-override: 27.14%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque Fallback EN';
+  src: local('Arial');
+  size-adjust: 94.5%;
+  ascent-override: 98.41%;
+  descent-override: 28.57%;
   line-gap-override: 0%;
 }
 
@@ -198,6 +213,12 @@
 }
 
 @layer utilities {
+  html[lang='en'] .font-display {
+    font-family:
+      'Bricolage Grotesque Variable', 'Bricolage Grotesque Fallback EN',
+      ui-sans-serif, system-ui, sans-serif;
+  }
+
   .is-hidden {
     opacity: 0;
     transform: translateY(0.75rem);

@@ -28,73 +28,85 @@ const projects = PROFESSIONAL_PROFILE.projects
 const locale = getLanguage(Astro.url.pathname)
 ---
 
-<section
-  id="proyectos"
-  class="surface-panel grid gap-6 rounded-3xl p-5 sm:p-7 lg:p-8"
->
-  <div data-animate="reveal" class="flex flex-col gap-2">
-    <p class="text-muted-foreground text-xs tracking-[0.3em] uppercase">
-      <LangText es="Casos de estudio" en="Case studies" />
-    </p>
-    <h2 class="text-foreground text-2xl font-semibold tracking-tight sm:text-3xl">
-      <LangText es="Proyectos seleccionados" en="Selected projects" />
+<section id="proyectos" class="min-w-0">
+  <div
+    data-animate="reveal"
+    class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 pb-4 sm:pb-6"
+  >
+    <h2 class="font-display text-foreground flex items-baseline gap-3 text-[2.125rem] leading-none font-bold tracking-[-0.04em] sm:gap-[1.125rem] sm:text-[clamp(2.25rem,4vw,3.5rem)]">
+      <span
+        data-section-number
+        class="text-primary font-mono text-[0.8125rem] font-normal tracking-normal sm:text-sm"
+        aria-hidden="true"
+      >
+        01
+      </span>
+      <LangText es="Proyectos" en="Projects" />
     </h2>
+    <p class="text-muted-foreground font-mono text-xs sm:text-[0.8125rem]">
+      <LangText
+        es={`${projects.length} casos de estudio`}
+        en={`${projects.length} case studies`}
+      />
+    </p>
   </div>
 
-  <div class="grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2">
+  <ol role="list" class="border-foreground min-w-0 border-y">
     {projects.map((project, index) => (
-      <a
-        href={getAlternatePaths(`/proyectos/${project.id}`)[locale]}
+      <li
         data-animate="reveal-up"
         data-animate-delay={`${index * 80}ms`}
-        class="bento-card group block min-w-0 rounded-2xl p-4 sm:p-5"
+        class="border-border not-first:border-t"
       >
-        <div class="media-frame relative mb-4 overflow-hidden rounded-xl">
+        <a
+          href={getAlternatePaths(`/proyectos/${project.id}`)[locale]}
+          class="group grid min-h-11 min-w-0 grid-cols-[minmax(0,1fr)_6.5rem] gap-x-3.5 gap-y-2 py-4 sm:grid-cols-[minmax(0,1fr)_11rem] sm:gap-x-8 sm:py-6 lg:grid-cols-[2.5rem_minmax(0,1fr)_minmax(0,1.6fr)_11rem_1.5rem] lg:items-center"
+        >
+          <div class="col-start-1 row-start-1 flex items-baseline gap-2.5 lg:contents">
+            <span
+              data-row-number
+              class="text-muted-foreground font-mono text-xs lg:text-sm"
+              aria-hidden="true"
+            >
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <h3 class="font-display text-foreground group-hover:text-primary text-2xl leading-[1.1] font-semibold tracking-[-0.03em] transition-colors sm:text-[1.75rem] lg:text-[2rem] xl:text-[2.125rem]">
+              <LangText es={project.title.es} en={project.title.en} />
+            </h3>
+          </div>
+
+          <div class="col-start-1 row-start-2 min-w-0 lg:col-start-3 lg:row-start-1">
+            <p class="text-foreground/85 line-clamp-3 text-[0.9375rem] leading-[1.45] sm:line-clamp-none sm:text-base sm:leading-normal">
+              <LangText es={project.summary.es} en={project.summary.en} />
+            </p>
+            <p class="text-muted-foreground mt-1.5 font-mono text-xs sm:mt-2 sm:text-[0.8125rem]">
+              {project.technologies.slice(0, 4).join('\u00a0· ')}
+            </p>
+          </div>
+
           <Image
             src={projectImages[project.imageKey as keyof typeof projectImages]}
-            alt={
-              locale === 'es'
-                ? `Captura de la interfaz de ${project.title.es}`
-                : `${project.title.en} interface screenshot`
-            }
-            class="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03] sm:h-44"
+            alt=""
+            class="border-border col-start-2 row-span-2 row-start-1 aspect-[15/8] w-full self-start border object-cover lg:col-start-4 lg:row-span-1 lg:self-center"
             loading="lazy"
             decoding="async"
             format="avif"
             quality={78}
-            widths={[260, 352, 525, 700, 900]}
-            width={900}
-            height={480}
-            sizes="(min-width: 1280px) 420px, (min-width: 1024px) 360px, (min-width: 768px) 320px, calc(100vw - 3rem)"
+            widths={[104, 176, 208, 352]}
+            width={352}
+            height={188}
+            sizes="(min-width: 640px) 176px, 104px"
           />
-        </div>
 
-        <div class="flex items-start justify-between gap-3">
-          <h3 class="text-foreground group-hover:text-primary text-lg font-semibold tracking-tight transition-colors">
-            <LangText es={project.title.es} en={project.title.en} />
-          </h3>
           <span
-            class="text-primary shrink-0 font-mono text-sm transition-transform duration-200 group-hover:translate-x-1"
+            data-row-arrow
+            class="text-foreground group-hover:text-primary hidden text-[1.375rem] transition-transform duration-200 group-hover:translate-x-1 lg:block lg:text-right"
             aria-hidden="true"
           >
-            {locale === 'es' ? 'Leer caso →' : 'Read case →'}
+            →
           </span>
-        </div>
-
-        <p class="text-primary mt-2 font-mono text-[10px] tracking-widest uppercase">
-          <LangText es="Caso de estudio" en="Case study" />
-        </p>
-
-        <p class="text-muted-foreground mt-3 text-sm leading-relaxed">
-          <LangText es={project.summary.es} en={project.summary.en} />
-        </p>
-
-        <div class="mt-4 flex flex-wrap gap-1.5 font-mono text-[10px] tracking-wider uppercase">
-          {project.technologies.map((technology) => (
-            <span class="tech-tag rounded-md px-2 py-1">{technology}</span>
-          ))}
-        </div>
-      </a>
+        </a>
+      </li>
     ))}
-  </div>
+  </ol>
 </section>

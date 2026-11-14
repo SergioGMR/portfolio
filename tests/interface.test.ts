@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
@@ -36,25 +36,44 @@ describe('portfolio interface', () => {
     expect(basePage).not.toContain('min-h-screen')
   })
 
-  test('preserves the current section architecture and mobile-first order', () => {
-    for (const component of [
+  test('composes the home as one column in nav order, without the code bento', () => {
+    const components = [
       'HeroSection',
       'ProjectsSection',
-      'CodeSnippetBento',
       'ExperienceSection',
-      'SkillsSection',
       'EducationLanguagesSection',
+      'SkillsSection',
       'FaqSection',
       'AboutContactSection',
-    ]) {
-      expect(index).toContain(`<${component}`)
-    }
+    ]
+    const positions = components.map((component) =>
+      index.indexOf(`<${component}`),
+    )
 
-    expect(index).toContain('order-1')
-    expect(index).toContain('order-5')
-    expect(index).toContain('order-6')
-    expect(projects).toContain('surface-panel')
-    expect(projects).toContain('sm:grid-cols-2')
+    for (const position of positions) expect(position).toBeGreaterThan(-1)
+    // DOM order is nav order: no grid placement or visual reordering remains.
+    expect(positions).toEqual([...positions].sort((a, b) => a - b))
+    expect(index).not.toMatch(
+      /\b(?:lg:)?(?:order|col-span|col-start|row-start)-\d/,
+    )
+    expect(index).not.toContain('grid-cols-')
+    expect(index).not.toContain('CodeSnippetBento')
+    expect(
+      existsSync(join(root, 'src/components/sections/CodeSnippetBento.astro')),
+    ).toBe(false)
+  })
+
+  test('renders projects as hairline rows and the hero in the display font', () => {
+    expect(projects).not.toContain('surface-panel')
+    expect(projects).not.toContain('bento-card')
+    expect(projects).not.toContain('sm:grid-cols-2')
+    expect(projects).toContain('border-t')
+    expect(hero).toContain('font-display')
+    // Optical size is pinned (no inline style), so headline width scales
+    // linearly with size and the metric-matched fallback holds at every width.
+    expect(hero).toContain("[font-variation-settings:'opsz'_96]")
+    expect(hero).not.toContain('hero-glow')
+    expect(hero).not.toContain('text-center')
   })
 
   test('keeps evidence-backed capabilities instead of an unscoped stack cloud', () => {
@@ -70,8 +89,7 @@ describe('portfolio interface', () => {
     expect(css).not.toContain('@fontsource/space-grotesk')
     expect(css).not.toContain('Space Grotesk')
     expect(basePage).not.toContain('fonts.googleapis.com')
-    expect(hero).toContain('PROFESSIONAL_PROFILE.cvUrls.es')
-    expect(hero).toContain('PROFESSIONAL_PROFILE.cvUrls.en')
+    expect(hero).toContain('PROFESSIONAL_PROFILE.cvUrls[locale]')
     expect(PROFESSIONAL_PROFILE.cvUrls).toEqual({
       es: '/sergio-morales-es.pdf',
       en: '/sergio-morales-en.pdf',
@@ -88,7 +106,7 @@ describe('portfolio interface', () => {
   })
 
   test('preloads the Latin variable fonts and declares metric-matched fallbacks', () => {
-    expect(basePage).toContain('bricolage-grotesque-latin-wght-normal.woff2')
+    expect(basePage).toContain('bricolage-grotesque-latin-opsz-normal.woff2')
     expect(basePage).toContain('instrument-sans-latin-wght-normal.woff2')
     expect(basePage.match(/rel="preload"/g)).toHaveLength(2)
     for (const family of ['Bricolage Grotesque', 'Instrument Sans']) {
@@ -106,6 +124,18 @@ describe('portfolio interface', () => {
         expect(fallback, `${family} ${descriptor}`).toContain(`${descriptor}:`)
       expect(fallback).toContain("local('Arial')")
     }
+    // The headline wraps differently per language, so each locale has its own
+    // size-adjust (calibrated on the real H1 text) and the English page swaps
+    // the fallback family in through the lang attribute, without JavaScript.
+    const englishFallback =
+      /@font-face\s*\{[^}]*font-family:\s*'Bricolage Grotesque Fallback EN'[^}]*\}/s.exec(
+        css,
+      )?.[0]
+    expect(englishFallback).toBeDefined()
+    expect(englishFallback).toContain('size-adjust:')
+    expect(css).toMatch(
+      /html\[lang='en'\]\s+\.font-display\s*\{[^}]*Bricolage Grotesque Fallback EN/s,
+    )
     expect(css).toMatch(/--font-display:[^;]*Bricolage Grotesque/)
     expect(css).toMatch(/--font-sans:[^;]*Instrument Sans/)
     expect(css).toMatch(/--font-mono:[^;]*ui-monospace/)

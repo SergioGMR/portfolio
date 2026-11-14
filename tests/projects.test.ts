@@ -109,15 +109,22 @@ describe('portfolio projects', () => {
     ])
   })
 
-  test('renders one safe responsive loop with the current card design', () => {
+  test('renders one safe responsive loop of numbered rows', () => {
     expect(projectsSource).toContain('projects.map')
     expect(projectsSource).not.toContain('showcase')
     expect(projectsSource).not.toContain('_blank')
     expect(projectsSource).not.toContain('project.evidenceUrl')
-    expect(projectsSource).toContain('Leer caso →')
-    expect(projectsSource).toContain('Read case →')
-    expect(projectsSource).toContain('project.technologies.map')
-    expect(projectsSource).toContain('sm:grid-cols-2')
+    // Rows, not cards: one decorative arrow instead of a "Read case" label,
+    // and at most four technologies as plain text.
+    expect(projectsSource).toContain('data-row-arrow')
+    expect(projectsSource).toContain('→')
+    expect(projectsSource).toContain('alt=""')
+    expect(projectsSource).toContain("join('\\u00a0· ')")
+    expect(projectsSource).not.toContain('Leer caso')
+    expect(projectsSource).not.toContain('Read case')
+    expect(projectsSource).toContain('project.technologies.slice(0, 4)')
+    expect(projectsSource).not.toContain('tech-tag')
+    expect(projectsSource).not.toContain('sm:grid-cols-2')
 
     for (const asset of [
       'todo-lux.avif',

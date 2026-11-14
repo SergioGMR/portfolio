@@ -451,11 +451,8 @@ describe('compiled Solutec removal and retained Tecandu experience', () => {
       expect(
         browser.document.querySelectorAll('#proyectos a[target="_blank"]'),
       ).toHaveLength(0)
-      expect(desktopCard?.querySelector('img')?.getAttribute('alt')).toBe(
-        locale === 'es'
-          ? 'Captura de la interfaz de UploadIMG - Desktop'
-          : 'UploadIMG - Desktop interface screenshot',
-      )
+      // The thumbnail is decorative: the heading in the same link names it.
+      expect(desktopCard?.querySelector('img')?.getAttribute('alt')).toBe('')
     })
   }
 })
@@ -535,15 +532,33 @@ describe('compiled portfolio content and contact choices', () => {
       expect(document.body.textContent).not.toMatch(
         /10\+ Years|Clean Hexagonal|Hexagonal/,
       )
-      const specialty = document.querySelector(
-        '.code-panel > div:last-child > div:first-child',
+      // The three facts of the retired code bento live in the hero facts strip.
+      const facts = Array.from(
+        document.querySelectorAll('#inicio dl > div'),
+      ).map((fact) => [
+        normalize(fact.querySelector('dt')?.textContent),
+        normalize(fact.querySelector('dd')?.textContent),
+      ])
+      expect(facts).toEqual(
+        locale === 'es'
+          ? [
+              ['Especialidad', 'Laravel'],
+              ['Enfoque', 'APIs & CI/CD'],
+              ['Ubicación', 'Las Palmas, España'],
+            ]
+          : [
+              ['Specialty', 'Laravel'],
+              ['Focus', 'APIs & CI/CD'],
+              ['Location', 'Las Palmas, Spain'],
+            ],
       )
-      expect(specialty?.querySelector('span.block')?.textContent.trim()).toBe(
-        locale === 'es' ? 'ESPECIALIDAD' : 'SPECIALTY',
+      expect(document.querySelector('.code-panel')).toBeNull()
+      const cv = document.querySelector(
+        `#inicio a[href="/sergio-morales-${locale}.pdf"]`,
       )
-      expect(specialty?.querySelector('.font-semibold')?.textContent).toBe(
-        'Laravel',
-      )
+      expect(cv?.getAttribute('target')).toBe('_blank')
+      expect(cv?.getAttribute('rel')).toBe('noopener noreferrer')
+      expect(document.body.textContent).not.toContain('TechLeadProfile')
     })
 
     test(`links capabilities to named cases and the stable Tecandu anchor at ${path}`, () => {
@@ -640,14 +655,21 @@ describe('compiled portfolio content and contact choices', () => {
       const home = locale === 'es' ? '/' : '/en'
       const path = `${locale === 'es' ? '/proyectos' : '/en/projects'}/${id}`
       const { browser: homepage } = openBuiltPage(home, locale)
-      const card = homepage.document.querySelector(
+      const row = homepage.document.querySelector(
         `#proyectos a[href="${path}"]`,
       )
-      expect(card?.querySelectorAll('p').length).toBe(2)
-      expect(normalize(card?.querySelectorAll('p')[1]?.textContent)).toBe(
+      // A row is the summary and a plain-text line of at most four technologies.
+      expect(row?.querySelectorAll('p').length).toBe(2)
+      expect(normalize(row?.querySelectorAll('p')[0]?.textContent)).toBe(
         summary,
       )
-      expect(normalize(card?.textContent)?.includes(detail)).toBe(false)
+      const project = PROFESSIONAL_PROFILE.projects.find(
+        (candidate) => candidate.id === id,
+      )!
+      expect(normalize(row?.querySelectorAll('p')[1]?.textContent)).toBe(
+        project.technologies.slice(0, 4).join(' · '),
+      )
+      expect(normalize(row?.textContent)?.includes(detail)).toBe(false)
       const {
         browser: casePage,
         title,
@@ -659,9 +681,6 @@ describe('compiled portfolio content and contact choices', () => {
       expect(article?.querySelectorAll('section ul li').length).toBeGreaterThan(
         3,
       )
-      const project = PROFESSIONAL_PROFILE.projects.find(
-        (candidate) => candidate.id === id,
-      )!
       expect(title).toContain(project.titleFocus[locale])
       expect(description).toContain(summary)
       expect(description).toContain(
@@ -1032,7 +1051,12 @@ describe('compiled home headings and FAQ', () => {
         ', ',
       )
       expect(spans[1]?.className).toContain('block')
-      expect(spans[1]?.className).toContain('font-semibold')
+      expect(spans[1]?.className).toContain('font-display')
+      // Optical size is pinned so the headline width does not depend on the
+      // font size and the metric-matched fallback stays valid at every width.
+      expect(spans[1]?.className).toContain(
+        "[font-variation-settings:'opsz'_96]",
+      )
       // The separator is only for assistive technology and must not add spaces.
       expect(h1.textContent).toContain('Rodríguez, ')
       expect(h1.textContent).not.toMatch(/Rodríguez\s+,/)
@@ -1150,19 +1174,89 @@ describe('compiled home headings and FAQ', () => {
       expect(document.documentElement.innerHTML).not.toContain('FAQPage')
     })
 
-    test(`orders the FAQ between the cards and contact on the grid at ${path}`, () => {
+    test(`stacks the home sections in one column in nav order at ${path}`, () => {
       const { browser } = openBuiltPage(path, locale)
       const document = browser.document
-      const faqRow = document.querySelector(
-        '#preguntas-frecuentes',
-      )?.parentElement
-      const contactRow = document.querySelector('#contacto')?.parentElement
-      expect(faqRow?.className).toContain('order-5')
-      expect(faqRow?.className).toContain('lg:col-span-12')
-      expect(faqRow?.className).toContain('lg:row-start-3')
-      expect(contactRow?.className).toContain('order-6')
-      expect(contactRow?.className).toContain('lg:col-span-12')
-      expect(contactRow?.className).toContain('lg:row-start-4')
+      const sections = Array.from(document.querySelector('main')!.children)
+      // Hero, Projects, Experience, Education/Languages (no id), Stack, FAQ,
+      // Contact: DOM order is nav order, with no wrapper grid or reordering.
+      expect(sections.map((section) => section.tagName)).toEqual(
+        Array(7).fill('SECTION'),
+      )
+      expect(sections.map((section) => section.id)).toEqual([
+        'inicio',
+        'proyectos',
+        'experiencia',
+        '',
+        'habilidades',
+        'preguntas-frecuentes',
+        'contacto',
+      ])
+      expect(normalize(sections[3]?.querySelector('h2')?.textContent)).toBe(
+        locale === 'es' ? 'Formación' : 'Education',
+      )
+      for (const section of sections)
+        expect(section.className).not.toMatch(
+          /(^|\s)(lg:)?(order|col-span|col-start|row-start)-\d/,
+        )
+      const navIds = Array.from(
+        document.querySelectorAll('[data-section-link]'),
+      ).map((link) => link.getAttribute('href')?.split('#')[1])
+      expect(navIds).toEqual(
+        sections
+          .map((section) => section.id)
+          .filter((id) => id && id !== 'inicio'),
+      )
+    })
+
+    test(`lists eight numbered project rows with at most four technologies at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const rows = Array.from(
+        browser.document.querySelectorAll('#proyectos ol > li'),
+      )
+      expect(rows).toHaveLength(8)
+      const prefix = locale === 'es' ? '/proyectos' : '/en/projects'
+      for (const [index, row] of rows.entries()) {
+        const project = PROFESSIONAL_PROFILE.projects[index]!
+        const link = row.querySelector('a')!
+        expect(link.getAttribute('href')).toBe(`${prefix}/${project.id}`)
+        expect(
+          normalize(link.querySelector('[data-row-number]')?.textContent),
+        ).toBe(String(index + 1).padStart(2, '0'))
+        expect(normalize(link.querySelector('h3')?.textContent)).toBe(
+          project.title[locale],
+        )
+        const technologies = (
+          normalize(link.querySelectorAll('p')[1]?.textContent) ?? ''
+        ).split(' · ')
+        expect(technologies.length).toBeGreaterThan(0)
+        expect(technologies.length).toBeLessThanOrEqual(4)
+        expect(technologies).toEqual(
+          project.technologies.slice(0, technologies.length),
+        )
+        expect(link.querySelector('.tech-tag')).toBeNull()
+        expect(link.getAttribute('class')).toContain('min-h-11')
+        // Number and arrow are decorative; the separator never starts a line.
+        expect(
+          link.querySelector('[data-row-number]')?.getAttribute('aria-hidden'),
+        ).toBe('true')
+        expect(
+          link.querySelector('[data-row-arrow]')?.getAttribute('aria-hidden'),
+        ).toBe('true')
+        expect(link.querySelector('[data-row-arrow]')?.textContent.trim()).toBe(
+          '→',
+        )
+        expect(link.querySelector('img')?.getAttribute('alt')).toBe('')
+        const techLine = link.querySelectorAll('p')[1]!.textContent
+        expect(techLine).toBe(project.technologies.slice(0, 4).join('\u00a0· '))
+      }
+      const heading = browser.document.querySelector('#proyectos h2')
+      expect(
+        normalize(heading?.querySelector('[data-section-number]')?.textContent),
+      ).toBe('01')
+      expect(
+        normalize(heading?.querySelector('[data-lang-content]')?.textContent),
+      ).toBe(locale === 'es' ? 'Proyectos' : 'Projects')
     })
 
     test(`does not skip heading levels at ${path}`, () => {
@@ -1380,7 +1474,7 @@ describe('compiled font loading', () => {
       )
       expect(preloads).toHaveLength(2)
       expect(preloads.join('')).toMatch(
-        /\/_astro\/bricolage-grotesque-latin-wght-normal\.[\w-]+\.woff2/,
+        /\/_astro\/bricolage-grotesque-latin-opsz-normal\.[\w-]+\.woff2/,
       )
       expect(preloads.join('')).toMatch(
         /\/_astro\/instrument-sans-latin-wght-normal\.[\w-]+\.woff2/,
