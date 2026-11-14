@@ -436,14 +436,46 @@ export async function runMeasurements(options: Execution) {
 }
 
 const WARM_UP_TIMEOUT_MS = 30_000
+// Quiet period after the page has settled. Headless Chrome keeps doing
+// first-time decode, raster and font work for a while after the load event.
+const WARM_UP_SETTLE_MS = 3000
 
-// Opens a throwaway tab in the owned Chrome through its DevTools endpoint,
-// navigates it to `url` and resolves once that navigation fires its load event.
-// The tab starts blank so the load event cannot fire before we are listening.
+// Runs inside the warm-up page once its load event has fired: waits for fonts,
+// decodes every image that is not still lazy-pending (allSettled, so a broken
+// image never rejects) and lets two frames paint. The frame wait is raced with
+// a timer so a throttled requestAnimationFrame cannot hang the warm-up.
+const WARM_UP_SETTLE_SCRIPT = `(async () => {
+  await document.fonts.ready
+  await Promise.allSettled(
+    [...document.images]
+      .filter(
+        (img) =>
+          (img.currentSrc || img.src) &&
+          !(img.loading === 'lazy' && !img.complete),
+      )
+      .map((img) => img.decode()),
+  )
+  await Promise.race([
+    new Promise((frames) =>
+      requestAnimationFrame(() => requestAnimationFrame(frames)),
+    ),
+    new Promise((timeout) => setTimeout(timeout, 1000)),
+  ])
+})()`
+
+// Opens a throwaway tab in the owned Chrome through its DevTools endpoint and
+// navigates it to `url`. The tab starts blank so the load event cannot fire
+// before we are listening. Once load fires the page is allowed to settle
+// before the tab is closed: fonts ready, images decoded, two frames painted and
+// then a fixed quiet period. Closing at the load event would skip the
+// first-time decode/raster work that happens right after it, and that work
+// would then land inside measured run 1. The whole warm-up, settle included,
+// must finish within `timeoutMs`; any failure is fatal.
 export async function warmUpBrowser(
   url: string,
   port: number,
   timeoutMs = WARM_UP_TIMEOUT_MS,
+  settleMs = WARM_UP_SETTLE_MS,
 ): Promise<void> {
   const endpoint = `http://127.0.0.1:${port}/json`
   const response = await fetch(
@@ -458,15 +490,25 @@ export async function warmUpBrowser(
   const socket = new WebSocket(webSocketDebuggerUrl)
   const send = (id: number, method: string, params?: object) =>
     socket.send(JSON.stringify({ id, method, params }))
+  let settleTimer: ReturnType<typeof setTimeout> | undefined
   try {
     await new Promise<void>((accept, reject) => {
       let navigated = false
+      let settling = false
       const timer = setTimeout(
-        () => reject(new Error(`Warm-up did not load within ${timeoutMs}ms`)),
+        () =>
+          reject(
+            new Error(
+              settling
+                ? `Warm-up did not settle within ${timeoutMs}ms`
+                : `Warm-up did not load within ${timeoutMs}ms`,
+            ),
+          ),
         timeoutMs,
       )
       const settle = (error?: Error) => {
         clearTimeout(timer)
+        clearTimeout(settleTimer)
         error ? reject(error) : accept()
       }
       socket.onerror = () => settle(new Error('Warm-up connection failed'))
@@ -490,11 +532,31 @@ export async function warmUpBrowser(
         } else if (message.id === 2) {
           if (message.result?.errorText)
             settle(new Error(`Warm-up failed: ${message.result.errorText}`))
-        } else if (navigated && message.method === 'Page.loadEventFired')
-          settle()
+        } else if (message.id === 3) {
+          const details = message.result?.exceptionDetails
+          if (details)
+            settle(
+              new Error(
+                `Warm-up settle failed: ${details.exception?.description ?? details.text}`,
+              ),
+            )
+          else settleTimer = setTimeout(settle, settleMs)
+        } else if (
+          navigated &&
+          !settling &&
+          message.method === 'Page.loadEventFired'
+        ) {
+          settling = true
+          send(3, 'Runtime.evaluate', {
+            expression: WARM_UP_SETTLE_SCRIPT,
+            awaitPromise: true,
+            returnByValue: true,
+          })
+        }
       }
     })
   } finally {
+    clearTimeout(settleTimer)
     socket.onclose = null
     socket.close()
     await fetch(`${endpoint}/close/${id}`, {
