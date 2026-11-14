@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import 'tailwindcss' source('..');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -82,6 +82,16 @@
   --font-mono:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace;
+
+  /* Square corners everywhere: every rounded-* size resolves to 0. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
 }
 
 @theme inline {
@@ -125,7 +135,7 @@
     --secondary-foreground: 0 0% 98%;
     --muted: 210 14% 94%;
     --muted-foreground: 218 11% 38%;
-    --accent: 217 91% 60%;
+    --accent: 217 80% 42%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -157,8 +167,8 @@
     --secondary-foreground: 0 0% 98%;
     --muted: 220 12% 11%;
     --muted-foreground: 215 12% 66%;
-    --accent: 190 90% 50%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 217 91% 65%;
+    --accent-foreground: 220 14% 7%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --success: 160 84% 39%;
@@ -238,16 +248,6 @@
     box-shadow: 0 24px 64px -42px hsl(var(--shadow) / 0.8);
   }
 
-  .bento-card {
-    background: hsl(var(--surface-raised) / 0.78);
-    border: 1px solid hsl(var(--border) / 0.8);
-    transition:
-      background-color 180ms ease,
-      border-color 180ms ease,
-      transform 180ms ease,
-      box-shadow 180ms ease;
-  }
-
   .media-frame {
     background: hsl(var(--muted) / 0.55);
     border: 1px solid hsl(var(--border) / 0.7);
@@ -257,31 +257,6 @@
     background: hsl(var(--muted) / 0.55);
     border: 1px solid hsl(var(--border) / 0.8);
     color: hsl(var(--foreground) / 0.82);
-  }
-
-  .code-panel {
-    background: hsl(var(--code));
-    border: 1px solid hsl(var(--border) / 0.8);
-    color: hsl(var(--code-foreground));
-  }
-
-  .hero-glow {
-    background: radial-gradient(
-      circle at 50% 0%,
-      hsl(var(--accent) / 0.16),
-      transparent 68%
-    );
-  }
-
-  .status-dot {
-    background: hsl(var(--accent));
-    box-shadow: 0 0 0 4px hsl(var(--accent) / 0.12);
-  }
-
-  .result-card {
-    background: hsl(var(--success) / 0.1);
-    border: 1px solid hsl(var(--success) / 0.35);
-    color: hsl(var(--success));
   }
 }
 
@@ -302,14 +277,5 @@
   .is-visible {
     opacity: 1 !important;
     transform: none !important;
-  }
-}
-
-@media (any-hover: hover) {
-  .bento-card:hover {
-    background: hsl(var(--surface-raised));
-    border-color: hsl(var(--accent) / 0.45);
-    box-shadow: 0 18px 42px -30px hsl(var(--accent) / 0.35);
-    transform: translateY(-2px);
   }
 }

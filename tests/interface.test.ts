@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
@@ -16,6 +16,19 @@ const languageToggle = readProjectFile(
 const basePage = readProjectFile('src/components/layout/BasePage.astro')
 const hero = readProjectFile('src/components/sections/HeroSection.astro')
 const skills = readProjectFile('src/components/sections/SkillsSection.astro')
+const lowerSections = {
+  ExperienceSection: readProjectFile(
+    'src/components/sections/ExperienceSection.astro',
+  ),
+  EducationLanguagesSection: readProjectFile(
+    'src/components/sections/EducationLanguagesSection.astro',
+  ),
+  SkillsSection: skills,
+  FaqSection: readProjectFile('src/components/sections/FaqSection.astro'),
+  AboutContactSection: readProjectFile(
+    'src/components/sections/AboutContactSection.astro',
+  ),
+}
 const projects = readProjectFile(
   'src/components/sections/ProjectsSection.astro',
 )
@@ -240,6 +253,8 @@ describe('portfolio interface', () => {
         ['primary', 'background'],
         ['primary', 'muted'],
         ['primary-foreground', 'primary'],
+        ['accent', 'background'],
+        ['accent-foreground', 'accent'],
         ['success', 'background'],
       ] as const)
         expect(
@@ -248,5 +263,102 @@ describe('portfolio interface', () => {
         ).toBeGreaterThanOrEqual(4.5)
     }
     expect(css).toMatch(/--radius:\s*0(?:px|rem)?\s*;/)
+  })
+  test('renders the lower sections as hairline ledgers, numbered like the nav', () => {
+    for (const [name, source] of Object.entries(lowerSections)) {
+      // No cards, panels, pills, rounded corners or text under 12px.
+      expect(source, name).not.toMatch(
+        /bento-card|surface-panel|tech-tag|rounded-|tracking-\[0\.3em\]/,
+      )
+      expect(source, name).not.toMatch(/text-\[(?:[0-9]|1[01])(?:\.\d+)?px\]/)
+    }
+    // Education and Languages sit between 02 and 03 without a nav number.
+    const numbered = [
+      ['ExperienceSection', '02'],
+      ['SkillsSection', '03'],
+      ['FaqSection', '04'],
+      ['AboutContactSection', '05'],
+    ] as const
+    for (const [name, number] of numbered) {
+      const source = lowerSections[name]
+      expect(source, name).toContain('data-section-number')
+      expect(source, name).toMatch(new RegExp(`>\\s*${number}\\s*<`))
+      expect(source, name).toContain('font-display')
+    }
+    expect(lowerSections.EducationLanguagesSection).not.toContain(
+      'data-section-number',
+    )
+  })
+
+  test('removes the hero desktop top padding', () => {
+    expect(hero).not.toContain('lg:pt-16')
+    expect(hero).toMatch(/<section id="inicio" class="[^"]*\blg:pt-0\b/)
+  })
+
+  test('fades and pads the mobile section nav only below lg', () => {
+    const nav = /<nav\s[^>]*data-section-nav[\s\S]*?>/.exec(pageShell)?.[0]
+    expect(nav).toBeDefined()
+    expect(nav).toContain('gap-5')
+    expect(nav).not.toMatch(/(^|[\s"'])gap-6/)
+    expect(nav).toContain('pr-12')
+    expect(nav).toContain('lg:pr-0')
+    expect(nav).toContain(
+      '[mask-image:linear-gradient(to_right,#000_calc(100%-3rem),transparent)]',
+    )
+    expect(nav).toContain('lg:[mask-image:none]')
+    // Keyboard focus lifts the fade so the focused link and its ring stay fully
+    // visible even when the browser does not scroll it.
+    expect(nav).toContain('has-[a:focus-visible]:[mask-image:none]')
+    expect(nav).not.toContain('style=')
+  })
+
+  test('scans only src/ for Tailwind classes and prunes unused utilities', () => {
+    expect(css).toMatch(/^@import 'tailwindcss' source\('\.\.'\);/)
+    const utilities =
+      /@layer utilities\s*\{([\s\S]*?)\n\}\n/.exec(css)?.[1] ?? ''
+    const names = [
+      ...utilities.matchAll(/^ {2}\.([a-z][a-z-]*)\s*[{,:]/gm),
+    ].map(([, name]) => name!)
+    expect(names.length).toBeGreaterThan(0)
+    const sources = readdirSync(join(root, 'src'), { recursive: true })
+      .map(String)
+      .filter((file) => /\.(?:astro|ts)$/.test(file))
+      .map((file) => readProjectFile(`src/${file}`))
+      .join('\n')
+    for (const name of new Set(names))
+      expect(sources, `.${name} is unused in src/`).toMatch(
+        new RegExp(`(^|[^\\w-])${name}([^\\w-]|$)`),
+      )
+    for (const removed of [
+      'bento-card',
+      'code-panel',
+      'hero-glow',
+      'status-dot',
+      'result-card',
+    ])
+      expect(css).not.toContain(`.${removed}`)
+  })
+
+  test('sets every corner radius to 0 and keeps the accent blue in both themes', () => {
+    const theme = /@theme\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? ''
+    const radii = [...theme.matchAll(/--radius-([a-z0-9]+):\s*([^;]+);/g)]
+    expect(radii.map(([, size]) => size)).toEqual([
+      'xs',
+      'sm',
+      'md',
+      'lg',
+      'xl',
+      '2xl',
+      '3xl',
+      '4xl',
+    ])
+    for (const [, size, value] of radii)
+      expect(value!.trim(), `--radius-${size}`).toMatch(/^0(?:px|rem)?$/)
+    const block = (selector: string) =>
+      new RegExp(`${selector}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? ''
+    const accent = (selector: string) =>
+      /--accent:\s*(\d+)\s/.exec(block(selector))?.[1]
+    expect(accent(':root')).toBe('217')
+    expect(accent('\\.dark')).toBe('217')
   })
 })

@@ -9,7 +9,10 @@ import {
 } from '../src/lib/csp'
 import { createProfileFaq } from '../src/lib/profile-faq'
 import { INDEXABLE_PATHS } from '../src/lib/site'
-import { PROFESSIONAL_PROFILE } from '../src/lib/professional-profile'
+import {
+  PROFESSIONAL_PROFILE,
+  sortExperiencesByStartDate,
+} from '../src/lib/professional-profile'
 
 const root = new URL('../', import.meta.url)
 const windows: Window[] = []
@@ -423,7 +426,9 @@ describe('compiled Solutec removal and retained Tecandu experience', () => {
       expect(experience).toBeDefined()
       expect(experience?.querySelectorAll('a').length).toBe(0)
       expect(
-        experience?.querySelector('p.text-primary')?.textContent.trim(),
+        experience
+          ?.querySelector('[data-experience-company]')
+          ?.textContent.trim(),
       ).toBe(company)
       expect(experience?.textContent).toContain(dates)
       expect(experience?.textContent).toContain(responsibility)
@@ -1068,34 +1073,38 @@ describe('compiled home headings and FAQ', () => {
     test(`labels Education and Languages with h2 and their values with h3 at ${path}`, () => {
       const { browser } = openBuiltPage(path, locale)
       const document = browser.document
-      const cards = Array.from(document.querySelectorAll('.bento-card')).filter(
-        (card) =>
-          [education[0], languageLabel[0]].some(
-            (label) =>
-              label === normalize(card.querySelector('h2')?.textContent),
-          ),
+      const section = document.querySelector('main > section:not([id])')!
+      const blocks = Array.from(
+        section.querySelectorAll('[data-compact-block]'),
       )
-      expect(cards).toHaveLength(2)
       expect(
-        cards.map((card) => [
-          normalize(card.querySelector('h2')?.textContent),
-          normalize(card.querySelector('h3')?.textContent),
-          card.querySelector('h2')?.className,
-          card.querySelector('h3')?.className,
+        blocks.map((block) => [
+          normalize(block.querySelector('h2')?.textContent),
+          normalize(block.querySelector('h3')?.textContent),
         ]),
       ).toEqual([
-        [
-          education[0],
-          education[1],
-          'text-muted-foreground text-xs tracking-[0.3em] uppercase',
-          'text-foreground mt-2 text-lg font-semibold tracking-tight sm:text-xl',
-        ],
-        [
-          languageLabel[0],
-          languageLabel[1],
-          'text-muted-foreground text-xs tracking-[0.3em] uppercase',
-          'text-foreground mt-2 text-lg font-semibold tracking-tight sm:text-xl',
-        ],
+        [education[0], education[1]],
+        [languageLabel[0], languageLabel[1]],
+      ])
+      // Mono uppercase labels like the rest of the index, no cards.
+      for (const block of blocks) {
+        expect(block.querySelector('h2')?.className).toContain('font-mono')
+        expect(block.querySelector('h2')?.className).toContain('uppercase')
+        expect(block.querySelector('h3')?.className).toContain('font-display')
+      }
+      expect(section.querySelector('.bento-card')).toBeNull()
+      // The five CEFR levels are a definition list, not boxed tiles.
+      const language = PROFESSIONAL_PROFILE.languages[0]!
+      expect(
+        Array.from(section.querySelectorAll('dl dd')).map((dd) =>
+          normalize(dd.textContent),
+        ),
+      ).toEqual([
+        language.levels.listening,
+        language.levels.reading,
+        language.levels.writing,
+        language.levels.spokenProduction,
+        language.levels.spokenInteraction,
       ])
     })
 
@@ -1120,7 +1129,12 @@ describe('compiled home headings and FAQ', () => {
         'H3',
         'H3',
       ])
-      expect(normalize(headings[0]!.textContent)).toBe(faqTitle)
+      // The decorative number precedes the title inside the h2.
+      expect(
+        normalize(
+          headings[0]!.querySelector('[data-lang-content]')?.textContent,
+        ),
+      ).toBe(faqTitle)
       expect(headings.slice(1).map((h) => normalize(h.textContent))).toEqual([
         ...questions,
       ])
@@ -1153,7 +1167,12 @@ describe('compiled home headings and FAQ', () => {
 
       // Answers are always visible text: no disclosure widget, no hidden node.
       expect(section!.querySelector('details, summary, [hidden]')).toBeNull()
-      expect(section!.querySelector('[aria-hidden="true"]')).toBeNull()
+      // Exactly one aria-hidden node: the decorative number inside the h2.
+      const hidden = Array.from(section!.querySelectorAll('[aria-hidden]'))
+      expect(hidden).toHaveLength(1)
+      expect(hidden[0]?.getAttribute('aria-hidden')).toBe('true')
+      expect(hidden[0]?.matches('h2 > [data-section-number]')).toBe(true)
+      expect(normalize(hidden[0]?.textContent)).toBe('04')
       expect(
         Array.from(section!.querySelectorAll('[data-lang-content]')).every(
           (node) => node.getAttribute('data-lang-content') === locale,
@@ -1268,6 +1287,310 @@ describe('compiled home headings and FAQ', () => {
       }
     })
   }
+})
+
+describe('compiled lower home sections', () => {
+  const normalize = (text: string | undefined | null) =>
+    text?.replace(/\s+/g, ' ').trim()
+  const numberOf = (section: ReturnType<Window['document']['querySelector']>) =>
+    normalize(section?.querySelector('h2 [data-section-number]')?.textContent)
+  const titleOf = (section: ReturnType<Window['document']['querySelector']>) =>
+    normalize(section?.querySelector('h2 [data-lang-content]')?.textContent)
+
+  for (const [path, locale, titles, contactLinks] of [
+    [
+      '/',
+      'es',
+      { experience: 'Experiencia', stack: 'Stack', contact: 'Contacto' },
+      ['Proponer un proyecto', 'Hablar de una oportunidad'],
+    ],
+    [
+      '/en',
+      'en',
+      { experience: 'Experience', stack: 'Stack', contact: 'Contact' },
+      ['Propose a project', 'Discuss a career opportunity'],
+    ],
+  ] as const) {
+    test(`numbers the section headers like the nav at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const document = browser.document
+      const numbered = [
+        ['#experiencia', '02', titles.experience],
+        ['#habilidades', '03', titles.stack],
+        [
+          '#preguntas-frecuentes',
+          '04',
+          locale === 'es'
+            ? 'Preguntas frecuentes'
+            : 'Frequently asked questions',
+        ],
+        ['#contacto', '05', titles.contact],
+      ] as const
+      for (const [selector, number, title] of numbered) {
+        const section = document.querySelector(`section${selector}`)
+        expect(numberOf(section), selector).toBe(number)
+        expect(titleOf(section), selector).toBe(title)
+        expect(
+          section
+            ?.querySelector('h2 [data-section-number]')
+            ?.getAttribute('aria-hidden'),
+        ).toBe('true')
+        expect(section?.querySelector('h2')?.className).toContain(
+          'font-display',
+        )
+      }
+      // Education and Languages are not nav sections: no number.
+      expect(
+        document.querySelector(
+          'main > section:not([id]) [data-section-number]',
+        ),
+      ).toBeNull()
+      // The numbers match the nav links.
+      expect(
+        Array.from(document.querySelectorAll('[data-section-link]'))
+          .slice(1)
+          .map((link) => link.querySelector('[aria-hidden]')?.textContent),
+      ).toEqual(['02', '03', '04', '05'])
+    })
+
+    test(`lists experience as ledger rows with the Tecandu anchor at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const section = browser.document.querySelector('section#experiencia')!
+      const experiences = sortExperiencesByStartDate(
+        PROFESSIONAL_PROFILE.experiences,
+      )
+      const rows = Array.from(
+        section.querySelectorAll('ol > li > article[data-experience-row]'),
+      )
+      expect(rows.map((row) => row.id)).toEqual(
+        experiences.map((experience) => `experiencia-${experience.id}`),
+      )
+      expect(section.querySelectorAll('#experiencia-tecandu')).toHaveLength(1)
+      for (const [index, row] of rows.entries()) {
+        const experience = experiences[index]!
+        expect(row.className).not.toMatch(/rounded|bento-card|surface-panel/)
+        expect(
+          normalize(row.querySelector('[data-experience-period]')?.textContent),
+        ).toMatch(
+          /^\d{2}\/\d{2}\/\d{4} — (\d{2}\/\d{2}\/\d{4}|Actualidad|Current)/,
+        )
+        expect(normalize(row.querySelector('h3')?.textContent)).toBe(
+          experience.title[locale],
+        )
+        expect(row.querySelector('h3')?.className).toContain('font-display')
+        expect(
+          normalize(
+            row.querySelector('[data-experience-company]')?.textContent,
+          ),
+        ).toStartWith(
+          `${experience.company[locale]} · ${experience.location[locale]}`,
+        )
+        const links = Array.from(row.querySelectorAll('a'))
+        expect(links).toHaveLength(experience.evidenceUrl ? 1 : 0)
+        for (const link of links) {
+          expect(link.getAttribute('href')).toBe(experience.evidenceUrl ?? null)
+          expect(link.getAttribute('target')).toBe('_blank')
+          expect(link.getAttribute('rel')).toBe('noopener noreferrer')
+          expect(link.className).toContain('min-h-11')
+        }
+        expect(
+          Array.from(row.querySelectorAll('ul > li')).map((item) =>
+            normalize(item.textContent),
+          ),
+        ).toEqual(experience.responsibilities[locale].slice(0, 3))
+        expect(
+          normalize(
+            row.querySelector('[data-experience-outcome]')?.textContent,
+          ),
+        ).toContain(experience.outcomes[locale][0]!)
+        // Technologies are plain mono text, never pills.
+        expect(
+          normalize(row.querySelector('[data-experience-tech]')?.textContent),
+        ).toBe(experience.technologies.join(' · '))
+        expect(row.querySelector('.tech-tag')).toBeNull()
+      }
+      const linkedin = section.querySelector(
+        `a[href="${PROFESSIONAL_PROFILE.links.linkedin}"]`,
+      )
+      expect(linkedin?.className).toContain('min-h-11')
+    })
+
+    test(`shows four capability columns with 44px evidence links at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const section = browser.document.querySelector('section#habilidades')!
+      const columns = Array.from(section.querySelectorAll('article'))
+      const capabilities = PROFESSIONAL_PROFILE.capabilities
+      expect(columns).toHaveLength(4)
+      expect(columns[0]?.closest('ol')?.className).toContain('lg:grid-cols-4')
+      expect(section.querySelector('.tech-tag, .bento-card')).toBeNull()
+      for (const [index, column] of columns.entries()) {
+        const capability = capabilities[index]!
+        expect(normalize(column.querySelector('h3')?.textContent)).toBe(
+          capability.label[locale],
+        )
+        expect(
+          normalize(
+            column.querySelector('[data-capability-tech]')?.textContent,
+          ),
+        ).toBe(capability.technologies.join(' · '))
+        expect(
+          normalize(
+            column.querySelector('p:not([data-capability-tech])')?.textContent,
+          ),
+        ).toBe(capability.summary[locale])
+        const links = Array.from(column.querySelectorAll('ul a'))
+        expect(links).toHaveLength(capability.evidenceIds.length)
+        for (const link of links) {
+          expect(link.className).toContain('min-h-11')
+          expect(link.className).toContain('inline-flex')
+        }
+      }
+    })
+
+    test(`renders six FAQ rows before contact with 44px links at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const section = browser.document.querySelector(
+        'section#preguntas-frecuentes',
+      )!
+      const items = Array.from(section.querySelectorAll('[data-faq-item]'))
+      expect(items).toHaveLength(6)
+      expect(items.every((item) => item.tagName === 'LI')).toBe(true)
+      expect(items[0]?.parentElement?.tagName).toBe('UL')
+      for (const item of items) {
+        expect(item.className).toContain('border-t')
+        expect(item.className).not.toMatch(/rounded|bento-card/)
+        expect(item.querySelector('h3')?.className).toContain('font-display')
+        for (const link of item.querySelectorAll('a'))
+          expect(link.className).toContain('min-h-11')
+      }
+      expect(
+        section.compareDocumentPosition(
+          browser.document.querySelector('#contacto')!,
+        ) & 4,
+      ).toBeTruthy()
+    })
+
+    test(`leads contact with a large email link and the equal choices at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const section = browser.document.querySelector('section#contacto')!
+      const email = section.querySelector(
+        `a[href="${PROFESSIONAL_PROFILE.links.mail}"]`,
+      )
+      expect(normalize(email?.textContent)).toBe('sergiogmr@icloud.com')
+      expect(email?.getAttribute('data-contact-email')).not.toBeNull()
+      expect(email?.className).toContain('font-display')
+      expect(email?.className).toContain('min-h-11')
+      expect(email?.className).toMatch(/text-\[clamp\(/)
+      const choices = Array.from(
+        section.querySelectorAll('a[href*="?subject="]'),
+      )
+      expect(choices.map((link) => normalize(link.textContent))).toEqual([
+        ...contactLinks,
+      ])
+      expect(choices[0]?.className).toBe(choices[1]?.className)
+      for (const [name, href] of [
+        ['LinkedIn', PROFESSIONAL_PROFILE.links.linkedin],
+        ['GitHub', PROFESSIONAL_PROFILE.links.github],
+      ] as const) {
+        const link = section.querySelector(`a[href="${href}"]`)
+        expect(link, name).not.toBeNull()
+        expect(link?.getAttribute('target')).toBe('_blank')
+        expect(link?.getAttribute('rel')).toBe('noopener noreferrer')
+      }
+      const cv = PROFESSIONAL_PROFILE.cvUrls[locale]
+      expect(browser.document.querySelector(`a[href="${cv}"]`)).not.toBeNull()
+      for (const link of section.querySelectorAll('a'))
+        expect(link.className, link.getAttribute('href') ?? '').toMatch(
+          /min-h-1[123]/,
+        )
+      expect(section.querySelector('.bento-card, .surface-panel')).toBeNull()
+      // The decorative arrows stay out of the accessible names: the choice
+      // arrow is CSS content with an empty alternative text, the profile arrow
+      // is aria-hidden.
+      for (const choice of choices)
+        expect(choice.className.split(/\s+/)).toContain(
+          "after:content-['→'_/_'']",
+        )
+      for (const [name, href] of [
+        ['LinkedIn', PROFESSIONAL_PROFILE.links.linkedin],
+        ['GitHub', PROFESSIONAL_PROFILE.links.github],
+      ] as const) {
+        const link = section.querySelector(`a[href="${href}"]`)!
+        const arrows = Array.from(link.querySelectorAll('[aria-hidden="true"]'))
+        expect(arrows.map((arrow) => arrow.textContent.trim())).toEqual(['↗'])
+        const clone = link.cloneNode(true) as typeof link
+        for (const arrow of clone.querySelectorAll('[aria-hidden="true"]'))
+          arrow.remove()
+        // The label and handle are separate flex items, so no space text node.
+        expect(clone.textContent.replace(/\s+/g, ''), name).toBe(
+          `${name}@sergiogmr`,
+        )
+      }
+    })
+
+    test(`drops the hero desktop top padding at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const hero = browser.document.querySelector('#inicio')!
+      expect(hero.className).not.toContain('lg:pt-16')
+      // main already pads 40px under the header: the hero adds none from lg up.
+      expect(hero.className.split(/\s+/)).toContain('lg:pt-0')
+    })
+  }
+})
+
+describe('compiled stylesheet scope and tokens', () => {
+  const stylesheet = () =>
+    readdirSync(new URL('dist/_astro/', root))
+      .filter((name) => name.endsWith('.css'))
+      .map((name) => readFileSync(new URL(`dist/_astro/${name}`, root), 'utf8'))
+      .join('\n')
+
+  test('emits classes from src/ but not from test files', () => {
+    const css = stylesheet()
+    expect(css).toContain('.min-h-11')
+    // This arbitrary value appears only in tests/: Tailwind must not scan it.
+    const probe = 'hue-rotate-[37.25deg]'
+    expect(
+      readFileSync(new URL(import.meta.path, import.meta.url), 'utf8'),
+    ).toContain(probe)
+    expect(css).not.toContain('37.25deg')
+  })
+
+  test('removes the unused card utilities and zeroes every radius token', () => {
+    const css = stylesheet()
+    for (const removed of [
+      '.bento-card',
+      '.code-panel',
+      '.hero-glow',
+      '.status-dot',
+      '.result-card',
+    ])
+      expect(css).not.toContain(removed)
+    const radii = [...css.matchAll(/--radius-([a-z0-9]+):\s*([^;}]+)/g)]
+    expect(radii.length).toBeGreaterThan(0)
+    for (const [, size, value] of radii)
+      expect(value!.trim(), `--radius-${size}`).toMatch(/^0(?:px|rem)?$/)
+  })
+
+  test('compiles the contact arrow as CSS content with empty alternative text', () => {
+    expect(stylesheet()).toMatch(/content:\s*"→"\s*\/\s*""/)
+  })
+
+  test('compiles the mobile nav mask into the stylesheet without inline styles', () => {
+    const css = stylesheet()
+    const gradient =
+      /linear-gradient\((?:to right|90deg),#000 calc\(100% - 3rem\),(?:#0000|transparent)\)/
+        .source
+    expect(css).toMatch(new RegExp(`[{;]mask-image:${gradient}`))
+    expect(css).toMatch(new RegExp(`-webkit-mask-image:${gradient}`))
+    expect(css).toMatch(
+      /\.lg\\:\\\[mask-image\\:none\\\]\{[^}]*mask-image:none/,
+    )
+    for (const file of ['dist/index.html', 'dist/en/index.html'])
+      expect(readFileSync(new URL(file, root), 'utf8')).not.toMatch(
+        /<style|\sstyle=/,
+      )
+  })
 })
 
 describe('compiled header identity', () => {
@@ -1391,6 +1714,26 @@ describe('compiled section navigation', () => {
         expect(link.className).toContain('focus-visible:outline-2')
         expect(link.className).toContain('focus-visible:outline-ring')
       }
+    })
+
+    test(`spaces, pads and fades the mobile section nav only below lg at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const nav = browser.document.querySelector(
+        `header nav[aria-label="${label}"]`,
+      )!
+      const classes = nav.className.split(/\s+/)
+      for (const expected of [
+        'gap-5',
+        'lg:gap-6',
+        'pr-12',
+        'lg:pr-0',
+        'has-[a:focus-visible]:[mask-image:none]',
+        '[mask-image:linear-gradient(to_right,#000_calc(100%-3rem),transparent)]',
+        'lg:[mask-image:none]',
+      ])
+        expect(classes, expected).toContain(expected)
+      expect(classes).not.toContain('gap-6')
+      expect(nav.getAttribute('style')).toBeNull()
     })
 
     test(`marks the section in view with aria-current from the observer at ${path}`, () => {
