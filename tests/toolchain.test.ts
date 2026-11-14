@@ -36,11 +36,11 @@ describe('project toolchain', () => {
       'verify:output': 'bun scripts/verify-portfolio-output.ts',
     })
     expect(packageJson.devDependencies).toMatchObject({
-      '@astrojs/check': '0.9.10',
-      lighthouse: '13.5.0',
-      'chrome-launcher': '1.2.2',
-      '@types/bun': '^1.3.14',
-      'happy-dom': '20.14.5',
+      '@astrojs/check': '0.9.12',
+      lighthouse: '13.6.0',
+      'chrome-launcher': '1.2.3',
+      '@types/bun': '^1.4.4',
+      'happy-dom': '21.0.4',
       typescript: '^6.0.3',
     })
     expect(packageJson.devDependencies).not.toHaveProperty('vitest')
@@ -49,14 +49,14 @@ describe('project toolchain', () => {
 
   test('uses the compatible Astro 7 graph without losing current-main dependencies', () => {
     expect(packageJson.dependencies).toMatchObject({
-      '@astrojs/vercel': '11.0.11',
+      '@astrojs/vercel': '11.0.22',
       '@fontsource-variable/bricolage-grotesque': '5.3.0',
       '@fontsource-variable/instrument-sans': '5.3.0',
-      '@tailwindcss/vite': '^4.3.3',
-      astro: '7.3.5',
+      '@tailwindcss/vite': '^4.3.5',
+      astro: '7.4.12',
       sharp: '^0.35.5',
-      tailwindcss: '^4.3.3',
-      vite: '^8.3.5',
+      tailwindcss: '^4.3.5',
+      vite: '^8.3.8',
     })
     expect(packageJson.dependencies).not.toHaveProperty(
       '@fontsource/space-grotesk',
@@ -119,9 +119,8 @@ describe('compatible dependency advisory fixes', () => {
   ) as { packages: Record<string, [string, ...unknown[]]> }
   const safeRanges: [string, string][] = [
     ['brace-expansion', '^1.1.21 || ^5.0.12'],
-    ['devalue', '^5.9.3'],
+    ['devalue', '^6.0.3'],
     ['http-cache-semantics', '^4.3.0'],
-    ['js-yaml', '^3.15.2 || ^4.3.0'],
     ['nanoid', '^3.3.18 || ^5.1.0'],
     ['picomatch', '^2.3.2 || ^4.0.4'],
     ['tar', '^7.5.21'],
@@ -152,7 +151,10 @@ describe('parent-scoped Vercel routing patch', () => {
     expect(routingRequire('path-to-regexp/package.json').version).toBe('6.3.0')
     expect(
       JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).overrides,
-    ).toEqual({ '@vercel/routing-utils@6.6.0': { 'path-to-regexp': '6.3.0' } })
+    ).toEqual({
+      '@rolldown/binding-wasm32-wasi@1.2.19': { '@emnapi/runtime': '1.11.3' },
+      '@vercel/routing-utils@6.6.1': { 'path-to-regexp': '6.3.0' },
+    })
   })
 
   test.each([
