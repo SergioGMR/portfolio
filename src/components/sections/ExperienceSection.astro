@@ -54,7 +54,7 @@ const locale = getLanguage(Astro.url.pathname)
       rel="noopener noreferrer"
       class="text-primary inline-flex min-h-11 items-center font-mono text-xs underline underline-offset-4 hover:no-underline sm:text-[0.8125rem]"
     >
-      LinkedIn ↗
+      LinkedIn <span aria-hidden="true">↗</span>
     </a>
   </div>
 
@@ -101,7 +101,7 @@ const locale = getLanguage(Astro.url.pathname)
                 >
                   <span data-lang-content={locale}>
                     {experience.company[locale]} · {experience.location[locale]}{' '}
-                    ↗
+                    <span aria-hidden="true">↗</span>
                   </span>
                 </a>
               ) : (

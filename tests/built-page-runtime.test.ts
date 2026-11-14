@@ -1,4 +1,8 @@
-import type { HTMLButtonElement, HTMLSelectElement } from 'happy-dom'
+import type {
+  Element as HappyElement,
+  HTMLButtonElement,
+  HTMLSelectElement,
+} from 'happy-dom'
 import { afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { existsSync, globSync, readdirSync, readFileSync } from 'node:fs'
 import { Window } from 'happy-dom'
@@ -56,7 +60,11 @@ function openBuiltPage(
   browser.localStorage.setItem('language', preferredLanguage)
   configureBrowser?.(browser)
   const artifact =
-    url.pathname === '/' ? 'dist/index.html' : `dist${url.pathname}/index.html`
+    url.pathname === '/'
+      ? 'dist/index.html'
+      : url.pathname.endsWith('.html')
+        ? `dist${url.pathname}`
+        : `dist${url.pathname}/index.html`
   browser.document.write(readFileSync(new URL(artifact, root), 'utf8'))
   const title = browser.document.title
   const description = browser.document
@@ -1566,8 +1574,10 @@ describe('compiled stylesheet scope and tokens', () => {
       '.result-card',
     ])
       expect(css).not.toContain(removed)
+    // Tailwind only emits the theme tokens a utility uses. With no rounded-*
+    // class left in src/, none is emitted; any that is must still be zero.
+    expect(css).not.toMatch(/\.rounded/)
     const radii = [...css.matchAll(/--radius-([a-z0-9]+):\s*([^;}]+)/g)]
-    expect(radii.length).toBeGreaterThan(0)
     for (const [, size, value] of radii)
       expect(value!.trim(), `--radius-${size}`).toMatch(/^0(?:px|rem)?$/)
   })
@@ -2064,4 +2074,231 @@ describe('compiled content security policy', () => {
       expect(scripts).toContain(`'${hashCspSource(body)}'`)
     }
   })
+})
+
+describe('compiled case-study, legal and 404 pages', () => {
+  const projects = PROFESSIONAL_PROFILE.projects
+  const normalize = (text: string | undefined | null) =>
+    text?.replace(/\s+/g, ' ').trim() ?? ''
+  /** Text a screen reader announces: decorative (aria-hidden) nodes removed. */
+  const accessibleText = (element: HappyElement) => {
+    const copy = element.cloneNode(true) as HappyElement
+    for (const hidden of copy.querySelectorAll('[aria-hidden="true"]'))
+      hidden.remove()
+    return normalize(copy.textContent)
+  }
+  const projectPath = (id: string, locale: 'es' | 'en') =>
+    locale === 'es' ? `/proyectos/${id}` : `/en/projects/${id}`
+  const artifact = (path: string) =>
+    readFileSync(
+      new URL(
+        path === '/404' ? 'dist/404.html' : `dist${path}/index.html`,
+        root,
+      ),
+      'utf8',
+    )
+
+  for (const locale of ['es', 'en'] as const) {
+    const labels =
+      locale === 'es'
+        ? {
+            group: 'Más proyectos',
+            prev: 'Proyecto anterior',
+            next: 'Siguiente proyecto',
+            evidence: 'Ver proyecto',
+            all: 'Ver todos los proyectos',
+          }
+        : {
+            group: 'More projects',
+            prev: 'Previous project',
+            next: 'Next project',
+            evidence: 'View project',
+            all: 'View all projects',
+          }
+
+    for (const [index, project] of projects.entries()) {
+      const path = projectPath(project.id, locale)
+
+      test(`links the neighbouring projects, omitting the missing end, at ${path}`, () => {
+        const { browser } = openBuiltPage(path, locale)
+        const navigation = browser.document.querySelector(
+          `article nav[data-case-nav][aria-label="${labels.group}"]`,
+        )
+        expect(navigation).not.toBeNull()
+        const links = Array.from(navigation!.querySelectorAll('a'))
+        const expected = [
+          [projects[index - 1], 'prev', labels.prev],
+          [projects[index + 1], 'next', labels.next],
+        ] as const
+        const present = expected.filter(([neighbour]) => neighbour)
+        expect(links).toHaveLength(present.length)
+        expect(present.length).toBeGreaterThan(0)
+        for (const [neighbour, direction, label] of present) {
+          const link = navigation!.querySelector(
+            `a[data-case-nav-link="${direction}"]`,
+          )!
+          expect(link.getAttribute('href')).toBe(
+            projectPath(neighbour!.id, locale),
+          )
+          expect(accessibleText(link)).toBe(
+            `${label}: ${neighbour!.title[locale]}`,
+          )
+          expect(link.className).toContain('min-h-11')
+          // The colon is part of the label's own text node. A separate sr-only
+          // span makes Chrome compute "Label : Title" (absolutely positioned
+          // content gets a space around it).
+          expect(link.querySelector('.sr-only')).toBeNull()
+          const own = Array.from(link.querySelector('span')!.childNodes)
+            .filter((node) => node.nodeType === 3)
+            .map((node) => normalize(node.textContent))
+          expect(own).toEqual([`${label}:`])
+        }
+        // The first project has no previous link and the last has no next.
+        expect(
+          navigation!.querySelector('a[data-case-nav-link="prev"]') !== null,
+        ).toBe(index !== 0)
+        expect(
+          navigation!.querySelector('a[data-case-nav-link="next"]') !== null,
+        ).toBe(index !== projects.length - 1)
+      })
+
+      test(`keeps the case contracts and caps the prose at ${path}`, () => {
+        const { browser } = openBuiltPage(path, locale)
+        const document = browser.document
+        const articles = document.querySelectorAll('main article')
+        expect(articles).toHaveLength(1)
+        const article = articles[0]!
+        // One H1, then only H2: no skipped level.
+        expect(document.querySelectorAll('h1')).toHaveLength(1)
+        expect(normalize(document.querySelector('h1')?.textContent)).toBe(
+          project.title[locale],
+        )
+        expect(
+          Array.from(document.querySelectorAll('main h1, main h2, main h3'))
+            .map((heading) => heading.tagName)
+            .filter((tag, position) => (position === 0 ? true : tag !== 'H2')),
+        ).toEqual(['H1'])
+        // Prose is capped near 70 characters per line.
+        const prose = Array.from(article.querySelectorAll('[data-case-prose]'))
+        expect(prose).toHaveLength(5)
+        for (const element of prose)
+          expect(element.className).toContain('max-w-[48ch]')
+        const text = normalize(article.textContent)
+        for (const field of [
+          project.problem,
+          project.responsibility,
+          project.solution,
+          project.result,
+        ])
+          expect(text).toContain(field[locale])
+        for (const task of project.tasks[locale]) expect(text).toContain(task)
+        for (const technology of project.technologies)
+          expect(text).toContain(technology)
+        // The evidence link keeps its target and its decorative arrow.
+        const evidence = article.querySelector(
+          `a[href="${project.evidenceUrl}"]`,
+        )!
+        expect(evidence.getAttribute('target')).toBe('_blank')
+        expect(evidence.getAttribute('rel')).toBe('noopener noreferrer')
+        expect(accessibleText(evidence)).toBe(labels.evidence)
+        expect(
+          normalize(
+            article.querySelector(`[data-case-actions] a[href$="#proyectos"]`)
+              ?.textContent,
+          ),
+        ).toBe(labels.all)
+        // Every control in the article is at least 44px tall.
+        for (const link of article.querySelectorAll('a'))
+          expect(link.className, link.getAttribute('href') ?? '').toMatch(
+            /\bmin-h-(?:11|12|13)\b/,
+          )
+      })
+    }
+  }
+
+  const caseArtifacts = projects.flatMap(({ id }) => [
+    `/proyectos/${id}`,
+    `/en/projects/${id}`,
+  ])
+  for (const path of [
+    ...caseArtifacts,
+    '/acezone/tos',
+    '/en/acezone/tos',
+    '/wattly/tos',
+    '/en/wattly/tos',
+    '/404',
+  ]) {
+    test(`ships no panels, frames, pills or unhashed styles at ${path}`, () => {
+      const html = artifact(path)
+      const classes = [...html.matchAll(/\bclass="([^"]*)"/g)].flatMap(
+        ([, value]) => value!.split(/\s+/),
+      )
+      for (const old of ['surface-panel', 'media-frame', 'tech-tag'])
+        expect(classes, `${old} at ${path}`).not.toContain(old)
+      expect(
+        classes.filter((name) => /^(?:sm:|lg:|dark:)?rounded/.test(name)),
+        `rounded at ${path}`,
+      ).toEqual([])
+      expect(html).not.toMatch(/\sstyle=/)
+      // Astro inlines the small legal stylesheet; its hash must be in style-src.
+      const policy = /style-src ([^;"]*)/.exec(html)?.[1] ?? ''
+      for (const [, content] of html.matchAll(
+        /<style[^>]*>([\s\S]*?)<\/style>/g,
+      ))
+        expect(policy, `style hash at ${path}`).toContain(
+          hashCspSource(content!),
+        )
+    })
+  }
+
+  test('keeps the 404 content and gives its link a 44px target', () => {
+    const { browser } = openBuiltPage('/404.html', 'en')
+    expect(normalize(browser.document.querySelector('h1')?.textContent)).toBe(
+      'Page not found',
+    )
+    const link = browser.document.querySelector('main a[href="/"]')!
+    expect(normalize(link.textContent)).toBe('Go back home')
+    expect(link.className).toMatch(/\bmin-h-(?:11|12|13)\b/)
+    expect(browser.document.querySelectorAll('h1')).toHaveLength(1)
+  })
+
+  test('uses the display face for the legal headings and keeps one H1', () => {
+    for (const path of ['/acezone/tos', '/en/wattly/tos']) {
+      const html = artifact(path)
+      expect(html).toMatch(
+        /\.prose-tos h1\{[^}]*font-family:var\(--font-display\)/,
+      )
+      expect(html).toMatch(
+        /\.prose-tos h2\{[^}]*font-family:var\(--font-display\)/,
+      )
+      const { browser } = openBuiltPage(path, 'es')
+      expect(browser.document.querySelectorAll('h1')).toHaveLength(1)
+    }
+  })
+
+  for (const [path, locale] of [
+    ['/', 'es'],
+    ['/en', 'en'],
+  ] as const) {
+    test(`excludes the decorative arrows from the experience link names at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const section = browser.document.querySelector('section#experiencia')!
+      const linkedin = section.querySelector(
+        `a[href="${PROFESSIONAL_PROFILE.links.linkedin}"]`,
+      )!
+      expect(normalize(linkedin.textContent)).toBe('LinkedIn ↗')
+      expect(accessibleText(linkedin)).toBe('LinkedIn')
+      const company = Array.from(
+        section.querySelectorAll('[data-experience-company] a'),
+      )
+      expect(company.length).toBeGreaterThan(0)
+      for (const link of company) {
+        expect(normalize(link.textContent)).toEndWith(' ↗')
+        expect(accessibleText(link)).not.toContain('↗')
+        expect(accessibleText(link)).toMatch(/ · /)
+      }
+      for (const arrow of section.querySelectorAll('a [aria-hidden="true"]'))
+        expect(arrow.textContent).toBe('↗')
+    })
+  }
 })

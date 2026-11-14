@@ -7,7 +7,7 @@ const locale = getLanguage(Astro.url.pathname)
 ---
 
 <PageShell localizedMetadata={PAGE_METADATA.acezone}>
-  <article class="border-border bg-card text-foreground rounded-4xl border p-8 shadow-[0_20px_70px_-30px_rgba(0,0,0,0.1)] backdrop-blur sm:p-10 dark:shadow-[0_20px_70px_-30px_rgba(0,0,0,0.6)]">
+  <article class="border-foreground text-foreground border-y py-8 sm:py-12">
     <!-- Contenido en Español -->
     {locale === 'es' && (
       <div data-lang-content="es" class="prose-tos">

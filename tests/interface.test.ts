@@ -33,6 +33,8 @@ const projects = readProjectFile(
   'src/components/sections/ProjectsSection.astro',
 )
 const css = readProjectFile('src/styles/globals.css')
+const legalCss = readProjectFile('src/styles/legal-content.css')
+const caseStudy = readProjectFile('src/components/pages/CaseStudyPage.astro')
 
 describe('portfolio interface', () => {
   test('provides a keyboard skip link with a focusable main target', () => {
@@ -288,6 +290,46 @@ describe('portfolio interface', () => {
     expect(lowerSections.EducationLanguagesSection).not.toContain(
       'data-section-number',
     )
+  })
+
+  test('renders the case study, legal pages and 404 in the index vocabulary', () => {
+    const pages = {
+      CaseStudyPage: caseStudy,
+      AceZoneTerms: readProjectFile('src/components/pages/AceZoneTerms.astro'),
+      WattlyTerms: readProjectFile('src/components/pages/WattlyTerms.astro'),
+      '404': readProjectFile('src/pages/404.astro'),
+    }
+    for (const [name, source] of Object.entries(pages)) {
+      // No panels, frames, pills, rounded corners, shadows or blur.
+      expect(source, name).not.toMatch(
+        /surface-panel|media-frame|tech-tag|bento-card|rounded|shadow-|backdrop-/,
+      )
+      expect(source, name).not.toMatch(/text-\[(?:[0-9]|1[01])(?:\.\d+)?px\]/)
+      expect(source, name).not.toContain('style=')
+    }
+    // The case study reads like the home rows: display type, mono labels, and
+    // body prose capped near 70 characters per line.
+    expect(caseStudy).toContain('font-display')
+    expect(caseStudy).toContain("[font-variation-settings:'opsz'_96]")
+    expect(caseStudy).toContain('max-w-[48ch]')
+    expect(caseStudy).toContain('data-case-nav')
+    expect(caseStudy).toContain('data-section-number')
+    expect(caseStudy).not.toContain('tracking-[0.2em]')
+    // Legal headings use the display face from the stylesheet, not inline.
+    expect(legalCss).toMatch(
+      /\.prose-tos h1\s*\{[^}]*font-family:\s*var\(--font-display\)/s,
+    )
+  })
+
+  test('keeps the removed panel utilities out of the stylesheet source', () => {
+    for (const removed of ['surface-panel', 'media-frame', 'tech-tag'])
+      expect(css).not.toContain(`.${removed}`)
+  })
+
+  test('hides the decorative arrows of the experience links from their names', () => {
+    const source = lowerSections.ExperienceSection
+    expect(source).not.toMatch(/>\s*LinkedIn ↗\s*</)
+    expect(source.match(/<span aria-hidden="true">↗<\/span>/g)).toHaveLength(2)
   })
 
   test('removes the hero desktop top padding', () => {

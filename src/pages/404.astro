@@ -10,11 +10,11 @@ import heroImg from '@/assets/me_laptop.avif'
   title="404 - Not Found"
   description="404 Error — this page was not found"
 >
-  <main class="flex min-h-screen flex-col items-center justify-center px-8 text-center">
+  <main class="flex min-h-[100dvh] flex-col items-center justify-center px-8 text-center">
     <Image
       src={heroImg}
       alt="404"
-      class="mb-8 h-auto w-52"
+      class="border-border mb-8 h-auto w-52 border"
       loading="lazy"
       decoding="async"
       format="avif"
@@ -22,17 +22,19 @@ import heroImg from '@/assets/me_laptop.avif'
       width={208}
       height={208}
     />
-    <p class="text-muted-foreground text-sm">404</p>
-    <h1 class="text-4xl font-semibold tracking-tight lg:text-5xl">
+    <p class="text-primary font-mono text-xs font-medium tracking-wider uppercase">
+      404
+    </p>
+    <h1 class="font-display [font-variation-settings:'opsz'_96] text-foreground mt-3 text-[clamp(2.5rem,8vw,4.5rem)] leading-[0.98] font-bold tracking-[-0.045em] text-balance">
       Page not found
     </h1>
-    <p class="text-muted-foreground mt-4 mb-6 leading-7">
+    <p class="text-foreground/85 mt-4 mb-8 max-w-[48ch] text-base leading-relaxed">
       Sorry, we couldn't find the page you're looking for.
     </p>
     <a
       href="/"
       rel="noreferrer"
-      class="bg-foreground text-background rounded-full px-5 py-2 text-sm font-semibold transition hover:opacity-90"
+      class="bg-foreground text-background hover:bg-primary hover:text-primary-foreground inline-flex min-h-12 items-center justify-center px-6 text-base font-semibold transition-colors"
     >
       Go back home
     </a>

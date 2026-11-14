@@ -241,23 +241,6 @@
       opacity 350ms ease,
       transform 350ms ease;
   }
-
-  .surface-panel {
-    background: hsl(var(--surface) / 0.82);
-    border: 1px solid hsl(var(--border) / 0.85);
-    box-shadow: 0 24px 64px -42px hsl(var(--shadow) / 0.8);
-  }
-
-  .media-frame {
-    background: hsl(var(--muted) / 0.55);
-    border: 1px solid hsl(var(--border) / 0.7);
-  }
-
-  .tech-tag {
-    background: hsl(var(--muted) / 0.55);
-    border: 1px solid hsl(var(--border) / 0.8);
-    color: hsl(var(--foreground) / 0.82);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
