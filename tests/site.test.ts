@@ -96,7 +96,7 @@ describe('production site discovery', () => {
     }
   })
 
-  test('dates pages whose content changed in this work with the implementation date', async () => {
+  test('dates each page with its last significant content change', async () => {
     const { PAGE_LAST_MODIFIED } = await import('../src/lib/site')
 
     for (const path of [
@@ -119,7 +119,7 @@ describe('production site discovery', () => {
       '/proyectos/uploadimg-desktop',
       '/en/projects/uploadimg-desktop',
     ] as const) {
-      expect(PAGE_LAST_MODIFIED[path]).toBe('2026-10-22')
+      expect(PAGE_LAST_MODIFIED[path]).toBe('2026-11-14')
     }
     for (const path of [
       '/acezone/tos',

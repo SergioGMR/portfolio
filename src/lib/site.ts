@@ -27,36 +27,38 @@ export const INDEXABLE_PATHS = [
 export type IndexablePath = (typeof INDEXABLE_PATHS)[number]
 
 /**
- * Last content change per indexable page (`YYYY-MM-DD`). Terms pages come from
- * `git log -1 --format=%ad --date=short` over the files that render them; pages
- * changed in the SEO/GEO/AEO work use its implementation date (2026-10-22).
+ * Last content change per indexable page (`YYYY-MM-DD`). Terms pages keep the
+ * date of their last legal-text change (2026-10-11); later commits only
+ * restyled them. The home and case-study pages use the index redesign date
+ * (2026-11-14), which changed their sections and added previous/next links
+ * between case studies.
  * These dates are maintained by hand: update the entry whenever a page's
- * content changes. Typed as a record over `IndexablePath`, so adding or removing an indexable
+ * content or links change. Typed as a record over `IndexablePath`, so adding or removing an indexable
  * path without updating this map fails type checking.
  */
 export const PAGE_LAST_MODIFIED: Record<IndexablePath, string> = {
-  '/': '2026-10-22',
-  '/en': '2026-10-22',
+  '/': '2026-11-14',
+  '/en': '2026-11-14',
   '/acezone/tos': '2026-10-11',
   '/en/acezone/tos': '2026-10-11',
   '/wattly/tos': '2026-10-11',
   '/en/wattly/tos': '2026-10-11',
-  '/proyectos/jauntjar': '2026-10-22',
-  '/en/projects/jauntjar': '2026-10-22',
-  '/proyectos/todo-lux': '2026-10-22',
-  '/en/projects/todo-lux': '2026-10-22',
-  '/proyectos/basuraleza': '2026-10-22',
-  '/en/projects/basuraleza': '2026-10-22',
-  '/proyectos/wattly': '2026-10-22',
-  '/en/projects/wattly': '2026-10-22',
-  '/proyectos/tvradar': '2026-10-22',
-  '/en/projects/tvradar': '2026-10-22',
-  '/proyectos/duellum': '2026-10-22',
-  '/en/projects/duellum': '2026-10-22',
-  '/proyectos/uploadimg': '2026-10-22',
-  '/en/projects/uploadimg': '2026-10-22',
-  '/proyectos/uploadimg-desktop': '2026-10-22',
-  '/en/projects/uploadimg-desktop': '2026-10-22',
+  '/proyectos/jauntjar': '2026-11-14',
+  '/en/projects/jauntjar': '2026-11-14',
+  '/proyectos/todo-lux': '2026-11-14',
+  '/en/projects/todo-lux': '2026-11-14',
+  '/proyectos/basuraleza': '2026-11-14',
+  '/en/projects/basuraleza': '2026-11-14',
+  '/proyectos/wattly': '2026-11-14',
+  '/en/projects/wattly': '2026-11-14',
+  '/proyectos/tvradar': '2026-11-14',
+  '/en/projects/tvradar': '2026-11-14',
+  '/proyectos/duellum': '2026-11-14',
+  '/en/projects/duellum': '2026-11-14',
+  '/proyectos/uploadimg': '2026-11-14',
+  '/en/projects/uploadimg': '2026-11-14',
+  '/proyectos/uploadimg-desktop': '2026-11-14',
+  '/en/projects/uploadimg-desktop': '2026-11-14',
 }
 
 export function getLanguage(path: string): Language {
