@@ -9,6 +9,10 @@ const readProjectFile = (path: string) => readFileSync(join(root, path), 'utf8')
 
 const index = readProjectFile('src/components/pages/HomePage.astro')
 const pageShell = readProjectFile('src/components/layout/PageShell.astro')
+const themeToggle = readProjectFile('src/components/ThemeToggleLite.astro')
+const languageToggle = readProjectFile(
+  'src/components/LanguageToggleLite.astro',
+)
 const basePage = readProjectFile('src/components/layout/BasePage.astro')
 const hero = readProjectFile('src/components/sections/HeroSection.astro')
 const skills = readProjectFile('src/components/sections/SkillsSection.astro')
@@ -60,7 +64,11 @@ describe('portfolio interface', () => {
   })
 
   test('keeps self-hosted fonts and stable contact and CV destinations', () => {
-    expect(basePage).toContain('@fontsource/space-grotesk')
+    expect(basePage).toContain('@fontsource-variable/bricolage-grotesque')
+    expect(basePage).toContain('@fontsource-variable/instrument-sans')
+    expect(basePage).not.toContain('@fontsource/space-grotesk')
+    expect(css).not.toContain('@fontsource/space-grotesk')
+    expect(css).not.toContain('Space Grotesk')
     expect(basePage).not.toContain('fonts.googleapis.com')
     expect(hero).toContain('PROFESSIONAL_PROFILE.cvUrls.es')
     expect(hero).toContain('PROFESSIONAL_PROFILE.cvUrls.en')
@@ -77,5 +85,138 @@ describe('portfolio interface', () => {
     expect(PROFESSIONAL_PROFILE.links.github).toBe(
       'https://github.com/sergiogmr',
     )
+  })
+
+  test('preloads the Latin variable fonts and declares metric-matched fallbacks', () => {
+    expect(basePage).toContain('bricolage-grotesque-latin-wght-normal.woff2')
+    expect(basePage).toContain('instrument-sans-latin-wght-normal.woff2')
+    expect(basePage.match(/rel="preload"/g)).toHaveLength(2)
+    for (const family of ['Bricolage Grotesque', 'Instrument Sans']) {
+      const fallback = new RegExp(
+        `@font-face\\s*\\{[^}]*font-family:\\s*'${family} Fallback'[^}]*\\}`,
+        's',
+      ).exec(css)?.[0]
+      expect(fallback, family).toBeDefined()
+      for (const descriptor of [
+        'size-adjust',
+        'ascent-override',
+        'descent-override',
+        'line-gap-override',
+      ])
+        expect(fallback, `${family} ${descriptor}`).toContain(`${descriptor}:`)
+      expect(fallback).toContain("local('Arial')")
+    }
+    expect(css).toMatch(/--font-display:[^;]*Bricolage Grotesque/)
+    expect(css).toMatch(/--font-sans:[^;]*Instrument Sans/)
+    expect(css).toMatch(/--font-mono:[^;]*ui-monospace/)
+  })
+
+  test('defaults to the system theme in the head script and the toggle', () => {
+    expect(basePage).toContain("let savedTheme = 'system'")
+    expect(basePage).not.toMatch(/savedTheme = 'dark'/)
+    // The system preference is read outside the storage try, so blocked
+    // storage still paints the dark system theme before first paint.
+    expect(basePage.indexOf('matchMedia')).toBeGreaterThan(
+      basePage.indexOf('} catch (_error) {'),
+    )
+    expect(themeToggle).toContain("let preference: ThemePreference = 'system'")
+    expect(themeToggle).toMatch(
+      /value === 'light' \|\| value === 'dark' \? value : 'system'/,
+    )
+  })
+
+  test('shows the section navigation on every viewport in page order', () => {
+    const nav = /<nav\s[^>]*data-section-nav[\s\S]*?<\/nav>/.exec(
+      pageShell,
+    )?.[0]
+    expect(nav).toBeDefined()
+    expect(nav).not.toMatch(/[\s"']hidden[\s"']/)
+    expect(nav).toContain('overflow-x-auto')
+    const ids = [...pageShell.matchAll(/sectionLinks[\s\S]*?\]\s*as const/g)]
+      .flatMap(([block]) => [...block.matchAll(/id:\s*'([^']+)'/g)])
+      .map(([, id]) => id)
+    expect(ids).toEqual([
+      'proyectos',
+      'experiencia',
+      'habilidades',
+      'preguntas-frecuentes',
+      'contacto',
+    ])
+    expect(pageShell).toContain('aria-current')
+    expect(pageShell).toContain('new IntersectionObserver')
+    expect(pageShell).toContain('sticky top-0')
+  })
+
+  test('sizes every shell control to at least 44px and keeps shell text at 12px or more', () => {
+    expect(pageShell).toMatch(
+      /data-section-link[^>]*min-h-11|min-h-11[^>]*data-section-link/s,
+    )
+    expect(themeToggle.match(/min-h-11/g)?.length).toBeGreaterThanOrEqual(2)
+    expect(languageToggle).toContain('min-h-11')
+    expect(languageToggle).toContain('min-w-11')
+    for (const [name, source] of [
+      ['PageShell', pageShell],
+      ['ThemeToggleLite', themeToggle],
+      ['LanguageToggleLite', languageToggle],
+    ] as const) {
+      expect(source, name).not.toMatch(/text-\[(?:[0-9]|1[01])(?:px|\.\d+px)\]/)
+      expect(source, name).not.toMatch(/\bmin-h-(?:8|9|10)\b/)
+    }
+  })
+
+  test('keeps text contrast at 4.5:1 or better in the light and dark themes', () => {
+    const block = (selector: string) =>
+      new RegExp(`${selector}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? ''
+    const parse = (source: string) =>
+      Object.fromEntries(
+        [
+          ...source.matchAll(
+            /--([a-z-]+):\s*([\d.]+)\s+([\d.]+)%\s+([\d.]+)%/g,
+          ),
+        ].map(([, name, h, s, l]) => [name, [Number(h), Number(s), Number(l)]]),
+      ) as Record<string, [number, number, number]>
+    const luminance = ([h, s, l]: [number, number, number]) => {
+      const sat = s / 100
+      const light = l / 100
+      const chroma = (1 - Math.abs(2 * light - 1)) * sat
+      const channel = (n: number) => {
+        const k = (n + h / 30) % 12
+        const value =
+          light - (chroma / 2) * Math.max(-1, Math.min(k - 3, 9 - k, 1))
+        return value <= 0.03928
+          ? value / 12.92
+          : ((value + 0.055) / 1.055) ** 2.4
+      }
+      return 0.2126 * channel(0) + 0.7152 * channel(8) + 0.0722 * channel(4)
+    }
+    const contrast = (
+      a: [number, number, number],
+      b: [number, number, number],
+    ) => {
+      const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+      return (hi! + 0.05) / (lo! + 0.05)
+    }
+    const light = parse(block(':root'))
+    const dark = { ...light, ...parse(block('\\.dark')) }
+    for (const [theme, tokens] of [
+      ['light', light],
+      ['dark', dark],
+    ] as const) {
+      for (const [text, surface] of [
+        ['foreground', 'background'],
+        ['muted-foreground', 'background'],
+        ['muted-foreground', 'muted'],
+        ['muted-foreground', 'surface'],
+        ['primary', 'background'],
+        ['primary', 'muted'],
+        ['primary-foreground', 'primary'],
+        ['success', 'background'],
+      ] as const)
+        expect(
+          contrast(tokens[text]!, tokens[surface]!),
+          `${theme}: ${text} on ${surface}`,
+        ).toBeGreaterThanOrEqual(4.5)
+    }
+    expect(css).toMatch(/--radius:\s*0(?:px|rem)?\s*;/)
   })
 })

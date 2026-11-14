@@ -50,13 +50,17 @@ describe('project toolchain', () => {
   test('uses the compatible Astro 7 graph without losing current-main dependencies', () => {
     expect(packageJson.dependencies).toMatchObject({
       '@astrojs/vercel': '11.0.11',
-      '@fontsource/space-grotesk': '^5.3.0',
+      '@fontsource-variable/bricolage-grotesque': '5.3.0',
+      '@fontsource-variable/instrument-sans': '5.3.0',
       '@tailwindcss/vite': '^4.3.3',
       astro: '7.3.5',
       sharp: '^0.35.5',
       tailwindcss: '^4.3.3',
       vite: '^8.3.5',
     })
+    expect(packageJson.dependencies).not.toHaveProperty(
+      '@fontsource/space-grotesk',
+    )
   })
 
   test('configures Tailwind only through the Vite plugin, without PostCSS or legacy configs', () => {

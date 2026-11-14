@@ -3,8 +3,8 @@ import type { LanguageMetadata } from '@/lib/language-client'
 import '@/styles/globals.css'
 import { getLanguage } from '@/lib/site'
 import HeadSEO from '@/components/HeadSEO.astro'
-import spaceGrotesk400 from '@fontsource/space-grotesk/files/space-grotesk-latin-400-normal.woff2?url'
-import spaceGrotesk600 from '@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff2?url'
+import bricolageGrotesque from '@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url'
+import instrumentSans from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url'
 
 interface Props {
   title?: string
@@ -45,27 +45,32 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
       rel="preload"
-      href={spaceGrotesk400}
+      href={bricolageGrotesque}
       as="font"
       type="font/woff2"
       crossorigin
     />
     <link
       rel="preload"
-      href={spaceGrotesk600}
+      href={instrumentSans}
       as="font"
       type="font/woff2"
       crossorigin
     />
     <script is:inline>
       try {
-        const storedTheme = localStorage.getItem('theme')
-        const savedTheme =
-          storedTheme === 'light' ||
-          storedTheme === 'dark' ||
-          storedTheme === 'system'
-            ? storedTheme
-            : 'dark'
+        let savedTheme = 'system'
+        try {
+          const storedTheme = localStorage.getItem('theme')
+          if (
+            storedTheme === 'light' ||
+            storedTheme === 'dark' ||
+            storedTheme === 'system'
+          )
+            savedTheme = storedTheme
+        } catch (_error) {
+          // Blocked storage keeps the system default, applied below.
+        }
         const systemPrefersDark = window.matchMedia(
           '(prefers-color-scheme: dark)',
         ).matches

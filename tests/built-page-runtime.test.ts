@@ -463,7 +463,15 @@ describe('compiled Solutec removal and retained Tecandu experience', () => {
 describe('compiled portfolio content and contact choices', () => {
   const normalize = (text: string | undefined | null) =>
     text?.replace(/\s+/g, ' ').trim()
-  for (const [path, locale, headline, intro, choices, subjects, footer] of [
+  for (const [
+    path,
+    locale,
+    headline,
+    intro,
+    choices,
+    subjects,
+    retiredFooterCopy,
+  ] of [
     [
       '/',
       'es',
@@ -520,9 +528,10 @@ describe('compiled portfolio content and contact choices', () => {
           return href.searchParams.get('subject')
         }),
       ).toEqual([...subjects])
+      // The footer is minimal now: the call to action lives in the contact section.
       expect(
         normalize(document.querySelector('footer')?.textContent),
-      ).toContain(footer)
+      ).not.toContain(retiredFooterCopy)
       expect(document.body.textContent).not.toMatch(
         /10\+ Years|Clean Hexagonal|Hexagonal/,
       )
@@ -823,7 +832,7 @@ describe('compiled localized theme controls', () => {
             dark ? 'dark' : 'light',
           )
         }
-        expectMode(failure === 'read' ? 'dark' : saved)
+        expectMode(failure === 'read' ? 'system' : saved)
         document
           .querySelector<HTMLButtonElement>('[data-theme-option="system"]')
           ?.click()
@@ -1167,17 +1176,330 @@ describe('compiled home headings and FAQ', () => {
   }
 })
 
-describe('compiled header logo', () => {
+describe('compiled header identity', () => {
   for (const [path, locale] of [
     ['/', 'es'],
     ['/en', 'en'],
   ] as const) {
-    test(`hides the decorative header logo from assistive tech at ${path}`, () => {
+    test(`links the home anchor with the name and role as text, without a logo image at ${path}`, () => {
       const { browser } = openBuiltPage(path, locale)
       const link = browser.document.querySelector('header a[href^="/"]')
-      const logo = link?.querySelector('img')
-      expect(logo?.getAttribute('alt')).toBe('')
+      expect(link?.querySelector('img')).toBeNull()
       expect(link?.textContent).toContain('SergioGMR')
+      expect(link?.textContent).toContain('Tech Lead')
+      expect(link?.getAttribute('href')).toBe(
+        locale === 'es' ? '/#inicio' : '/en#inicio',
+      )
+    })
+
+    test(`shows the identity strip with name, role, location and availability at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const strip = browser.document.querySelector('[data-identity-strip]')
+      const text = strip?.textContent.replace(/\s+/g, ' ') ?? ''
+      expect(text).toContain(PROFESSIONAL_PROFILE.person.name)
+      expect(text).toContain(PROFESSIONAL_PROFILE.person.location[locale])
+      expect(text).toContain('UTC+0/+1')
+      expect(text).toContain(
+        locale === 'es' ? 'Disponible para colaborar' : 'Open to collaborate',
+      )
+      expect(strip?.closest('header')).toBeNull()
+    })
+
+    test(`keeps a minimal footer with the mail and profile links and no call to action at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const footer = browser.document.querySelector('footer')
+      const hrefs = Array.from(footer?.querySelectorAll('a') ?? []).map(
+        (link) => link.getAttribute('href'),
+      )
+      // The verifier requires the plain mail link on every page, legal ones included.
+      expect(hrefs).toEqual([
+        'mailto:sergiogmr+portfolio@icloud.com',
+        'https://x.com/sergiogmr',
+        'https://www.linkedin.com/in/sergiogmr',
+        'https://github.com/sergiogmr',
+        'https://github.com/sergiogmr/portfolio',
+      ])
+      expect(footer?.querySelector('[data-animate]')).toBeNull()
+      for (const link of footer?.querySelectorAll('a') ?? []) {
+        expect(link.className).toContain('min-h-11')
+        // WCAG 2.5.3: the accessible name contains the visible label.
+        const visible = link.textContent.replace(/\s+/g, ' ').trim()
+        expect(visible).not.toBe('')
+        expect(link.getAttribute('aria-label')).toContain(visible)
+      }
+    })
+  }
+})
+
+describe('compiled section navigation', () => {
+  const pagesByLocale = [
+    ['/', 'es', 'Navegación principal', '/'],
+    ['/en', 'en', 'Primary navigation', '/en'],
+  ] as const
+  const sections = [
+    'proyectos',
+    'experiencia',
+    'habilidades',
+    'preguntas-frecuentes',
+    'contacto',
+  ]
+  const labels = {
+    es: ['Proyectos', 'Experiencia', 'Stack', 'FAQ', 'Contacto'],
+    en: ['Projects', 'Experience', 'Stack', 'FAQ', 'Contact'],
+  }
+
+  for (const [path, locale, label, home] of pagesByLocale) {
+    test(`lists the numbered sections in page order, FAQ included, at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const nav = browser.document.querySelector(
+        `header nav[aria-label="${label}"]`,
+      )
+      expect(nav).not.toBeNull()
+      const links = Array.from(nav!.querySelectorAll('a'))
+      expect(links.map((link) => link.getAttribute('href'))).toEqual(
+        sections.map((id) => `${home}#${id}`),
+      )
+      expect(
+        links.map(
+          (link) => link.querySelector('[aria-hidden="true"]')?.textContent,
+        ),
+      ).toEqual(labels[locale].map((_, index) => `0${index + 1}`))
+      expect(
+        links.map((link) =>
+          link
+            .querySelector('[data-lang-content]')
+            ?.textContent.replace(/\s+/g, ' ')
+            .trim(),
+        ),
+      ).toEqual([...labels[locale]])
+      // The nav order is the order of the sections in the compiled DOM.
+      expect(
+        Array.from(browser.document.querySelectorAll('main section[id]'))
+          .map((section) => section.id)
+          .filter((id) => sections.includes(id)),
+      ).toEqual(sections)
+    })
+
+    test(`keeps the section nav visible and scrollable on mobile at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale)
+      const header = browser.document.querySelector('header')!
+      expect(header.className).toContain('sticky')
+      expect(header.className).toContain('top-0')
+      const nav = header.querySelector(`nav[aria-label="${label}"]`)!
+      expect(nav.closest('.hidden') === null).toBe(true)
+      expect(nav.className).toContain('overflow-x-auto')
+      for (const link of nav.querySelectorAll('a')) {
+        expect(link.className).toContain('min-h-11')
+        expect(link.className).toContain('whitespace-nowrap')
+        // The nav scrolls (overflow-x-auto), which would clip the global +3px
+        // focus ring, so the ring is drawn inside the link.
+        expect(link.className).toContain('focus-visible:-outline-offset-2')
+        expect(link.className).toContain('focus-visible:outline-2')
+        expect(link.className).toContain('focus-visible:outline-ring')
+      }
+    })
+
+    test(`marks the section in view with aria-current from the observer at ${path}`, () => {
+      const observers: {
+        callback: (entries: unknown[]) => void
+        observed: { id: string }[]
+      }[] = []
+      const { browser } = openBuiltPage(path, locale, (browser) => {
+        ;(browser as unknown as Record<string, unknown>).IntersectionObserver =
+          class {
+            observed: { id: string }[] = []
+            constructor(callback: (entries: unknown[]) => void) {
+              observers.push({ callback, observed: this.observed })
+            }
+            observe(element: { id: string }) {
+              this.observed.push(element)
+            }
+            unobserve() {}
+            disconnect() {}
+          } as never
+      })
+      const document = browser.document
+      // happy-dom does not run inline classic scripts from document.write.
+      const script = Array.from(document.querySelectorAll('script')).find(
+        (candidate) => candidate.textContent.includes('trackSection'),
+      )
+      expect(script, 'the shell script is inlined').toBeDefined()
+      browser.eval(script!.textContent)
+      const current = () =>
+        Array.from(
+          document.querySelectorAll('[data-section-link][aria-current]'),
+        ).map((link) => link.getAttribute('href')?.split('#')[1])
+      const spy = observers.find(({ observed }) =>
+        observed.some((element) => element.id === 'proyectos'),
+      )
+      expect(spy, 'a section observer is registered').toBeDefined()
+      expect(current()).toEqual([])
+      const report = (id: string, isIntersecting: boolean) =>
+        spy!.callback([{ target: document.getElementById(id), isIntersecting }])
+      report('experiencia', true)
+      expect(current()).toEqual(['experiencia'])
+      report('habilidades', true)
+      expect(current()).toEqual(['experiencia'])
+      report('experiencia', false)
+      expect(current()).toEqual(['habilidades'])
+      report('preguntas-frecuentes', true)
+      report('habilidades', false)
+      expect(current()).toEqual(['preguntas-frecuentes'])
+      report('inicio', true)
+      expect(current()).toEqual([])
+    })
+  }
+
+  test('lists the same sections on a case-study page without marking any as current', () => {
+    const { browser } = openBuiltPage('/proyectos/jauntjar', 'es')
+    const links = Array.from(
+      browser.document.querySelectorAll('header nav[aria-label] a'),
+    ).filter((link) => link.getAttribute('href')?.startsWith('/#'))
+    expect(links.map((link) => link.getAttribute('href'))).toEqual(
+      sections.map((id) => `/#${id}`),
+    )
+    expect(
+      browser.document.querySelector('[data-section-link][aria-current]'),
+    ).toBeNull()
+  })
+})
+
+describe('compiled font loading', () => {
+  const homes = ['dist/index.html', 'dist/en/index.html']
+  const stylesheet = () =>
+    readdirSync(new URL('dist/_astro/', root))
+      .filter((name) => name.endsWith('.css'))
+      .map((name) => readFileSync(new URL(`dist/_astro/${name}`, root), 'utf8'))
+      .join('\n')
+
+  for (const file of homes) {
+    test(`preloads exactly the two Latin variable fonts after the viewport at ${file}`, () => {
+      const html = readFileSync(new URL(file, root), 'utf8')
+      const preloads = [...html.matchAll(/<link rel="preload"[^>]*>/g)].map(
+        ([tag]) => tag,
+      )
+      expect(preloads).toHaveLength(2)
+      expect(preloads.join('')).toMatch(
+        /\/_astro\/bricolage-grotesque-latin-wght-normal\.[\w-]+\.woff2/,
+      )
+      expect(preloads.join('')).toMatch(
+        /\/_astro\/instrument-sans-latin-wght-normal\.[\w-]+\.woff2/,
+      )
+      for (const tag of preloads) {
+        expect(tag).toContain('as="font"')
+        expect(tag).toContain('type="font/woff2"')
+        expect(tag).toContain('crossorigin')
+      }
+      expect(html.indexOf('name="viewport"')).toBeGreaterThan(-1)
+      expect(html.indexOf(preloads[0]!)).toBeGreaterThan(
+        html.indexOf('name="viewport"'),
+      )
+      expect(html).not.toContain('space-grotesk')
+    })
+  }
+
+  test('emits the self-hosted faces and both metric-matched fallbacks', () => {
+    const css = stylesheet()
+    expect(css).not.toMatch(/space-grotesk|Space Grotesk/i)
+    expect(css).toMatch(/font-family:\s*["']?Bricolage Grotesque Variable["']?/)
+    expect(css).toMatch(/font-family:\s*["']?Instrument Sans Variable["']?/)
+    for (const family of ['Bricolage Grotesque', 'Instrument Sans']) {
+      const fallback = new RegExp(
+        `@font-face\\s*\\{[^}]*${family} Fallback[^}]*\\}`,
+      ).exec(css)?.[0]
+      expect(fallback, family).toBeDefined()
+      for (const descriptor of [
+        'size-adjust',
+        'ascent-override',
+        'descent-override',
+        'line-gap-override',
+      ])
+        expect(fallback, `${family} ${descriptor}`).toContain(`${descriptor}:`)
+    }
+    for (const font of readdirSync(new URL('dist/_astro/', root)).filter(
+      (name) => name.endsWith('.woff2'),
+    ))
+      expect(font).toMatch(/^(?:bricolage-grotesque|instrument-sans)-latin-/)
+  })
+})
+
+describe('compiled default theme', () => {
+  for (const [path, locale] of [
+    ['/', 'es'],
+    ['/en', 'en'],
+  ] as const) {
+    for (const systemDark of [true, false]) {
+      test(`follows the system when nothing is stored (system ${systemDark ? 'dark' : 'light'}) at ${path}`, () => {
+        const { browser } = openBuiltPage(path, locale, (browser) => {
+          const query = browser.matchMedia('(prefers-color-scheme: dark)')
+          Object.defineProperty(query, 'matches', { get: () => systemDark })
+          browser.matchMedia = () => query
+        })
+        const root = browser.document.documentElement
+        expect(root.classList.contains('dark')).toBe(systemDark)
+        expect(root.style.colorScheme).toBe(systemDark ? 'dark' : 'light')
+        expect(
+          browser.document.querySelector<HTMLSelectElement>(
+            '[data-theme-select]',
+          )?.value,
+        ).toBe('system')
+        expect(
+          browser.document
+            .querySelector('[data-theme-option="system"]')
+            ?.getAttribute('aria-pressed'),
+        ).toBe('true')
+      })
+    }
+  }
+})
+
+describe('compiled default theme fallbacks', () => {
+  const headScript = (document: Window['document']) =>
+    Array.from(document.querySelectorAll('script')).find((candidate) =>
+      candidate.textContent.includes('storedTheme'),
+    )!.textContent
+
+  for (const [path, locale] of [
+    ['/', 'es'],
+    ['/en', 'en'],
+  ] as const) {
+    test(`treats an invalid stored theme as system at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale, (browser) => {
+        browser.localStorage.setItem('theme', 'blue')
+        const query = browser.matchMedia('(prefers-color-scheme: dark)')
+        Object.defineProperty(query, 'matches', { get: () => true })
+        browser.matchMedia = () => query
+      })
+      const document = browser.document
+      expect(
+        document.querySelector<HTMLSelectElement>('[data-theme-select]')?.value,
+      ).toBe('system')
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+      // The head script resolves the same way before the toggle module runs.
+      document.documentElement.classList.remove('dark')
+      browser.eval(headScript(document))
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+    })
+
+    test(`paints the system theme from the head script when storage reads fail at ${path}`, () => {
+      const { browser } = openBuiltPage(path, locale, (browser) => {
+        Object.defineProperty(browser.localStorage, 'getItem', {
+          value: () => {
+            throw new Error('Storage blocked')
+          },
+        })
+        const query = browser.matchMedia('(prefers-color-scheme: dark)')
+        Object.defineProperty(query, 'matches', { get: () => true })
+        browser.matchMedia = () => query
+      })
+      const document = browser.document
+      // Only the head script runs before first paint, so it must not leave the
+      // light theme behind when a dark system cannot be overridden by storage.
+      document.documentElement.classList.remove('dark')
+      document.documentElement.style.colorScheme = ''
+      browser.eval(headScript(document))
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+      expect(document.documentElement.style.colorScheme).toBe('dark')
     })
   }
 })
